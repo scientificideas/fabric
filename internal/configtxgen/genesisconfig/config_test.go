@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go/orderer/etcdraft"
+	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/viperutil"
 	"github.com/hyperledger/fabric/core/config/configtest"
 	"github.com/stretchr/testify/require"
@@ -267,6 +268,127 @@ func TestConsensusSpecificInit(t *testing.T) {
 				})
 			})
 		})
+	})
+
+	t.Run("smartbft", func(t *testing.T) {
+		makeProfile := func(consenters []*smartbft.Consenter, options *smartbft.Options) *Profile {
+			return &Profile{
+				Orderer: &Orderer{
+					OrdererType: "smartbft",
+					SmartBFT: &smartbft.ConfigMetadata{
+						Consenters: consenters,
+						Options:    options,
+					},
+				},
+			}
+		}
+
+		t.Run("No Smart BFT configuration provided", func(t *testing.T) {
+			profile := makeProfile(nil, nil)
+			profile.Orderer.SmartBFT = nil
+
+			require.Panics(t, func() {
+				profile.completeInitialization(devConfigDir)
+			})
+		})
+
+		t.Run("nil consenter set", func(t *testing.T) { // should panic
+			profile := makeProfile(nil, nil)
+
+			require.Panics(t, func() {
+				profile.completeInitialization(devConfigDir)
+			})
+		})
+
+		t.Run("single consenter", func(t *testing.T) {
+			consenters := []*smartbft.Consenter{
+				{
+					Host:          "node-1.example.com",
+					Port:          7050,
+					ClientTlsCert: []byte("path/to/client/cert"),
+					ServerTlsCert: []byte("path/to/server/cert"),
+					MspId:         "Org1",
+					Identity:      []byte("path/to/indentity/cert"),
+				},
+			}
+
+			t.Run("invalid consenters specification", func(t *testing.T) {
+				failingConsenterSpecifications := []*smartbft.Consenter{
+					{ // missing Host
+						Port:          7050,
+						ClientTlsCert: []byte("path/to/client/cert"),
+						ServerTlsCert: []byte("path/to/server/cert"),
+						MspId:         "Org1",
+						Identity:      []byte("path/to/indentity/cert"),
+					},
+					{ // missing Port
+						Port:          7050,
+						ClientTlsCert: []byte("path/to/client/cert"),
+						ServerTlsCert: []byte("path/to/server/cert"),
+						MspId:         "Org1",
+						Identity:      []byte("path/to/indentity/cert"),
+					},
+					{ // missing ClientTlsCert
+						Host:          "node-1.example.com",
+						Port:          7050,
+						ServerTlsCert: []byte("path/to/server/cert"),
+						MspId:         "Org1",
+						Identity:      []byte("path/to/indentity/cert"),
+					},
+					{ // missing ServerTlsCert
+						Host:          "node-1.example.com",
+						Port:          7050,
+						ClientTlsCert: []byte("path/to/client/cert"),
+						MspId:         "Org1",
+						Identity:      []byte("path/to/indentity/cert"),
+					},
+					{ // missing identity cert
+						Host:          "node-1.example.com",
+						Port:          7050,
+						ClientTlsCert: []byte("path/to/client/cert"),
+						ServerTlsCert: []byte("path/to/server/cert"),
+						MspId:         "Org1",
+					},
+					{ // missing msp id
+						Host:          "node-1.example.com",
+						Port:          7050,
+						ClientTlsCert: []byte("path/to/client/cert"),
+						ServerTlsCert: []byte("path/to/server/cert"),
+						Identity:      []byte("path/to/indentity/cert"),
+					},
+				}
+
+				for _, consenter := range failingConsenterSpecifications {
+					profile := makeProfile([]*smartbft.Consenter{consenter}, nil)
+
+					require.Panics(t, func() {
+						profile.completeInitialization(devConfigDir)
+					})
+				}
+			})
+
+			t.Run("nil Options", func(t *testing.T) {
+				profile := makeProfile(consenters, nil)
+				profile.completeInitialization(devConfigDir)
+
+				// need not be tested in subsequent tests
+				require.NotNil(t, profile.Orderer.SmartBFT, "SmartBFT config settings should be set")
+				require.Equal(t, profile.Orderer.SmartBFT.Consenters[0].ClientTlsCert, consenters[0].ClientTlsCert,
+					"Client TLS cert path should be correctly set")
+				require.Equal(t, profile.Orderer.SmartBFT.Consenters[0].ServerTlsCert, consenters[0].ServerTlsCert,
+					"Server TLS cert path should be correctly set")
+				require.Equal(t, profile.Orderer.SmartBFT.Consenters[0].Identity, consenters[0].Identity,
+					"Consenter identity cert path should be correctly set")
+				require.Equal(t, profile.Orderer.SmartBFT.Consenters[0].MspId, consenters[0].MspId,
+					"Consenter MSP ID should be correctly set")
+
+				// specific assertion for this test context
+				require.Equal(t, profile.Orderer.SmartBFT.Options, genesisDefaults.Orderer.SmartBFT.Options,
+					"Options should be set to the default value")
+			})
+
+		})
+
 	})
 }
 

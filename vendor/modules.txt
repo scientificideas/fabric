@@ -22,6 +22,9 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
+# github.com/SmartBFT-Go/consensus v0.0.0-20200305092142-48c132f58ce8
+## explicit
+github.com/SmartBFT-Go/consensus/smartbftprotos
 # github.com/VictoriaMetrics/fastcache v1.5.7
 ## explicit
 github.com/VictoriaMetrics/fastcache
@@ -185,7 +188,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354
+# github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354 => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201111140158-788146987163
 ## explicit
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -196,6 +199,7 @@ github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset
 github.com/hyperledger/fabric-protos-go/msp
 github.com/hyperledger/fabric-protos-go/orderer
 github.com/hyperledger/fabric-protos-go/orderer/etcdraft
+github.com/hyperledger/fabric-protos-go/orderer/smartbft
 github.com/hyperledger/fabric-protos-go/peer
 github.com/hyperledger/fabric-protos-go/peer/lifecycle
 github.com/hyperledger/fabric-protos-go/transientstore
@@ -496,4 +500,6 @@ gopkg.in/tomb.v1
 # gopkg.in/yaml.v2 v2.3.0
 ## explicit
 gopkg.in/yaml.v2
+# github.com/hyperledger/fabric => ./
+# github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201111140158-788146987163
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380

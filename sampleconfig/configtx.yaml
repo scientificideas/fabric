@@ -362,6 +362,40 @@ Orderer: &OrdererDefaults
             # SnapshotIntervalSize defines number of bytes per which a snapshot is taken
             SnapshotIntervalSize: 16 MB
 
+    # SmartBFT defines configuration which must be set when the "smartbft"
+    # orderertype is chosen.
+    SmartBFT:
+        # The set of BFT replicas for this network.
+        Consenters:
+            - Host: smartbft1.example.com
+              Port: 7050
+              ClientTLSCert: path/to/ClientTLSCert1
+              ServerTLSCert: path/to/ServerTLSCert1
+              MSPID: OrdererOrg1
+              Identity: path/to/OSN/signcert1
+              ConsenterId: 1
+            - Host: smartbft2.example.com
+              Port: 7050
+              ClientTLSCert: path/to/ClientTLSCert2
+              ServerTLSCert: path/to/ServerTLSCert2
+              MSPID: OrdererOrg2
+              Identity: path/to/OSN/signcert2
+              ConsenterId: 2
+            - Host: smartbft3.example.com
+              Port: 7050
+              ClientTLSCert: path/to/ClientTLSCert3
+              ServerTLSCert: path/to/ServerTLSCert3
+              MSPID: OrdererOrg3
+              Identity: path/to/OSN/signcert3
+              ConsenterId: 3
+            - Host: smartbft4.example.com
+              Port: 7050
+              ClientTLSCert: path/to/ClientTLSCert4
+              ServerTLSCert: path/to/ServerTLSCert4
+              MSPID: OrdererOrg4
+              Identity: path/to/OSN/signcert4
+              ConsenterId: 4
+
     # Organizations lists the orgs participating on the orderer side of the
     # network.
     Organizations:

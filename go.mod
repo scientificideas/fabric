@@ -2,6 +2,11 @@ module github.com/hyperledger/fabric
 
 go 1.14
 
+// develop
+replace github.com/hyperledger/fabric => ./
+
+replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201111140158-788146987163
+
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 
@@ -12,6 +17,7 @@ require (
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/Shopify/sarama v1.20.1
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
+	github.com/SmartBFT-Go/consensus v0.0.0-20200305092142-48c132f58ce8
 	github.com/VictoriaMetrics/fastcache v1.5.7
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect

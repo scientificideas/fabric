@@ -1049,6 +1049,51 @@ func TestInitializeEtcdraftConsenter(t *testing.T) {
 	require.NotNil(t, consenters["etcdraft"])
 }
 
+func TestInitializeSmartBFTConsenter(t *testing.T) {
+	consenters := make(map[string]consensus.Consenter)
+
+	tmpdir, err := ioutil.TempDir("", "main_test-")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+	rlf, err := fileledger.New(tmpdir, &disabled.Provider{})
+	require.NoError(t, err)
+
+	conf := genesisconfig.Load(genesisconfig.SampleInsecureSoloProfile, configtest.GetDevConfigDir())
+	genesisBlock := encoder.New(conf).GenesisBlock()
+
+	ca, _ := tlsgen.NewCA()
+	crt, _ := ca.NewServerCertKeyPair("127.0.0.1")
+
+	srv, err := comm.NewGRPCServer("127.0.0.1:0", comm.ServerConfig{})
+	require.NoError(t, err)
+
+	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
+	require.NoError(t, err)
+
+	initializeSmartBFTConsenter(
+		&server_mocks.SignerSerializer{},
+		&DynamicPolicyManagerRegistry{},
+		consenters,
+		&localconfig.TopLevel{},
+		rlf,
+		&cluster.PredicateDialer{},
+		genesisBlock,
+		onboarding.NewReplicationInitiator(rlf, genesisBlock, nil, comm.SecureOptions{}, nil, cryptoProvider),
+		comm.ServerConfig{
+			SecOpts: comm.SecureOptions{
+				Certificate: crt.Cert,
+				Key:         crt.Key,
+				UseTLS:      true,
+			},
+		},
+		srv,
+		&multichannel.Registrar{},
+		&disabled.Provider{},
+	)
+
+	require.NotNil(t, consenters["smartbft"])
+}
+
 func genesisConfig(t *testing.T, genesisFile string) (*localconfig.TopLevel, string) {
 	t.Helper()
 	localMSPDir := configtest.GetDevMspDir()

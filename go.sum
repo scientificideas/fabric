@@ -17,6 +17,8 @@ github.com/Shopify/sarama v1.20.1 h1:Bb0h3I++r4eX333Y0uZV2vwUXepJbt6ig05TUU1qt9I
 github.com/Shopify/sarama v1.20.1/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWsokNbMijUGhmcoBJc=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
+github.com/SmartBFT-Go/consensus v0.0.0-20200305092142-48c132f58ce8 h1:+ZjaP76v54y13lhzy79pmSJAoJMxdn6Shxr9XEaCfTU=
+github.com/SmartBFT-Go/consensus v0.0.0-20200305092142-48c132f58ce8/go.mod h1:Eh46RwKBKhNqpPYdqTZGsuaxj6zhJETUd8xb0Q6tHFc=
 github.com/VictoriaMetrics/fastcache v1.5.7 h1:4y6y0G8PRzszQUYIQHHssv/jgPHAb5qQuuDNdCbyAgw=
 github.com/VictoriaMetrics/fastcache v1.5.7/go.mod h1:ptDBkNMQI4RtmVo8VS/XwRY6RoTu1dAWCbrk+6WsEM8=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
@@ -275,6 +277,8 @@ github.com/urfave/cli v1.18.0/go.mod h1:70zkFmudgCuE/ngEzBv17Jvp/497gISqfk5gWijb
 github.com/willf/bitset v1.1.10 h1:NotGKqX0KwQ72NUzqrjZq5ipPNDQex9lo3WpaS8L2sc=
 github.com/willf/bitset v1.1.10/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
 github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
+gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201111140158-788146987163 h1:2iUaJSPzsXGdRSNloQ1Po44Es6xRNWy8X6YKUIw5/II=
+gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201111140158-788146987163/go.mod h1:Yksg2bQTVYqFC/rLEP+p8LQLV3mGovNtHjh0KvhB3AM=
 go.etcd.io/bbolt v1.3.1-etcd.7/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55 h1:YTC92EdyM9lnD0aVRqN28/CILPLZSzdmoomOFAjxBbk=
 go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55/go.mod h1:weASp41xM3dk0YHg1s/W8ecdGP5G4teSTMBPpYAaUgA=

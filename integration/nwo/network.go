@@ -101,10 +101,11 @@ func (o Orderer) ID() string {
 // Peer defines a peer instance, it's owning organization, and the list of
 // channels that the peer should be joined to.
 type Peer struct {
-	Name         string         `yaml:"name,omitempty"`
-	DevMode      bool           `yaml:"devmode,omitempty"`
-	Organization string         `yaml:"organization,omitempty"`
-	Channels     []*PeerChannel `yaml:"channels,omitempty"`
+	Name              string         `yaml:"name,omitempty"`
+	DevMode           bool           `yaml:"devmode,omitempty"`
+	Organization      string         `yaml:"organization,omitempty"`
+	Channels          []*PeerChannel `yaml:"channels,omitempty"`
+	BFTDeliveryClient bool           `yaml:"bftdeliveryclient,omitempty"`
 }
 
 // PeerChannel names of the channel a peer should be joined to and whether or
@@ -589,6 +590,26 @@ func (n *Network) PeerCert(p *Peer) string {
 		"signcerts",
 		fmt.Sprintf("%s.%s-cert.pem", p.Name, org.Domain),
 	)
+}
+
+// OrdererCert returns the path to the orderer's certificate.
+func (n *Network) OrdererCert(o *Orderer) string {
+	org := n.Organization(o.Organization)
+	Expect(org).NotTo(BeNil())
+
+	return filepath.Join(
+		n.OrdererLocalMSPDir(o),
+		"signcerts",
+		fmt.Sprintf("%s.%s-cert.pem", o.Name, org.Domain),
+	)
+}
+
+// OrdererMSPID returns orderer's MSPID
+func (n *Network) OrdererMSPID(o *Orderer) string {
+	org := n.Organization(o.Organization)
+	Expect(org).NotTo(BeNil())
+
+	return org.MSPID
 }
 
 // PeerOrgMSPDir returns the path to the MSP directory of the Peer organization.

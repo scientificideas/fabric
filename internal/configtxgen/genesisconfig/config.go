@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/hyperledger/fabric-protos-go/orderer/etcdraft"
+	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/viperutil"
 	cf "github.com/hyperledger/fabric/core/config"
@@ -23,6 +24,9 @@ import (
 const (
 	// The type key for etcd based RAFT consensus.
 	EtcdRaft = "etcdraft"
+
+	// The type key for BFT Smart consensus
+	SmartBFT = "smartbft"
 )
 
 var logger = flogging.MustGetLogger("common.tools.configtxgen.localconfig")
@@ -148,6 +152,7 @@ type Orderer struct {
 	BatchSize     BatchSize                `yaml:"BatchSize"`
 	Kafka         Kafka                    `yaml:"Kafka"`
 	EtcdRaft      *etcdraft.ConfigMetadata `yaml:"EtcdRaft"`
+	SmartBFT      *smartbft.ConfigMetadata `yaml:"SmartBFT"`
 	Organizations []*Organization          `yaml:"Organizations"`
 	MaxChannels   uint64                   `yaml:"MaxChannels"`
 	Capabilities  map[string]bool          `yaml:"Capabilities"`
@@ -185,6 +190,11 @@ var genesisDefaults = TopLevel{
 				HeartbeatTick:        1,
 				MaxInflightBlocks:    5,
 				SnapshotIntervalSize: 16 * 1024 * 1024, // 16 MB
+			},
+		},
+		SmartBFT: &smartbft.ConfigMetadata{
+			Consenters: []*smartbft.Consenter{
+				{},
 			},
 		},
 	},
@@ -396,6 +406,52 @@ loop:
 			serverCertPath := string(c.GetServerTlsCert())
 			cf.TranslatePathInPlace(configDir, &serverCertPath)
 			c.ServerTlsCert = []byte(serverCertPath)
+		}
+	case SmartBFT:
+		if ord.SmartBFT == nil {
+			logger.Panicf("%s configuration missing", SmartBFT)
+		}
+		if ord.SmartBFT.Options == nil {
+			logger.Infof("Orderer.SmartBFT.Options unset, setting to %v", genesisDefaults.Orderer.SmartBFT.Options)
+			ord.SmartBFT.Options = genesisDefaults.Orderer.SmartBFT.Options
+		}
+
+		if len(ord.SmartBFT.Consenters) == 0 {
+			logger.Panicf("%s configuration did not specify any consenter", SmartBFT)
+		}
+
+		for _, c := range ord.SmartBFT.GetConsenters() {
+			if c.Host == "" {
+				logger.Panicf("consenter info in %s configuration did not specify host", SmartBFT)
+			}
+			if c.Port == 0 {
+				logger.Panicf("consenter info in %s configuration did not specify port", SmartBFT)
+			}
+			if c.ClientTlsCert == nil {
+				logger.Panicf("consenter info in %s configuration did not specify client TLS cert", SmartBFT)
+			}
+			if c.ServerTlsCert == nil {
+				logger.Panicf("consenter info in %s configuration did not specify server TLS cert", SmartBFT)
+			}
+			if len(c.MspId) == 0 {
+				logger.Panicf("consenter info in %s configuration did not specify MSP ID", SmartBFT)
+			}
+			if len(c.Identity) == 0 {
+				logger.Panicf("consenter info in %s configuration did not specify identity certificate", SmartBFT)
+			}
+
+			// Path to the client TLS cert
+			clientCertPath := string(c.GetClientTlsCert())
+			cf.TranslatePathInPlace(configDir, &clientCertPath)
+			c.ClientTlsCert = []byte(clientCertPath)
+			// Path to the server TLS cert
+			serverCertPath := string(c.GetServerTlsCert())
+			cf.TranslatePathInPlace(configDir, &serverCertPath)
+			c.ServerTlsCert = []byte(serverCertPath)
+			// Path to the identity cert
+			identityCertPath := string(c.GetIdentity())
+			cf.TranslatePathInPlace(configDir, &identityCertPath)
+			c.Identity = []byte(identityCertPath)
 		}
 	default:
 		logger.Panicf("unknown orderer type: %s", ord.OrdererType)
