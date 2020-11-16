@@ -819,11 +819,8 @@ func initializeMultichannelRegistrar(
 
 		} else if bootstrapBlock == nil {
 			// without a system channel: assume cluster type, InactiveChainRegistry == nil, no go-routine.
-
-			//todo: update to v2.3 first
-			//bootstrapJoinBlock = initSystemChannelWithJoinBlock(conf, bccsp, lf)
-			//consenterType := consensusType(bootstrapJoinBlock, bccsp)
-			consenterType := "etcdraft"
+			bootstrapJoinBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf)
+			consenterType := consensusType(bootstrapJoinBlock, bccsp)
 
 			switch consenterType {
 			case "etcdraft":
