@@ -819,14 +819,19 @@ func initializeMultichannelRegistrar(
 
 		} else if bootstrapBlock == nil {
 			// without a system channel: assume cluster type, InactiveChainRegistry == nil, no go-routine.
-			bootstrapJoinBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf)
-			consenterType := consensusType(bootstrapJoinBlock, bccsp)
+			consenterType := "etcdraft"
 
+			// search a join block for a system channel
+			if bootstrapBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf); bootstrapBlock != nil {
+				consenterType = consensusType(bootstrapBlock, bccsp)
+			}
+
+			// the orderer can start without channels at all and have an initialized cluster type consenter
 			switch consenterType {
 			case "etcdraft":
 				consenters["etcdraft"] = etcdraft.New(clusterDialer, conf, srvConf, srv, registrar, nil, metricsProvider, bccsp)
 			case "smartbft":
-				consenters["smartbft"] = smartbft.New(icr, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider)
+				consenters["smartbft"] = smartbft.New(nil, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider)
 			default:
 				logger.Panicf("Unknown cluster type consenter")
 			}
