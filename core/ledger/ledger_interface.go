@@ -157,6 +157,9 @@ type PeerLedgerProvider interface {
 // that tells apart valid transactions from invalid ones
 type PeerLedger interface {
 	commonledger.Ledger
+	// TxIDExists returns true if the specified txID is already present in one of the already committed blocks.
+	// This function returns error only if there is an underlying condition that prevents checking for the txID, such as an I/O error.
+	TxIDExists(txID string) (bool, error)
 	// GetTransactionByID retrieves a transaction by id
 	GetTransactionByID(txID string) (*peer.ProcessedTransaction, error)
 	// GetBlockByHash returns a block given it's hash
@@ -215,18 +218,6 @@ type PeerLedger interface {
 	CancelSnapshotRequest(height uint64) error
 	// PendingSnapshotRequests returns a list of heights for the pending (or under processing) snapshot requests.
 	PendingSnapshotRequests() ([]uint64, error)
-	// ListSnapshots returns the information for available snapshots.
-	// It returns a list of strings representing the following JSON object:
-	// type snapshotSignableMetadata struct {
-	//    ChannelName        string            `json:"channel_name"`
-	//    ChannelHeight      uint64            `json:"channel_height"`
-	//    LastBlockHashInHex string            `json:"last_block_hash"`
-	//    FilesAndHashes     map[string]string `json:"snapshot_files_raw_hashes"`
-	// }
-	ListSnapshots() ([]string, error)
-	// DeleteSnapshot deletes the snapshot files except the metadata file.
-	// It returns an error if no such a snapshot exists.
-	DeleteSnapshot(height uint64) error
 }
 
 // SimpleQueryExecutor encapsulates basic functions
@@ -580,25 +571,6 @@ func (missingPvtDataInfo MissingPvtDataInfo) Add(blkNum, txNum uint64, ns, coll 
 		&MissingCollectionPvtDataInfo{
 			Namespace:  ns,
 			Collection: coll})
-}
-
-// ErrCollectionConfigNotYetAvailable is an error which is returned from the function
-// ConfigHistoryRetriever.CollectionConfigAt() if the latest block number committed
-// is lower than the block number specified in the request.
-type ErrCollectionConfigNotYetAvailable struct {
-	MaxBlockNumCommitted uint64
-	Msg                  string
-}
-
-func (e *ErrCollectionConfigNotYetAvailable) Error() string {
-	return e.Msg
-}
-
-// NotFoundInIndexErr is used to indicate missing entry in the index
-type NotFoundInIndexErr string
-
-func (NotFoundInIndexErr) Error() string {
-	return "Entry not found in index"
 }
 
 // CollConfigNotDefinedError is returned whenever an operation

@@ -36,6 +36,7 @@ import (
 	"github.com/hyperledger/fabric/core/ledger/kvledger/msgs"
 	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statedb/statecouchdb"
 	"github.com/hyperledger/fabric/core/ledger/mock"
+	"github.com/hyperledger/fabric/internal/fileutil"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/require"
 )
@@ -449,7 +450,7 @@ func TestSnapshotCouchDBIndexCreation(t *testing.T) {
 }
 
 func TestSnapshotDirPaths(t *testing.T) {
-	require.Equal(t, "/peerFSPath/snapshotRootDir/underConstruction", InProgressSnapshotsPath("/peerFSPath/snapshotRootDir"))
+	require.Equal(t, "/peerFSPath/snapshotRootDir/temp", SnapshotsTempDirPath("/peerFSPath/snapshotRootDir"))
 	require.Equal(t, "/peerFSPath/snapshotRootDir/completed", CompletedSnapshotsPath("/peerFSPath/snapshotRootDir"))
 	require.Equal(t, "/peerFSPath/snapshotRootDir/completed/myLedger", SnapshotsDirForLedger("/peerFSPath/snapshotRootDir", "myLedger"))
 	require.Equal(t, "/peerFSPath/snapshotRootDir/completed/myLedger/2000", SnapshotDirForLedgerBlockNum("/peerFSPath/snapshotRootDir", "myLedger", 2000))
@@ -463,7 +464,7 @@ func TestSnapshotDirPathsCreation(t *testing.T) {
 		provider.Close()
 	}()
 
-	inProgressSnapshotsPath := InProgressSnapshotsPath(conf.SnapshotsConfig.RootDir)
+	inProgressSnapshotsPath := SnapshotsTempDirPath(conf.SnapshotsConfig.RootDir)
 	completedSnapshotsPath := CompletedSnapshotsPath(conf.SnapshotsConfig.RootDir)
 
 	// verify that upon first time start, kvledgerProvider creates an empty temp dir and an empty final dir for the snapshots
@@ -555,7 +556,7 @@ func TestGenerateSnapshotErrors(t *testing.T) {
 	t.Run("snapshot tmp dir creation returns error", func(t *testing.T) {
 		closeAndReopenLedgerProvider()
 		require.NoError(t, os.RemoveAll( // remove the base tempdir so that the snapshot tempdir creation fails
-			InProgressSnapshotsPath(conf.SnapshotsConfig.RootDir),
+			SnapshotsTempDirPath(conf.SnapshotsConfig.RootDir),
 		))
 		err := kvlgr.generateSnapshot()
 		require.Error(t, err)
@@ -603,6 +604,17 @@ func TestGenerateSnapshotErrors(t *testing.T) {
 		)
 		err := kvlgr.generateSnapshot()
 		require.Contains(t, err.Error(), "error while renaming dir")
+	})
+
+	t.Run("deletes the temp folder upon error", func(t *testing.T) {
+		closeAndReopenLedgerProvider()
+		provider.blkStoreProvider.Close() // close the blockstore provider to trigger an error
+		err := kvlgr.generateSnapshot()
+		require.Error(t, err)
+
+		empty, err := fileutil.DirEmpty(SnapshotsTempDirPath(conf.SnapshotsConfig.RootDir))
+		require.NoError(t, err)
+		require.True(t, empty)
 	})
 }
 
@@ -858,7 +870,7 @@ func verifySnapshotOutput(
 	t *testing.T,
 	o *expectedSnapshotOutput,
 ) {
-	inProgressSnapshotsPath := InProgressSnapshotsPath(o.snapshotRootDir)
+	inProgressSnapshotsPath := SnapshotsTempDirPath(o.snapshotRootDir)
 	f, err := ioutil.ReadDir(inProgressSnapshotsPath)
 	require.NoError(t, err)
 	require.Len(t, f, 0)

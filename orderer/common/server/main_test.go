@@ -195,14 +195,113 @@ func TestInitializeServerConfig(t *testing.T) {
 		clusterCert    string
 		clusterKey     string
 		clusterCA      string
+		isCluster      bool
+		expectedPanic  string
 	}{
-		{"BadCertificate", badFile, goodFile, goodFile, goodFile, "", "", ""},
-		{"BadPrivateKey", goodFile, badFile, goodFile, goodFile, "", "", ""},
-		{"BadRootCA", goodFile, goodFile, badFile, goodFile, "", "", ""},
-		{"BadClientRootCertificate", goodFile, goodFile, goodFile, badFile, "", "", ""},
-		{"ClusterBadCertificate", goodFile, goodFile, goodFile, goodFile, badFile, goodFile, goodFile},
-		{"ClusterBadPrivateKey", goodFile, goodFile, goodFile, goodFile, goodFile, badFile, goodFile},
-		{"ClusterBadRootCA", goodFile, goodFile, goodFile, goodFile, goodFile, goodFile, badFile},
+		{
+			name:           "BadCertificate",
+			certificate:    badFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			expectedPanic:  "Failed to load server Certificate file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "BadPrivateKey",
+			certificate:    goodFile,
+			privateKey:     badFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			expectedPanic:  "Failed to load PrivateKey file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "BadRootCA",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         badFile,
+			clientRootCert: goodFile,
+			expectedPanic:  "Failed to load ServerRootCAs file 'open does_not_exist: no such file or directory' (does_not_exist)",
+		},
+		{
+			name:           "BadClientRootCertificate",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: badFile,
+			expectedPanic:  "Failed to load ClientRootCAs file 'open does_not_exist: no such file or directory' (does_not_exist)",
+		},
+		{
+			name:           "BadCertificate - cluster reuses server config",
+			certificate:    badFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			clusterCert:    "",
+			clusterKey:     "",
+			clusterCA:      "",
+			isCluster:      true,
+			expectedPanic:  "Failed to load client TLS certificate file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "BadPrivateKey - cluster reuses server config",
+			certificate:    goodFile,
+			privateKey:     badFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			clusterCert:    "",
+			clusterKey:     "",
+			clusterCA:      "",
+			isCluster:      true,
+			expectedPanic:  "Failed to load client TLS key file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "BadRootCA - cluster reuses server config",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         badFile,
+			clientRootCert: goodFile,
+			clusterCert:    "",
+			clusterKey:     "",
+			clusterCA:      "",
+			isCluster:      true,
+			expectedPanic:  "Failed to load ServerRootCAs file '' (open : no such file or directory)",
+		},
+		{
+			name:           "ClusterBadCertificate",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			clusterCert:    badFile,
+			clusterKey:     goodFile,
+			clusterCA:      goodFile,
+			isCluster:      true,
+			expectedPanic:  "Failed to load client TLS certificate file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "ClusterBadPrivateKey",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			clusterCert:    goodFile,
+			clusterKey:     badFile,
+			clusterCA:      goodFile,
+			isCluster:      true,
+			expectedPanic:  "Failed to load client TLS key file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
+		{
+			name:           "ClusterBadRootCA",
+			certificate:    goodFile,
+			privateKey:     goodFile,
+			rootCA:         goodFile,
+			clientRootCert: goodFile,
+			clusterCert:    goodFile,
+			clusterKey:     goodFile,
+			clusterCA:      badFile,
+			isCluster:      true,
+			expectedPanic:  "Failed to load ServerRootCAs file 'does_not_exist' (open does_not_exist: no such file or directory)",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -223,8 +322,8 @@ func TestInitializeServerConfig(t *testing.T) {
 					},
 				},
 			}
-			require.Panics(t, func() {
-				if tc.clusterCert == "" {
+			require.PanicsWithValue(t, tc.expectedPanic, func() {
+				if !tc.isCluster {
 					initializeServerConfig(conf, nil)
 				} else {
 					initializeClusterClientConfig(conf)

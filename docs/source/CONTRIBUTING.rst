@@ -163,28 +163,12 @@ See `releases <https://github.com/hyperledger/fabric#releases>`__ for more detai
 Making Feature/Enhancement Proposals
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, take time to review
-`JIRA <https://jira.hyperledger.org/issues/?filter=12524>`__
-to be sure that there isn't already an open (or recently closed) proposal for the
-same function. If there isn't, to make a proposal we recommend that you open a
-JIRA Epic or Story, whichever seems to best fit the circumstance and
-link or inline a "one pager" of the proposal that states what the feature would
-do and, if possible, how it might be implemented. It would help also to make a
-case for why the feature should be added, such as identifying specific use
-case(s) for which the feature is needed and a case for what the benefit would be
-should the feature be implemented. Once the JIRA issue is created, and the
-"one pager" either attached, inlined in the description field, or a link to a
-publicly accessible document is added to the description, send an introductory
-email to the fabric@lists.hyperledger.org mailing list linking the
-JIRA issue, and soliciting feedback.
+Minor improvements can be implemented and reviewed via the normal `GitHub pull request workflow <https://guides.github.com/introduction/flow/>`__ but for changes that are more substantial Fabric follows the RFC (request for comments) process.
 
-Discussion of the proposed feature should be conducted in the JIRA issue itself,
-so that we have a consistent pattern within our community as to where to find
-design discussion.
+This process is intended to provide a consistent and controlled path for major changes to Fabric and other official project components, so that all stakeholders can be confident about the direction in which Fabric is evolving.
 
-Getting the support of three or more of the Hyperledger Fabric maintainers for
-the new feature will greatly enhance the probability that the feature's related
-PRs will be included in a subsequent release.
+To propose a new feature, first, check
+`JIRA <https://jira.hyperledger.org/projects/FAB/issues>`__ and the `Fabric RFC repository <https://github.com/hyperledger/fabric-rfcs/>`__ to be sure that there isn't already an open (or recently closed) proposal for the same functionality. If there isn't, follow `the RFC process <https://github.com/hyperledger/fabric-rfcs/blob/master/README.md>`__ to make a proposal.
 
 Contributor meeting
 ~~~~~~~~~~~~~~~~~~~
@@ -246,7 +230,7 @@ Reporting bugs
 ~~~~~~~~~~~~~~
 
 If you are a user and you have found a bug, please submit an issue using
-`JIRA <https://jira.hyperledger.org/secure/Dashboard.jspa?selectPageId=10104>`__.
+`JIRA <https://jira.hyperledger.org/projects/FAB/issues>`__.
 Before you create a new JIRA issue, please try to search the existing items to
 be sure no one else has previously reported it. If it has been previously
 reported, then you might add a comment that you also are interested in seeing
@@ -277,8 +261,8 @@ for a detailed workflow.
 Fixing issues and working stories
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Review the `issues
-list <https://jira.hyperledger.org/issues/?filter=10580>`__ and find
+Fabric issues and bugs are managed in `JIRA <https://jira.hyperledger.org/projects/FAB/issues>`__.
+Review the list of issues and find
 something that interests you. You could also check the
 `"help-wanted" <https://jira.hyperledger.org/issues/?filter=10147>`__
 list. It is wise to start with something relatively straight forward and
@@ -287,6 +271,10 @@ then assign the issue to yourself. Please be considerate and rescind the
 assignment if you cannot finish in a reasonable time, or add a comment
 saying that you are still actively working the issue if you need a
 little more time.
+
+While Jira tracks a backlog of known issues that could be worked in the future,
+if you intend to immediately work on a change that does not yet have a corresponding Jira issue,
+you can submit a pull request to `Github <https://github.com/hyperledger/fabric>`__ without linking to an existing Jira issue.
 
 Reviewing submitted Pull Requests (PRs)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -351,12 +339,12 @@ What makes a good pull request?
    regression, it is much easier to identify the culprit commit than if
    we have some composite change that impacts more of the code.
 
--  Include a link to the JIRA story for the change. Why? Because a) we
-   want to track our velocity to better judge what we think we can
-   deliver and when and b) because we can justify the change more
-   effectively. In many cases, there should be some discussion around a
-   proposed change and we want to link back to that from the change
-   itself.
+-  If there is a corresponding Jira issue or bug, include a link to the
+   Jira issue in the PR summary and commit message.
+   Why? Because the maintainer that merges the PR will need to close
+   any corresponding Jira issue.
+   Also, in many cases, there will be additional discussion around
+   a proposed change or bug in Jira.
 
 -  Include unit and integration tests (or changes to existing tests)
    with every change. This does not mean just happy path testing,
@@ -398,9 +386,7 @@ What makes a good pull request?
 
 -  Write a meaningful commit message. Include a meaningful 55 (or less)
    character title, followed by a blank line, followed by a more
-   comprehensive description of the change. Each change MUST include the JIRA
-   identifier corresponding to the change (e.g. [FAB-1234]). This can be
-   in the title but should also be in the body of the commit message.
+   comprehensive description of the change.
 
 .. note:: Example commit message:
 
@@ -449,7 +435,6 @@ Related Topics
 .. toctree::
    :maxdepth: 1
 
-   jira_navigation
    dev-setup/devenv
    dev-setup/build
    style-guides/go-style

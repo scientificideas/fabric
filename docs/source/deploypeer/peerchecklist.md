@@ -89,7 +89,7 @@ address: 0.0.0.0:7051
 mspConfigPath: msp
 ```
 - **`mspConfigPath`**: (Default value should be overridden.) This is the path to the peer's local MSP, which must be created before the peer can be deployed. The path can be absolute or relative to `FABRIC_CFG_PATH` (by default, it is `/etc/hyperledger/fabric` in the peer image). Unless an absolute path is specified to a folder named something other than "msp", the peer defaults to looking for a folder called “msp” at the path (in other words, `FABRIC_CFG_PATH/msp`) and when using the peer image: `/etc/hyperledger/fabric/msp`. If you are using the recommended folder structure described in the [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/release-1.4/deployguide/use_CA.html) topic, it would be relative to the FABRIC_CFG_PATH as follows:
-`config/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp`
+`config/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp`. **The best practice is to store this data in persistent storage**. This prevents the MSP from being lost if your peer containers are destroyed for some reason.
 
 ## peer.localMspId
 ```
@@ -112,7 +112,7 @@ localMspId: SampleOrg
 # modification that might corrupt the peer operations.
 fileSystemPath: /var/hyperledger/production
 ```
-- **`fileSystemPath`**: (Default value should be overridden.) This is the path to the ledger and installed chaincodes on the local filesystem of the peer. It can be an absolute path or relative to `FABRIC_CFG_PATH`. It defaults to `/var/hyperledger/production`. The user running the peer needs to own and have write access to this directory.
+- **`fileSystemPath`**: (Default value should be overridden.) This is the path to the ledger and installed chaincodes on the local filesystem of the peer. It can be an absolute path or relative to `FABRIC_CFG_PATH`. It defaults to `/var/hyperledger/production`. The user running the peer needs to own and have write access to this directory. **The best practice is to store this data in persistent storage**. This prevents the ledger and any installed chaincodes from being lost if your peer containers are destroyed for some reason.
 
 ## peer.gossip.*
 
@@ -200,26 +200,31 @@ Peers leverage the Gossip data dissemination protocol to broadcast ledger and ch
 
 ```
 tls:
-# Require server-side TLS
-enabled:  false
-# Require client certificates / mutual TLS.
-# Note that clients that are not configured to use a certificate will
-# fail to connect to the peer.
-clientAuthRequired: false
-# X.509 certificate used for TLS server
-cert:
-    file: tls/server.crt
-# Private key used for TLS server (and client if clientAuthEnabled
-# is set to true
-key:
-    file: tls/server.key
-# Trusted root certificate chain for tls.cert
-rootcert:
-    file: tls/ca.crt
-# Set of root certificate authorities used to verify client certificates
-clientRootCAs:
-    files:
-      - tls/ca.crt
+    # Require server-side TLS
+    enabled:  false
+    # Require client certificates / mutual TLS for inbound connections.
+    # Note that clients that are not configured to use a certificate will
+    # fail to connect to the peer.
+    clientAuthRequired: false
+    # X.509 certificate used for TLS server
+    cert:
+        file: tls/server.crt
+    # Private key used for TLS server
+    key:
+        file: tls/server.key
+    # rootcert.file represents the trusted root certificate chain used for verifying certificates
+    # of other nodes during outbound connections.
+    # It is not required to be set, but can be used to augment the set of TLS CA certificates
+    # available from the MSPs of each channel’s configuration.
+    rootcert:
+        file: tls/ca.crt
+    # If mutual TLS is enabled, clientRootCAs.files contains a list of additional root certificates
+    # used for verifying certificates of client connections.
+    # It augments the set of TLS CA certificates available from the MSPs of each channel’s configuration.
+    # Minimally, set your organization's TLS CA root certificate so that the peer can receive join channel requests.
+    clientRootCAs:
+        files:
+          - tls/ca.crt
 ```
 
 Configure this section to enable TLS communications for the peer. After TLS is enabled, all nodes that transact with the peer will also need to enable TLS. Review the topic on [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/release-1.4/deployguide/use_CA.html) for instructions on how to generate the peer TLS certificates.
@@ -230,13 +235,13 @@ Configure this section to enable TLS communications for the peer. After TLS is e
 
 - **`key.file`:** (Default value should be overridden.) Similar to the `cert.file`, provide the name and location of the generated TLS private key for this peer, for example, `/msp/keystore/87bf5eff47d33b13d7aee81032b0e8e1e0ffc7a6571400493a7c_sk`. If you are using the recommended folder structure from the [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/release-1.4/deployguide/use_CA.html) topic, this file needs to be copied into `config/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls`.  If you are using an [HSM](#bccsp) to store the private key for the peer, this field will be blank.
 
-- **`rootcert.file`:**  (Default value should be overridden.) This value contains the name and location of the peer organization CA root certificate. If you are using the recommended folder structure from the [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/release-1.4/deployguide/use_CA.html) topic, this file needs to be copied into `config/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls`.
+- **`rootcert.file`:**  (Default value can be unset.) This value contains the name and location of the root certificate chain used for verifying certificates of other nodes during outbound connections. It is not required to be set, but can be used to augment the set of TLS CA certificates available from the MSPs of each channel’s configuration. If you are using the recommended folder structure from the [Registering and enrolling identities with a CA](https://hyperledger-fabric-ca.readthedocs.io/en/release-1.4/deployguide/use_CA.html) topic, this file can be copied into `config/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls`.
 
 The next two parameters only need to be provided when mutual TLS is required:
 
 - **`clientAuthRequired`:** Defaults to `false`. Set to `true` for a higher level of security by using **mutual TLS**, which can be configured as an extra verification step of the client-side TLS certificate. Where server-side TLS is considered the minimally necessary level of security, mutual TLS is an additional and optional level of security.
 
-- **`clientRootCAs.files`:** Specify the list of client root CA certificate files that can be used to verify client certificates.
+- **`clientRootCAs.files`:** Contains a list of additional root certificates used for verifying certificates of client connections. It augments the set of TLS CA certificates available from the MSPs of each channel’s configuration. Minimally, set your organization's TLS CA root certificate so that the peer can receive join channel requests.
 
 ## peer.bccsp.*
 
@@ -329,6 +334,16 @@ This section is used to select your ledger database type, either `goleveldb` `Co
 - **`ledger.state.couchDBConfig.username:`** (Required when using CouchDB.) Specify the CouchDB user with read and write authority to the database.
 
 - **`ledger.state.couchDBConfig.password:`** (Required when using CouchDB.) Specify the password for the CouchDB user with read and write authority to the database.
+
+The `ledger` section also contains your default snapshot directory where snapshots are stored. For more information about snapshots, check out [Taking ledger snapshots and using them to join channels](../peer_ledger_snapshot.html).
+
+```
+snapshots:
+  # Path on the file system where peer will store ledger snapshots
+  rootDir: /var/hyperledger/production/snapshots
+```
+
+- **`ledger.snapshots.rootDir:`** (Default value should be overridden.) This is the path to where snapshots are stored on the local filesystem of the peer. It can be an absolute path or relative to `FABRIC_CFG_PATH` and defaults to `/var/hyperledger/production/snapshots`. When the snapshot is taken, it is automatically organized by the status, channel name, and block number of the snapshot. For more information, check out [Taking a snapshot](../peer_ledger_snapshot.html#taking-a-snapshot). The user running the peer needs to own and have write access to this directory.
 
 ## operations.*
 

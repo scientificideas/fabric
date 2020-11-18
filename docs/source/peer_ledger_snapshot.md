@@ -5,7 +5,7 @@ For a peer to process transactions on a channel, it must contain the minimum led
 1. Join the channel starting with the initial configuration block (known as the "genesis block"), and continue pulling blocks from the ordering service and processing them locally until the latest block that has been written to the ledger is reached. In this scenario, the world state is built from the blocks.
 2. Join the channel from a "snapshot", which contains the minimum ledger data as of a particular block number, without needing to pull and process the individual blocks.
 
-While the first method represents a more comprehensive way of joining a channel, because of the size of established channels (which can reach many thousands of blocks), it can take a long time for peers to finish processing all the blocks already committed to the channel. Peers that join a channel this way must also store every block since the creation of the channel, increasing storage costs for an organization.
+While the first method represents a more comprehensive way of joining a channel, because of the size of established channels (which can reach many thousands of blocks), it can take a long time for peers to pull and process all the blocks already committed to the channel. Peers that join a channel this way must also store every block since the creation of the channel, increasing storage costs for an organization. Additionally, joining by snapshot will provide a peer with the latest channel configuration, which may be important if the channel configuration has changed since the genesis block. For example, the peer may need the orderer endpoints or CA certificates from the latest channel configuration before it can successfully pull blocks from the ordering service.
 
 In this topic, we'll describe the process for joining a peer to a channel using a snapshot.
 
@@ -13,23 +13,25 @@ In this topic, we'll describe the process for joining a peer to a channel using 
 
 While creating a snapshot and using it to join a peer to a channel from a snapshot (also known as a "checkpoint") will take less time and saves on storage costs compared to processing and storing every block on the ledger, there are a few limitations to consider:
 
-* It is not possible for a peer that joins from a snapshot to query blocks (or transactions within blocks) that were committed before the ledger height of the snapshot. If the snapshot the peer uses to join a channel from was taken at block 1000, for example, none of the blocks between 0-999 can be queried. Applications attempting to query for the data in these blocks will have to target a peer that contains the relevant block. Because of this, it is likely that all organizations will want to keep at least one peer that has all of the historical data.
-* While endorsements will continue and queries can be submitted, all peers taking a snapshot at a particular height will not commit blocks on the channel while the snapshot is being generated. Because taking a snapshot is a resource-intensive operation, the peer might also be slow to endorse transactions or commit blocks on other channels. For these reasons, it is anticipated that snapshots will only be taken when necessary (for example, when a new peer is joining a channel or when organizations want to verify that no ledger forks have occurred). As long as every organization taking a snapshot has at least one peer that is not taking a snapshot, and applications have been written to target peers for endorsements and queries that have a higher height (since the ledger height of a peer taking a snapshot will not increase), the operation of your organization and your channels should not be affected.
-* Because the private data between organizations in a channel is likely to be at least somewhat different, private data is not included in the snapshot (hashes of the private data are included, but not the data itself). Peers that join a channel using a snapshot will discover the collections it is a member of and pull the relevant private data from peers that are members of those collections directly.
+* It is not possible for a peer that joins from a snapshot to query blocks (or transactions within blocks) that were committed before the ledger height of the snapshot. Similarly, it is not possible to query the history of a key prior to the snapshot. If the snapshot the peer uses to join a channel from was taken at block 1000, for example, none of the blocks between 0-999 can be queried. Applications attempting to query for the data in these blocks will have to target a peer that contains the relevant block. Because of this, it is likely that organizations will want to keep at least one peer that has all of the historical data, and target this peer for historical queries.
+* While endorsements will continue and queries can be submitted, peers taking a snapshot at a particular height will not commit blocks on the channel while the snapshot is being generated. Because taking a snapshot is a resource-intensive operation, the peer might also be slow to endorse transactions or commit blocks on other channels. For these reasons, it is anticipated that snapshots will only be taken when necessary (for example, when a new peer needs a snapshot to join a channel, or when organizations want to verify that no ledger forks have occurred).
+* Because the private data between organizations in a channel is likely to be at least somewhat different, private data is not included in the snapshot (hashes of the private data are included, but not the data itself). Peers that join a channel using a snapshot will discover the collections it is a member of and pull the relevant private data from peers that are members of those collections directly. This private data reconciliation will begin after the peer joins the channel, and may take some time.
 * The snapshot process does not archive and prune the ledgers of peers that are already joined to the channel. Similarly, it is not meant as a method to take a full backup of a peer, as private data, and peer configuration information, such as MSPs, are not included in a snapshot).
 * It is not possible to use the `reset`, `rollback`, or `rebuild-dbs` commands on peers that have joined a channel using a snapshot since the peer would not have all the block files required for the operations. Instead of these administrative commands, it is expected that peers that have joined a channel using a snapshot can be entirely rebuilt from the same or newer snapshots.
 
-Because of these limitations, the decision of whether a peer will join a channel from a snapshot depends on a few factors.
+## Considerations
 
-* **The current ledger height of the channel**. The smaller the ledger, the less useful it is to join a channel using a snapshot. Where the size of the ledger crosses a point where it makes sense to use a snapshot depends on your use case.
-* **The importance of querying old data**. Some channels and use cases might call for querying old blocks regularly, while in other channels it might only be necessary to know the current state. This must be balanced by the server costs experienced by your organization.
+* When deciding whether to join peers from a genesis block or from a snapshot, consider the time it may take to join a peer to a channel based on the number of blocks since the genesis block, whether the peer will be able to pull blocks from the ordering service based on the original channel configuration in the genesis block, and whether you will need to query the entire history of a channel (historical blocks, transactions, or state).
+* If your endorsement requests or queries don't require the latest block commits, you can target a peer that generates snapshots.
+* If your endorsement requests or queries require the latest block commits, you can utilize service discovery to identify and target peers with the highest block heights on a channel, thereby avoiding any peer that is generating a snapshot. Alternatively, you could utilize dedicated peers for snapshot, and not make these peers available for endorsements and queries, for example by not setting `peer.gossip.externalEndpoint` so that the peer does not participate in service discovery.
+* You may not want to make a peer available for endorsements and queries until it has joined all the expected channels, and has reconciled all the private data that it is authorized to receive.
 
 ## Overview
 
 Snapshots can be used by organizations that already have peers on a channel or by organizations new to a channel. Whatever the use case, the process is largely the same.
 
 1. **Schedule a snapshot**. These snapshots must be taken at **exactly the same ledger height** on each peer. This will allow an organization to evaluate the snapshots to make sure they contain the same data. This ledger height must be equal or higher than the current block height (snapshots scheduled for a higher block height will be taken when the block height is reached). They cannot be taken from a lower block height. If you attempt to schedule a snapshot at a height lower than the current height you will get an error. Note that a peer that already used a snapshot to join a channel can also be used to take a snapshot. Snapshots can be scheduled as needed or there can be an agreed among organizations to take them at a regular cadence, for example every 10,000 blocks. This ensures that consistent and recent snapshots are always available. Note that is is not possible to schedule recurring snapshots. Each snapshot has to be scheduled independently. However, there is no limit to the number of future snapshots that can be scheduled. When joining a peer from a snapshot, it is a good practice to use a snapshot more recent than the latest channel config block height. This ensures that the peer will have the most recent channel configuration including the latest ordering service endpoints and CA certificates.
-2. **When the ledger height is reached, the snapshot is taken by the peer**. The snapshot is comprised of a folder that includes files that contain the public state, hashes of private state, transaction IDs, and the collection config history. A file containing metadata relating to these files is also included. For more information, check out [contents of a snapshot](#contents-of-a-snapshot).
+2. **When the ledger height is reached, the snapshot is taken by the peer**. The snapshot is comprised of a directory that includes files that contain the public state, hashes of private state, transaction IDs, and the collection config history. A file containing metadata relating to these files is also included. For more information, check out [contents of a snapshot](#contents-of-a-snapshot).
 3. **If the snapshot will be used by a new organization, the snapshot is sent to them**. This must be completed out of band. Because snapshot files are not compressed, it is likely that peer administrators will want to compress these files before sending them. In a typical scenario, the administrator will receive the snapshot from one of the existing organizations but will want to receive the snapshot metadata from more than one organizations in order to verify the snapshot received.
 
 The organization that will use the snapshot to join the channel will then:
@@ -88,7 +90,9 @@ You will see a response similar to:
 Successfully got pending snapshot requests [1000]
 ```
 
-When a snapshot has been generated for a particular block height, the pending request for that block height will no longer appear in the list. You can also verify that a snapshot has been created successfully by looking at the peer logs or by checking the expected location of the snapshot, `{snapshotsFolder}/completed/{channelName}/{lastBlockNumberInSnapshot}` under the directory defined by the `peer.fileSystemPath` in the peer's `core.yaml`.
+When a snapshot has been generated for a particular block height, the pending request for that block height will no longer appear in the list. You can also verify that a snapshot has been created successfully by looking at the peer logs.
+
+Snapshots will be written to a directory based on the `core.yaml` `ledger.snapshots.rootDir` property. Completed snapshots are written to a subdirectory based on the channel name and block number of the snapshot: `{ledger.snapshots.rootDir}/completed/{channelName}/{lastBlockNumberInSnapshot}`. If the `ledger.snapshots.rootDir` property is not specified in the core.yaml, then the default value is `{peer.fileSystemPath}/snapshots`. If you expect a snapshot will be large, or you expect to share snapshots in the location that they are generated, consider setting the snapshot directory to a different volume than the peer's `fileSystemPath`.
 
 To delete a snapshot request, simply exchange `submitrequest` with `cancelrequest`. For example:
 
@@ -100,9 +104,9 @@ If you submit the `listpending` command again, the snapshot should no longer app
 
 ### Contents of a snapshot
 
-Snapshots are stored on a peer in a snapshot folder that is further organized by channel name and the block number when the snapshot was taken: `{snapshotsFolder}/completed/{channelName}/{lastBlockNumberInSnapshot}`. Once the peer generates a snapshot in this folder, the peer does not use that folder for any purpose and it is safe to compress and transfer the snapshot using external tools, and to delete it when no longer needed.
+Once the peer generates a snapshot to the `{ledger.snapshots.rootDir}/completed/{channelName}/{lastBlockNumberInSnapshot}` directory, the peer does not use that directory for any purpose and it is safe to compress and transfer the snapshot using external tools, and to delete it when no longer needed.
 
-As mentioned above, the snapshot contains a folder with files for the different data items listed below:
+As mentioned above, the completed snapshot directory contains files for the different data items listed below:
 
 * **Public state**
   * This includes the latest value of all of the keys on the channel. For example, the public state would show an asset (a key) and its current owner (the value), but not any of its historical owners.
@@ -136,7 +140,7 @@ Note that the file types explained here is a superset of all of the files that m
 When joining a channel using the genesis block, a command similar to `peer channel join --blockpath mychannel.block` is issued. When joining the peer to the channel using a snapshot, issue a command similar to:
 
 ```
-peer channel joinbysnapshot --snapshotPath <path to snapshot>
+peer channel joinbysnapshot --snapshotpath <path to snapshot>
 ```
 
 To verify that the peer has joined the channel successfully, issue a command similar to:
@@ -151,9 +155,9 @@ Additionally, if the peer has not already installed a chaincode being used on th
 
 If you want to try out the ledger snapshotting process, you'll first need a network with a running channel. If you don't have a network, deploy the [test network](./test_network.html). This will create a network with two orgs, which both have a single peer, and an application channel.
 
-Next, follow the [Adding an Org to a Channel](./channel_update_tutorial.html) to add a new org to your network and application channel. When you reach the section where you are asked to [Join Org3 to the Channel](./channel_update_tutorial.html#join-org3-to-the-channel), select the peer you want to use to take the snapshot and follow the instructions above to take the snapshot. Then locate the snapshot on the your peer and copy it somewhere else on your filesystem. Taking the snapshot at this step ensures that the new peer joins the channel using a snapshot taken after a point when its organization has already been joined to the channel.
+Next, follow the [Adding an Org to a Channel](./channel_update_tutorial.html) to add a new org to your network and application channel. When you reach the section where you are asked to [Join Org3 to the Channel](./channel_update_tutorial.html#join-org3-to-the-channel), select the peer you want to use to take the snapshot and follow the instructions above to take the snapshot. Then locate the snapshot on the peer and copy it somewhere else on your filesystem. Taking the snapshot at this step ensures that the new peer joins the channel using a snapshot taken after a point when its organization has already been joined to the channel.
 
-After you have taken the snapshot and copied it, instead of issuing the `peer channel join -b mychannel.block` command, substitute `peer channel joinbysnapshot --snapshotPath <path to snapshot>` using the path to the snapshot on your filesystem.
+After you have taken the snapshot and copied it, instead of issuing the `peer channel join -b mychannel.block` command, substitute `peer channel joinbysnapshot --snapshotpath <path to snapshot>` using the path to the snapshot on your filesystem.
 
 ## Troubleshooting
 

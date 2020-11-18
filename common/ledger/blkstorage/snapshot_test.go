@@ -285,7 +285,7 @@ func TestImportFromSnapshot(t *testing.T) {
 
 			// before, we test for index sync-up, verify that the last set of blocks not indexed in the original index
 			_, err := blkfileMgr.retrieveBlockByNumber(block.Header.Number)
-			require.Exactly(t, ErrNotFoundInIndex, err)
+			require.EqualError(t, err, fmt.Sprintf("no such block number [%d] in index", block.Header.Number))
 
 			// close and open should be able to sync-up the index
 			closeBlockStore()
@@ -473,7 +473,7 @@ func verifyQueriesOnBlocksPriorToSnapshot(
 		require.EqualError(t, err, expectedErrStr)
 
 		_, err = bootstrappedBlockStore.RetrieveBlockByHash(blockHash)
-		require.Equal(t, ErrNotFoundInIndex, err)
+		require.EqualError(t, err, fmt.Sprintf("no such block hash [%x] in index", blockHash))
 	}
 
 	bootstrappingSnapshotHeight := uint64(len(blocksDetailsBeforeSnapshot))
@@ -491,6 +491,10 @@ func verifyQueriesOnBlocksPriorToSnapshot(
 
 			_, err = bootstrappedBlockStore.RetrieveTxValidationCodeByTxID(txID)
 			require.EqualError(t, err, expectedErrorStr)
+
+			exists, err := bootstrappedBlockStore.TxIDExists(txID)
+			require.NoError(t, err)
+			require.True(t, exists)
 		}
 	}
 }
@@ -540,6 +544,10 @@ func verifyQueriesOnBlocksAddedAfterBootstrapping(t *testing.T,
 			expectedTxEnv, err := protoutil.GetEnvelopeFromBlock(block.Data.Data[j])
 			require.NoError(t, err)
 			require.Equal(t, expectedTxEnv, retrievedTxEnv)
+
+			exists, err := bootstrappedBlockStore.TxIDExists(txID)
+			require.NoError(t, err)
+			require.True(t, exists)
 		}
 
 		for j, validationCode := range d.validationCodes {
