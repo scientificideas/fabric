@@ -188,7 +188,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354 => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201119101948-dc1da10c8ea1
+# github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354 => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201119122216-521fb202a8b9
 ## explicit
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -537,5 +537,5 @@ gopkg.in/tomb.v1
 ## explicit
 gopkg.in/yaml.v2
 # github.com/hyperledger/fabric => ./
-# github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201119101948-dc1da10c8ea1
+# github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201119122216-521fb202a8b9
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380

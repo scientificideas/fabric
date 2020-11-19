@@ -47,7 +47,7 @@ func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextPr
 	}
 	batchedRequests := singleConfigTxOrSeveralNonConfigTx(requests, a.Logger)
 
-	block := cb.NewBlock(lastBlock.Header.Number+1, lastBlock.Header.Hash())
+	block := protoutil.NewBlock(lastBlock.Header.Number+1, lastBlock.Header.Hash())
 	block.Data = &cb.BlockData{Data: batchedRequests}
 	block.Header.DataHash = block.Data.Hash()
 
