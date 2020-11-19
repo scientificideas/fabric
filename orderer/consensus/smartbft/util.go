@@ -8,10 +8,13 @@ package smartbft
 
 import (
 	"github.com/SmartBFT-Go/consensus/pkg/types"
+	"github.com/SmartBFT-Go/consensus/smartbftprotos"
+	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"github.com/hyperledger/fabric/protoutil"
+	"github.com/pkg/errors"
 )
 
 // RuntimeConfig defines the configuration of the consensus
@@ -51,4 +54,26 @@ func isConfigBlock(block *cb.Block) bool {
 		return false
 	}
 	return cb.HeaderType(hdr.Type) == cb.HeaderType_CONFIG
+}
+
+//go:generate counterfeiter -o mocks/mock_blockpuller.go . BlockPuller
+
+func getViewMetadataFromBlock(block *cb.Block) (smartbftprotos.ViewMetadata, error) {
+	if block.Header.Number == 0 {
+		// Genesis block has no prior metadata so we just return an un-initialized metadata
+		return smartbftprotos.ViewMetadata{}, nil
+	}
+
+	signatureMetadata := protoutil.GetMetadataFromBlockOrPanic(block, cb.BlockMetadataIndex_SIGNATURES)
+	ordererMD := &cb.OrdererBlockMetadata{}
+	if err := proto.Unmarshal(signatureMetadata.Value, ordererMD); err != nil {
+		return smartbftprotos.ViewMetadata{}, errors.Wrap(err, "failed unmarshaling OrdererBlockMetadata")
+	}
+
+	var viewMetadata smartbftprotos.ViewMetadata
+	if err := proto.Unmarshal(ordererMD.ConsenterMetadata, &viewMetadata); err != nil {
+		return smartbftprotos.ViewMetadata{}, err
+	}
+
+	return viewMetadata, nil
 }
