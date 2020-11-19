@@ -5,7 +5,7 @@ go 1.14
 // develop
 replace github.com/hyperledger/fabric => ./
 
-replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
+replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201119101948-dc1da10c8ea1
 
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
@@ -17,7 +17,7 @@ require (
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/Shopify/sarama v1.20.1
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
-	github.com/SmartBFT-Go/consensus v0.0.0-20200305092142-48c132f58ce8
+	github.com/SmartBFT-Go/consensus v0.0.0-20201014162554-738523406382
 	github.com/VictoriaMetrics/fastcache v1.5.7
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/frankban/quicktest v1.9.0 // indirect
 	github.com/fsouza/go-dockerclient v1.4.1
 	github.com/go-kit/kit v0.8.0
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.4.1
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/google/go-cmp v0.5.0 // indirect
 	github.com/gorilla/handlers v1.4.0
@@ -78,6 +78,7 @@ require (
 	golang.org/x/sys v0.0.0-20200819091447-39769834ee22 // indirect
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200131233409-575de47986ce
+	google.golang.org/genproto v0.0.0-20201117123952-62d171c70ae1 // indirect
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28

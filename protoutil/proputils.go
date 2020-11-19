@@ -408,3 +408,10 @@ func InvokedChaincodeName(proposalBytes []byte) (string, error) {
 
 	return cis.ChaincodeSpec.ChaincodeId.Name, nil
 }
+
+// GetPayload Get Payload from Envelope message
+func GetPayload(e *common.Envelope) (*common.Payload, error) {
+	payload := &common.Payload{}
+	err := proto.Unmarshal(e.Payload, payload)
+	return payload, errors.Wrap(err, "error unmarshaling Payload")
+}
