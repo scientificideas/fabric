@@ -47,9 +47,9 @@ func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextPr
 	}
 	batchedRequests := singleConfigTxOrSeveralNonConfigTx(requests, a.Logger)
 
-	block := protoutil.NewBlock(lastBlock.Header.Number+1, lastBlock.Header.Hash())
+	block := protoutil.NewBlock(lastBlock.Header.Number+1, protoutil.BlockHeaderHash(lastBlock.Header))
 	block.Data = &cb.BlockData{Data: batchedRequests}
-	block.Header.DataHash = block.Data.Hash()
+	block.Header.DataHash = protoutil.BlockDataHash(block.Data)
 
 	if isConfigBlock(block) {
 		lastConfigBlockNum = block.Header.Number
@@ -73,7 +73,7 @@ func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextPr
 	}
 
 	prop := types.Proposal{
-		Header:               block.Header.Bytes(),
+		Header:               protoutil.BlockHeaderBytes(block.Header),
 		Payload:              tuple.ToBytes(),
 		Metadata:             metadata,
 		VerificationSequence: int64(a.VerificationSeq()),
