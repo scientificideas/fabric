@@ -53,7 +53,7 @@ func newChainSupport(
 	// Read in the last block and metadata for the channel
 	lastBlock := blockledger.GetBlock(ledgerResources, ledgerResources.Height()-1)
 	metadata, err := protoutil.GetConsenterMetadataFromBlock(lastBlock)
-	// Assuming a block created with cb.NewBlock(), this should not
+	// Assuming a block created with protoutil.NewBlock(), this should not
 	// error even if the orderer metadata is an empty byte slice
 	if err != nil {
 		return nil, errors.WithMessagef(err, "error extracting orderer metadata for channel: %s", ledgerResources.ConfigtxValidator().ChannelID())
