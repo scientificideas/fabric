@@ -17,7 +17,7 @@ import (
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
 	"github.com/hyperledger/fabric/protoutil"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -86,14 +86,14 @@ func TestAssembler(t *testing.T) {
 			assembler.RuntimeConfig.Store(rtc)
 
 			if testCase.panicVal != "" {
-				assert.PanicsWithValue(t, testCase.panicVal, func() {
+				require.PanicsWithValue(t, testCase.panicVal, func() {
 					assembler.AssembleProposal([]byte{1, 2, 3}, testCase.requests)
 				})
 				return
 			}
 
 			prop := assembler.AssembleProposal([]byte("metadata"), testCase.requests)
-			assert.Equal(t, testCase.expectedProposal, prop)
+			require.Equal(t, testCase.expectedProposal, prop)
 		})
 	}
 
