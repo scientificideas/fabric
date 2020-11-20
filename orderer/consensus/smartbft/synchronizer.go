@@ -64,10 +64,10 @@ func (s *Synchronizer) Sync() types.SyncResponse {
 	}
 }
 
-func (s *Synchronizer) getViewMetadataLastConfigSqnFromBlock(block *cb.Block) (smartbftprotos.ViewMetadata, uint64) {
+func (s *Synchronizer) getViewMetadataLastConfigSqnFromBlock(block *cb.Block) (*smartbftprotos.ViewMetadata, uint64) {
 	viewMetadata, err := getViewMetadataFromBlock(block)
 	if err != nil {
-		return smartbftprotos.ViewMetadata{}, 0
+		return nil, 0
 	}
 
 	lastConfigSqn := s.Support.Sequence()

@@ -16,22 +16,22 @@ import (
 
 //go:generate counterfeiter -o mocks/mock_blockpuller.go . BlockPuller
 
-func getViewMetadataFromBlock(block *cb.Block) (smartbftprotos.ViewMetadata, error) {
+func getViewMetadataFromBlock(block *cb.Block) (*smartbftprotos.ViewMetadata, error) {
 	if block.Header.Number == 0 {
 		// Genesis block has no prior metadata so we just return an un-initialized metadata
-		return smartbftprotos.ViewMetadata{}, nil
+		return nil, nil
 	}
 
 	signatureMetadata := protoutil.GetMetadataFromBlockOrPanic(block, cb.BlockMetadataIndex_SIGNATURES)
 	ordererMD := &cb.OrdererBlockMetadata{}
 	if err := proto.Unmarshal(signatureMetadata.Value, ordererMD); err != nil {
-		return smartbftprotos.ViewMetadata{}, errors.Wrap(err, "failed unmarshaling OrdererBlockMetadata")
+		return nil, errors.Wrap(err, "failed unmarshaling OrdererBlockMetadata")
 	}
 
 	var viewMetadata smartbftprotos.ViewMetadata
 	if err := proto.Unmarshal(ordererMD.ConsenterMetadata, &viewMetadata); err != nil {
-		return smartbftprotos.ViewMetadata{}, err
+		return nil, err
 	}
 
-	return viewMetadata, nil
+	return &viewMetadata, nil
 }
