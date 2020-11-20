@@ -13,14 +13,13 @@ import (
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
+	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/common/flogging"
 	mocks2 "github.com/hyperledger/fabric/orderer/consensus/mocks"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
-	cb "github.com/hyperledger/fabric-protos-go/common"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/hyperledger/fabric/protoutil"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -76,7 +75,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		require.Equal(t, *decision, d)
 	})
 
 	t.Run("all nodes present", func(t *testing.T) {
@@ -131,7 +130,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		require.Equal(t, *decision, d)
 	})
 
 	t.Run("3/4 nodes present", func(t *testing.T) {
@@ -185,7 +184,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		require.Equal(t, *decision, d)
 	})
 
 	t.Run("2/4 nodes present", func(t *testing.T) {
@@ -238,7 +237,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		require.Equal(t, *decision, d)
 	})
 
 	t.Run("1/4 nodes present", func(t *testing.T) {
@@ -293,7 +292,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		require.Equal(t, *decision, d)
 	})
 }
 
