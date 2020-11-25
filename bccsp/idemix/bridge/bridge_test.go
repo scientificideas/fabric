@@ -7,7 +7,6 @@ package bridge_test
 
 import (
 	"crypto/rand"
-	"errors"
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
@@ -19,7 +18,6 @@ import (
 	cryptolib "github.com/hyperledger/fabric/idemix"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	pkgErrors "github.com/pkg/errors"
 )
 
 var _ = Describe("Idemix Bridge", func() {
@@ -109,11 +107,7 @@ var _ = Describe("Idemix Bridge", func() {
 
 			It("fails to unmarshal issuer public key", func() {
 				pk, err := Issuer.NewPublicKeyFromBytes([]byte{0, 1, 2, 3, 4}, nil)
-				causeErr := pkgErrors.Cause(err)
-				expectedErr := &bccsp.IdemixIssuerPublicKeyImporterError{}
-				Expect(errors.As(causeErr, &expectedErr)).To(BeTrue())
-				Expect(expectedErr.Type).To(BeIdenticalTo(bccsp.IdemixIssuerPublicKeyImporterUnmarshallingError))
-				Expect(err).To(MatchError("failed to unmarshal issuer public key: proto: invalid field number"))
+				Expect(err).To(MatchError("failed to unmarshal issuer public key: proto: idemix.IssuerPublicKey: illegal tag 0 (wire type 0)"))
 				Expect(pk).To(BeNil())
 			})
 
