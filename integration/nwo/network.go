@@ -1273,6 +1273,7 @@ func (n *Network) OrdererRunner(o *Orderer, env ...string) *ginkgomon.Runner {
 	cmd := exec.Command(n.Components.Orderer())
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("FABRIC_CFG_PATH=%s", n.OrdererDir(o)))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug"))
 	cmd.Env = append(cmd.Env, env...)
 
 	config := ginkgomon.Config{
@@ -1677,6 +1678,16 @@ func (n *Network) PeersInOrg(orgName string) []*Peer {
 func (n *Network) ReservePort() uint16 {
 	n.StartPort++
 	return n.StartPort - 1
+}
+
+// OrdererIndex returns next int value
+func (n *Network) OrdererIndex(orderer *Orderer) int {
+	for i, o := range n.Orderers {
+		if orderer == o {
+			return i + 1
+		}
+	}
+	return -1
 }
 
 type PortName string
