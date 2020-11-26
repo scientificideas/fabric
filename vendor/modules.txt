@@ -130,8 +130,6 @@ github.com/golang/protobuf/ptypes/timestamp
 # github.com/golang/snappy v0.0.2
 ## explicit
 github.com/golang/snappy
-# github.com/google/go-cmp v0.5.0
-## explicit
 # github.com/gorilla/handlers v1.4.0
 ## explicit
 github.com/gorilla/handlers
@@ -440,8 +438,7 @@ golang.org/x/tools/internal/span
 # golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/genproto v0.0.0-20201117123952-62d171c70ae1
-## explicit
+# google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.31.0
 ## explicit
