@@ -13,6 +13,8 @@ replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
 
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 
+replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
+
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 
