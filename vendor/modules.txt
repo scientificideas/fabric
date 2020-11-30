@@ -118,7 +118,7 @@ github.com/go-logfmt/logfmt
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
-# github.com/golang/protobuf v1.4.1 => github.com/golang/protobuf v1.3.5
+# github.com/golang/protobuf v1.3.5
 ## explicit
 github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
@@ -506,5 +506,4 @@ gopkg.in/yaml.v3
 # github.com/hyperledger/fabric => ./
 # github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
 # github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
-# github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
