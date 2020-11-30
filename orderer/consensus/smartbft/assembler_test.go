@@ -48,8 +48,8 @@ func TestAssembler(t *testing.T) {
 		{
 			name: "Must not contain an invalid request",
 			panicVal: "Programming error, received bad envelope but should have" +
-				" validated it: error unmarshaling Envelope: proto:" +
-				"\u00a0invalid field number",
+				" validated it: error unmarshaling Envelope: proto: common.Envelope:" +
+				" illegal tag 0 (wire type 1)",
 			requests: [][]byte{{1, 2, 3}},
 		},
 		{
