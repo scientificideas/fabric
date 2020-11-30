@@ -22,7 +22,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20200624082633-5623f7133ae2
+# github.com/SmartBFT-Go/consensus v0.0.0-20200624082633-5623f7133ae2 => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
 ## explicit
 github.com/SmartBFT-Go/consensus/pkg/types
 github.com/SmartBFT-Go/consensus/smartbftprotos
@@ -488,32 +488,6 @@ google.golang.org/grpc/status
 google.golang.org/grpc/tap
 # google.golang.org/protobuf v1.25.0
 ## explicit
-google.golang.org/protobuf/encoding/prototext
-google.golang.org/protobuf/encoding/protowire
-google.golang.org/protobuf/internal/descfmt
-google.golang.org/protobuf/internal/descopts
-google.golang.org/protobuf/internal/detrand
-google.golang.org/protobuf/internal/encoding/defval
-google.golang.org/protobuf/internal/encoding/messageset
-google.golang.org/protobuf/internal/encoding/tag
-google.golang.org/protobuf/internal/encoding/text
-google.golang.org/protobuf/internal/errors
-google.golang.org/protobuf/internal/fieldsort
-google.golang.org/protobuf/internal/filedesc
-google.golang.org/protobuf/internal/filetype
-google.golang.org/protobuf/internal/flags
-google.golang.org/protobuf/internal/genid
-google.golang.org/protobuf/internal/impl
-google.golang.org/protobuf/internal/mapsort
-google.golang.org/protobuf/internal/pragma
-google.golang.org/protobuf/internal/set
-google.golang.org/protobuf/internal/strs
-google.golang.org/protobuf/internal/version
-google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protoreflect
-google.golang.org/protobuf/reflect/protoregistry
-google.golang.org/protobuf/runtime/protoiface
-google.golang.org/protobuf/runtime/protoimpl
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
 ## explicit
 gopkg.in/alecthomas/kingpin.v2
@@ -534,4 +508,5 @@ gopkg.in/yaml.v3
 # github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 # google.golang.org/grpc => google.golang.org/grpc v1.29.1
 # google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+# github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
