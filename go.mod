@@ -9,7 +9,7 @@ replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-pro
 
 replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 
-replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
+replace google.golang.org/grpc => google.golang.org/grpc v1.31.0
 
 replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 
@@ -82,8 +82,8 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/tools v0.0.0-20201125231158-b5590deeca9b
-	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.3.0

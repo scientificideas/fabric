@@ -442,14 +442,16 @@ golang.org/x/tools/internal/typesinternal
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
 # google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
+## explicit
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.29.1 => google.golang.org/grpc v1.29.1
+# google.golang.org/grpc v1.31.0 => google.golang.org/grpc v1.31.0
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
 google.golang.org/grpc/balancer
 google.golang.org/grpc/balancer/base
+google.golang.org/grpc/balancer/grpclb/state
 google.golang.org/grpc/balancer/roundrobin
 google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/codes
@@ -467,6 +469,7 @@ google.golang.org/grpc/internal/balancerload
 google.golang.org/grpc/internal/binarylog
 google.golang.org/grpc/internal/buffer
 google.golang.org/grpc/internal/channelz
+google.golang.org/grpc/internal/credentials
 google.golang.org/grpc/internal/envconfig
 google.golang.org/grpc/internal/grpclog
 google.golang.org/grpc/internal/grpcrand
@@ -474,20 +477,18 @@ google.golang.org/grpc/internal/grpcsync
 google.golang.org/grpc/internal/grpcutil
 google.golang.org/grpc/internal/resolver/dns
 google.golang.org/grpc/internal/resolver/passthrough
+google.golang.org/grpc/internal/serviceconfig
 google.golang.org/grpc/internal/status
 google.golang.org/grpc/internal/syscall
 google.golang.org/grpc/internal/transport
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
-google.golang.org/grpc/naming
 google.golang.org/grpc/peer
 google.golang.org/grpc/resolver
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.25.0
-## explicit
 # gopkg.in/alecthomas/kingpin.v2 v2.2.6
 ## explicit
 gopkg.in/alecthomas/kingpin.v2
@@ -506,7 +507,7 @@ gopkg.in/yaml.v3
 # github.com/hyperledger/fabric => ./
 # github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
 # github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
-# google.golang.org/grpc => google.golang.org/grpc v1.29.1
+# google.golang.org/grpc => google.golang.org/grpc v1.31.0
 # google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 # github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
