@@ -194,9 +194,15 @@ Profiles:{{ range .Profiles }}
         Admins:
           Type: ImplicitMeta
           Rule: MAJORITY Admins
+      {{- if eq $w.Consensus.Type "smartbft" }}
+        BlockValidation:
+          Type: ImplicitOrderer
+          Rule: SMARTBFT
+      {{- else }}
         BlockValidation:
           Type: ImplicitMeta
           Rule: ANY Writers
+      {{- end }}
     {{- end }}
     {{- if .Consortium }}
     Consortium: {{ .Consortium }}

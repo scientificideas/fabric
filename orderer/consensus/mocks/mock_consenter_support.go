@@ -45,6 +45,11 @@ type FakeConsenterSupport struct {
 	blockCutterReturnsOnCall map[int]struct {
 		result1 blockcutter.Receiver
 	}
+	ChainIDStub              func() string
+	chainIDMutex             sync.RWMutex
+	chainIDReturns struct {
+		result1 string
+	}
 	ChannelConfigStub        func() channelconfig.Channel
 	channelConfigMutex       sync.RWMutex
 	channelConfigArgsForCall []struct {
@@ -382,6 +387,15 @@ func (fake *FakeConsenterSupport) BlockCutterReturnsOnCall(i int, result1 blockc
 	}
 	fake.blockCutterReturnsOnCall[i] = struct {
 		result1 blockcutter.Receiver
+	}{result1}
+}
+
+func (fake *FakeConsenterSupport) ChainIDReturns(result1 string) {
+	fake.chainIDMutex.Lock()
+	defer fake.chainIDMutex.Unlock()
+	fake.ChainIDStub = nil
+	fake.chainIDReturns = struct {
+		result1 string
 	}{result1}
 }
 
