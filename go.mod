@@ -7,13 +7,9 @@ replace github.com/hyperledger/fabric => ./
 
 replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
 
-replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
-
-replace google.golang.org/grpc => google.golang.org/grpc v1.31.0
-
-replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
-
 replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
+
+replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
@@ -82,7 +78,6 @@ require (
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/tools v0.0.0-20201125231158-b5590deeca9b
-	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28

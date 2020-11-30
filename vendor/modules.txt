@@ -441,10 +441,9 @@ golang.org/x/tools/internal/typesinternal
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
-## explicit
+# google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.31.0 => google.golang.org/grpc v1.31.0
+# google.golang.org/grpc v1.31.0
 ## explicit
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -506,8 +505,6 @@ gopkg.in/yaml.v2
 gopkg.in/yaml.v3
 # github.com/hyperledger/fabric => ./
 # github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
-# github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
-# google.golang.org/grpc => google.golang.org/grpc v1.31.0
-# google.golang.org/genproto => google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 # github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201127162516-cb0e532dc31f
+# github.com/golang/protobuf => github.com/golang/protobuf v1.3.5
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
