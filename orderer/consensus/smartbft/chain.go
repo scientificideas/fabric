@@ -7,7 +7,17 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"sync/atomic"
+
+	smartbft "github.com/SmartBFT-Go/consensus/pkg/consensus"
+	"github.com/SmartBFT-Go/consensus/pkg/types"
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric/common/flogging"
+	"github.com/hyperledger/fabric/common/policies"
+	"github.com/hyperledger/fabric/orderer/common/cluster"
+	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 //go:generate counterfeiter -o mocks/mock_blockpuller.go . BlockPuller
@@ -36,4 +46,98 @@ type signerSerializer interface {
 
 	// Serialize converts an identity to bytes
 	Serialize() ([]byte, error)
+}
+
+// BFTChain implements Chain interface to wire with
+// BFT smart library
+type BFTChain struct {
+	RuntimeConfig    *atomic.Value
+	Channel          string
+	Config           types.Configuration
+	BlockPuller      BlockPuller
+	Comm             cluster.Communicator
+	SignerSerializer signerSerializer
+	PolicyManager    policies.Manager
+	Logger           *flogging.FabricLogger
+	WALDir           string
+	consensus        *smartbft.Consensus
+	support          consensus.ConsenterSupport
+	verifier         *Verifier
+	assembler        *Assembler
+	Metrics          *Metrics
+}
+
+// NewChain creates new BFT Smart chain
+func NewChain(
+	cv ConfigValidator,
+	selfID uint64,
+	config types.Configuration,
+	walDir string,
+	blockPuller BlockPuller,
+	comm cluster.Communicator,
+	signerSerializer signerSerializer,
+	policyManager policies.Manager,
+	support consensus.ConsenterSupport,
+	metrics *Metrics,
+) (*BFTChain, error) {
+
+	//requestInspector := &RequestInspector{
+	//	ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+	//		return nil
+	//	},
+	//}
+
+	logger := flogging.MustGetLogger("orderer.consensus.smartbft.chain").With(zap.String("channel", support.ChannelID()))
+
+	c := &BFTChain{
+		RuntimeConfig:    &atomic.Value{},
+		Channel:          support.ChannelID(),
+		Config:           config,
+		WALDir:           walDir,
+		Comm:             comm,
+		support:          support,
+		SignerSerializer: signerSerializer,
+		PolicyManager:    policyManager,
+		BlockPuller:      blockPuller,
+		Logger:           logger,
+		// todo: BFT metrics
+		//Metrics: &Metrics{
+		//	ClusterSize:          metrics.ClusterSize.With("channel", support.ChannelID()),
+		//	CommittedBlockNumber: metrics.CommittedBlockNumber.With("channel", support.ChannelID()),
+		//	IsLeader:             metrics.IsLeader.With("channel", support.ChannelID()),
+		//	LeaderID:             metrics.LeaderID.With("channel", support.ChannelID()),
+		//},
+	}
+
+	lastBlock := LastBlockFromLedgerOrPanic(support, c.Logger)
+	lastConfigBlock := LastConfigBlockFromLedgerOrPanic(support, c.Logger)
+
+	rtc := RuntimeConfig{
+		logger: logger,
+		id:     selfID,
+	}
+	rtc, err := rtc.BlockCommitted(lastConfigBlock)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed constructing RuntimeConfig")
+	}
+	rtc, err = rtc.BlockCommitted(lastBlock)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed constructing RuntimeConfig")
+	}
+
+	c.RuntimeConfig.Store(rtc)
+
+	//c.verifier = buildVerifier(cv, c.RuntimeConfig, support, requestInspector, policyManager)
+	//c.consensus = bftSmartConsensusBuild(c, requestInspector)
+
+	// Setup communication with list of remotes notes for the new channel
+	c.Comm.Configure(c.support.ChannelID(), rtc.RemoteNodes)
+
+	if err := c.consensus.ValidateConfiguration(rtc.Nodes); err != nil {
+		return nil, errors.Wrap(err, "failed to verify SmartBFT-Go configuration")
+	}
+
+	logger.Infof("SmartBFT-v3 is now servicing chain %s", support.ChannelID())
+
+	return c, nil
 }
