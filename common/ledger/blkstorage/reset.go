@@ -14,6 +14,7 @@ import (
 	"strconv"
 
 	"github.com/hyperledger/fabric/internal/fileutil"
+	"github.com/hyperledger/fabric/protoutil"
 )
 
 // ResetBlockStore drops the block storage index and truncates the blocks files for all channels/ledgers to genesis blocks
@@ -115,8 +116,8 @@ func assertIsGenesisBlock(blockBytes []byte) error {
 	if err != nil {
 		return err
 	}
-	if block.Header.Number != 0 || block.Header.GetDataHash() == nil {
-		return fmt.Errorf("The supplied bytes are not of genesis block. blockNum=%d, blockHash=%x", block.Header.Number, block.Header.GetDataHash())
+	if block.Header.Number != 0 || protoutil.BlockHeaderHash(block.Header) == nil {
+		return fmt.Errorf("The supplied bytes are not of genesis block. blockNum=%d, blockHash=%x", block.Header.Number, protoutil.BlockHeaderHash(block.Header))
 	}
 	return nil
 }
