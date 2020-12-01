@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
@@ -55,7 +56,7 @@ func (rtc RuntimeConfig) BlockCommitted(block *cb.Block, bccsp bccsp.BCCSP) (Run
 		BFTConfig:              rtc.BFTConfig,
 		id:                     rtc.id,
 		logger:                 rtc.logger,
-		LastCommittedBlockHash: hex.EncodeToString(block.Header.GetDataHash()),
+		LastCommittedBlockHash: hex.EncodeToString(protoutil.BlockHeaderHash(block.Header)),
 		Nodes:                  rtc.Nodes,
 		ID2Identities:          rtc.ID2Identities,
 		RemoteNodes:            rtc.RemoteNodes,
@@ -80,7 +81,7 @@ func (rtc RuntimeConfig) configBlockCommitted(block *cb.Block, bccsp bccsp.BCCSP
 		isConfig:               true,
 		id:                     rtc.id,
 		logger:                 rtc.logger,
-		LastCommittedBlockHash: hex.EncodeToString(block.Header.GetDataHash()),
+		LastCommittedBlockHash: hex.EncodeToString(protoutil.BlockHeaderHash(block.Header)),
 		Nodes:                  nodeConf.nodeIDs,
 		ID2Identities:          nodeConf.id2Identities,
 		RemoteNodes:            nodeConf.remoteNodes,
@@ -270,9 +271,83 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 	return config, nil
 }
 
+type request struct {
+	sigHdr   *cb.SignatureHeader
+	envelope *cb.Envelope
+	chHdr    *cb.ChannelHeader
+}
+
 // RequestInspector inspects incomming requests and validates serialized identity
 type RequestInspector struct {
 	ValidateIdentityStructure func(identity *msp.SerializedIdentity) error
+}
+
+func (ri *RequestInspector) requestIDFromSigHeader(sigHdr *cb.SignatureHeader) (types.RequestInfo, error) {
+	sID := &msp.SerializedIdentity{}
+	if err := proto.Unmarshal(sigHdr.Creator, sID); err != nil {
+		return types.RequestInfo{}, errors.Wrap(err, "identity isn't an MSP Identity")
+	}
+
+	if err := ri.ValidateIdentityStructure(sID); err != nil {
+		return types.RequestInfo{}, err
+	}
+
+	var preimage []byte
+	preimage = append(preimage, sigHdr.Nonce...)
+	preimage = append(preimage, sigHdr.Creator...)
+	txID := sha256.Sum256(preimage)
+	clientID := sha256.Sum256(sigHdr.Creator)
+	return types.RequestInfo{
+		ID:       hex.EncodeToString(txID[:]),
+		ClientID: hex.EncodeToString(clientID[:]),
+	}, nil
+}
+
+func (ri *RequestInspector) RequestID(rawReq []byte) types.RequestInfo {
+	req, err := ri.unwrapReq(rawReq)
+	if err != nil {
+		return types.RequestInfo{}
+	}
+	reqInfo, err := ri.requestIDFromSigHeader(req.sigHdr)
+	if err != nil {
+		return types.RequestInfo{}
+	}
+	return reqInfo
+}
+
+func (ri *RequestInspector) unwrapReq(req []byte) (*request, error) {
+	envelope, err := protoutil.UnmarshalEnvelope(req)
+	if err != nil {
+		return nil, err
+	}
+	payload := &cb.Payload{}
+	if err := proto.Unmarshal(envelope.Payload, payload); err != nil {
+		return nil, errors.Wrap(err, "failed unmarshaling payload")
+	}
+
+	if payload.Header == nil {
+		return nil, errors.Errorf("no header in payload")
+	}
+
+	sigHdr := &cb.SignatureHeader{}
+	if err := proto.Unmarshal(payload.Header.SignatureHeader, sigHdr); err != nil {
+		return nil, err
+	}
+
+	if len(payload.Header.ChannelHeader) == 0 {
+		return nil, errors.New("no channel header in payload")
+	}
+
+	chdr, err := protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
+	if err != nil {
+		return nil, errors.WithMessage(err, "error unmarshaling channel header")
+	}
+
+	return &request{
+		chHdr:    chdr,
+		sigHdr:   sigHdr,
+		envelope: envelope,
+	}, nil
 }
 
 func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging.FabricLogger, bccsp bccsp.BCCSP) (*nodeConfig, error) {
