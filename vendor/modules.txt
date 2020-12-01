@@ -28,6 +28,7 @@ github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
 github.com/SmartBFT-Go/consensus/pkg/consensus
 github.com/SmartBFT-Go/consensus/pkg/types
+github.com/SmartBFT-Go/consensus/pkg/wal
 github.com/SmartBFT-Go/consensus/smartbftprotos
 # github.com/VictoriaMetrics/fastcache v1.5.7
 ## explicit
