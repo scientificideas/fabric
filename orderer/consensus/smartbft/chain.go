@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"github.com/hyperledger/fabric/bccsp"
 	"sync/atomic"
 
 	smartbft "github.com/SmartBFT-Go/consensus/pkg/consensus"
@@ -65,6 +66,7 @@ type BFTChain struct {
 	verifier         *Verifier
 	assembler        *Assembler
 	Metrics          *Metrics
+	bccsp            bccsp.BCCSP
 }
 
 // NewChain creates new BFT Smart chain
@@ -79,6 +81,8 @@ func NewChain(
 	policyManager policies.Manager,
 	support consensus.ConsenterSupport,
 	metrics *Metrics,
+	bccsp bccsp.BCCSP,
+
 ) (*BFTChain, error) {
 
 	//requestInspector := &RequestInspector{
@@ -116,11 +120,11 @@ func NewChain(
 		logger: logger,
 		id:     selfID,
 	}
-	rtc, err := rtc.BlockCommitted(lastConfigBlock)
+	rtc, err := rtc.BlockCommitted(lastConfigBlock, bccsp)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed constructing RuntimeConfig")
 	}
-	rtc, err = rtc.BlockCommitted(lastBlock)
+	rtc, err = rtc.BlockCommitted(lastBlock, bccsp)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed constructing RuntimeConfig")
 	}
@@ -140,4 +144,28 @@ func NewChain(
 	logger.Infof("SmartBFT-v3 is now servicing chain %s", support.ChannelID())
 
 	return c, nil
+}
+
+func (B BFTChain) Order(env *cb.Envelope, configSeq uint64) error {
+	panic("implement me")
+}
+
+func (B BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
+	panic("implement me")
+}
+
+func (B BFTChain) WaitReady() error {
+	panic("implement me")
+}
+
+func (B BFTChain) Errored() <-chan struct{} {
+	panic("implement me")
+}
+
+func (B BFTChain) Start() {
+	panic("implement me")
+}
+
+func (B BFTChain) Halt() {
+	panic("implement me")
 }

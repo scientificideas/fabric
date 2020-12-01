@@ -11,6 +11,7 @@ package smartbft
 
 import (
 	"bytes"
+	"encoding/pem"
 	"path"
 
 	"github.com/golang/protobuf/proto"
@@ -193,7 +194,7 @@ func (c *Consenter) HandleChain(support consensus.ConsenterSupport, metadata *cb
 		//Logger:                 c.Logger,
 	}
 
-	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics)
+	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics, c.BCCSP)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed creating a new BFTChain")
 	}
@@ -212,6 +213,15 @@ func (c *Consenter) TargetChannel(message proto.Message) string {
 	default:
 		return ""
 	}
+}
+
+func pemToDER(pemBytes []byte, id uint64, certType string, logger *flogging.FabricLogger) ([]byte, error) {
+	bl, _ := pem.Decode(pemBytes)
+	if bl == nil {
+		logger.Errorf("Rejecting PEM block of %s TLS cert for node %d, offending PEM is: %s", certType, id, string(pemBytes))
+		return nil, errors.Errorf("invalid PEM block")
+	}
+	return bl.Bytes, nil
 }
 
 func (c *Consenter) detectSelfID(consenters []*smartbft.Consenter) (uint64, error) {

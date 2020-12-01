@@ -7,9 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
-	"github.com/hyperledger/fabric/common/channelconfig"
+	"fmt"
+	"sort"
 	"time"
 
 	"github.com/SmartBFT-Go/consensus/pkg/types"
@@ -19,6 +21,8 @@ import (
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/bccsp"
+	"github.com/hyperledger/fabric/common/channelconfig"
+	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"github.com/hyperledger/fabric/orderer/common/localconfig"
@@ -43,15 +47,15 @@ type RuntimeConfig struct {
 	Nodes                  []uint64
 }
 
-func (rtc RuntimeConfig) BlockCommitted(block *cb.Block) (RuntimeConfig, error) {
+func (rtc RuntimeConfig) BlockCommitted(block *cb.Block, bccsp bccsp.BCCSP) (RuntimeConfig, error) {
 	if _, err := cluster.ConfigFromBlock(block); err == nil {
-		return rtc.configBlockCommitted(block)
+		return rtc.configBlockCommitted(block, bccsp)
 	}
 	return RuntimeConfig{
 		BFTConfig:              rtc.BFTConfig,
 		id:                     rtc.id,
 		logger:                 rtc.logger,
-		LastCommittedBlockHash: hex.EncodeToString(block.Header.Hash()),
+		LastCommittedBlockHash: hex.EncodeToString(block.Header.GetDataHash()),
 		Nodes:                  rtc.Nodes,
 		ID2Identities:          rtc.ID2Identities,
 		RemoteNodes:            rtc.RemoteNodes,
@@ -60,13 +64,13 @@ func (rtc RuntimeConfig) BlockCommitted(block *cb.Block) (RuntimeConfig, error) 
 	}, nil
 }
 
-func (rtc RuntimeConfig) configBlockCommitted(block *cb.Block) (RuntimeConfig, error) {
-	nodeConf, err := RemoteNodesFromConfigBlock(block, rtc.id, rtc.logger)
+func (rtc RuntimeConfig) configBlockCommitted(block *cb.Block, bccsp bccsp.BCCSP) (RuntimeConfig, error) {
+	nodeConf, err := RemoteNodesFromConfigBlock(block, rtc.id, rtc.logger, bccsp)
 	if err != nil {
 		return rtc, errors.Wrap(err, "remote nodes cannot be computed, rejecting config block")
 	}
 
-	bftConfig, err := configBlockToBFTConfig(rtc.id, block)
+	bftConfig, err := configBlockToBFTConfig(rtc.id, block, bccsp)
 	if err != nil {
 		return RuntimeConfig{}, err
 	}
@@ -76,7 +80,7 @@ func (rtc RuntimeConfig) configBlockCommitted(block *cb.Block) (RuntimeConfig, e
 		isConfig:               true,
 		id:                     rtc.id,
 		logger:                 rtc.logger,
-		LastCommittedBlockHash: hex.EncodeToString(block.Header.Hash()),
+		LastCommittedBlockHash: hex.EncodeToString(block.Header.GetDataHash()),
 		Nodes:                  nodeConf.nodeIDs,
 		ID2Identities:          nodeConf.id2Identities,
 		RemoteNodes:            nodeConf.remoteNodes,
@@ -85,7 +89,7 @@ func (rtc RuntimeConfig) configBlockCommitted(block *cb.Block) (RuntimeConfig, e
 	}, nil
 }
 
-func configBlockToBFTConfig(selfID uint64, block *cb.Block) (types.Configuration, error) {
+func configBlockToBFTConfig(selfID uint64, block *cb.Block, bccsp bccsp.BCCSP) (types.Configuration, error) {
 	if block == nil || block.Data == nil || len(block.Data.Data) == 0 {
 		return types.Configuration{}, errors.New("empty block")
 	}
@@ -94,7 +98,7 @@ func configBlockToBFTConfig(selfID uint64, block *cb.Block) (types.Configuration
 	if err != nil {
 		return types.Configuration{}, err
 	}
-	bundle, err := channelconfig.NewBundleFromEnvelope(env)
+	bundle, err := channelconfig.NewBundleFromEnvelope(env, bccsp)
 	if err != nil {
 		return types.Configuration{}, err
 	}
@@ -269,4 +273,88 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 // RequestInspector inspects incomming requests and validates serialized identity
 type RequestInspector struct {
 	ValidateIdentityStructure func(identity *msp.SerializedIdentity) error
+}
+
+func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging.FabricLogger, bccsp bccsp.BCCSP) (*nodeConfig, error) {
+	env := &cb.Envelope{}
+	if err := proto.Unmarshal(block.Data.Data[0], env); err != nil {
+		return nil, errors.Wrap(err, "failed unmarshaling envelope of config block")
+	}
+	bundle, err := channelconfig.NewBundleFromEnvelope(env, bccsp)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed getting a new bundle from envelope of config block")
+	}
+
+	oc, ok := bundle.OrdererConfig()
+	if !ok {
+		return nil, errors.New("no orderer config in config block")
+	}
+
+	m := &smartbft.ConfigMetadata{}
+	if err := proto.Unmarshal(oc.ConsensusMetadata(), m); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal consensus metadata")
+	}
+	if m.Options == nil {
+		return nil, errors.New("failed to retrieve consensus metadata options")
+	}
+
+	var nodeIDs []uint64
+	var remoteNodes []cluster.RemoteNode
+	id2Identies := map[uint64][]byte{}
+	for _, consenter := range m.Consenters {
+		sanitizedID, err := crypto.SanitizeIdentity(consenter.Identity)
+		if err != nil {
+			logger.Panicf("Failed to sanitize identity: %v", err)
+		}
+		id2Identies[consenter.ConsenterId] = sanitizedID
+		logger.Infof("%s %d ---> %s", bundle.ConfigtxValidator().ChannelID(), consenter.ConsenterId, string(consenter.Identity))
+
+		nodeIDs = append(nodeIDs, consenter.ConsenterId)
+
+		// No need to know yourself
+		if selfID == consenter.ConsenterId {
+			continue
+		}
+		serverCertAsDER, err := pemToDER(consenter.ServerTlsCert, consenter.ConsenterId, "server", logger)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		clientCertAsDER, err := pemToDER(consenter.ClientTlsCert, consenter.ConsenterId, "client", logger)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+
+		// Validate certificate structure
+		for _, cert := range [][]byte{serverCertAsDER, clientCertAsDER} {
+			if _, err := x509.ParseCertificate(cert); err != nil {
+				pemBytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert})
+				logger.Errorf("Invalid certificate: %s", string(pemBytes))
+				return nil, err
+			}
+		}
+
+		remoteNodes = append(remoteNodes, cluster.RemoteNode{
+			ID:            consenter.ConsenterId,
+			ClientTLSCert: clientCertAsDER,
+			ServerTLSCert: serverCertAsDER,
+			Endpoint:      fmt.Sprintf("%s:%d", consenter.Host, consenter.Port),
+		})
+	}
+
+	sort.Slice(nodeIDs, func(i, j int) bool {
+		return nodeIDs[i] < nodeIDs[j]
+	})
+
+	return &nodeConfig{
+		remoteNodes:   remoteNodes,
+		id2Identities: id2Identies,
+		nodeIDs:       nodeIDs,
+	}, nil
+
+}
+
+type nodeConfig struct {
+	id2Identities NodeIdentitiesByID
+	remoteNodes   []cluster.RemoteNode
+	nodeIDs       []uint64
 }
