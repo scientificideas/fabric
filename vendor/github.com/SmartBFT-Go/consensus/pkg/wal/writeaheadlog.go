@@ -501,14 +501,14 @@ FileLoop:
 		}
 
 		if index == lastIndex && (readErr == io.ErrUnexpectedEOF || readErr == ErrCRC) {
-			w.logger.Warnf("Received an error in the last file, this can possibly be repaired; file: %s; error: %s", r.fileName, err)
+			w.logger.Warnf("Received an error in the last file, this can possibly be repaired; file: %s; error: %s", r.fileName, readErr)
 			// This error is returned when the WAL can possibly be repaired
 			return nil, io.ErrUnexpectedEOF
 		}
 
 		if readErr != nil {
-			w.logger.Warnf("Failed reading file: %s; error: %s", r.fileName, err)
-			return nil, fmt.Errorf("failed reading wal: %s", err)
+			w.logger.Warnf("Failed reading file: %s; error: %s", r.fileName, readErr)
+			return nil, fmt.Errorf("failed reading wal: %s", readErr)
 		}
 	}
 
@@ -626,6 +626,9 @@ func (w *WriteAheadLogFile) recycleOrCreateFile() error {
 func (w *WriteAheadLogFile) saveCRC() error {
 	anchorRecord := &protos.LogRecord{Type: protos.LogRecord_CRC_ANCHOR, TruncateTo: false}
 	b, err := proto.Marshal(anchorRecord)
+	if err != nil {
+		return err
+	}
 	recordLength := len(b)
 	padSize, padBytes := getPadBytes(recordLength)
 	if padSize != 0 {

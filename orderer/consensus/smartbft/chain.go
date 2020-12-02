@@ -7,21 +7,21 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
-	"time"
 	"fmt"
 	"sync/atomic"
+	"time"
 
 	smartbft "github.com/SmartBFT-Go/consensus/pkg/consensus"
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/pkg/wal"
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/policies"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
 	"github.com/hyperledger/fabric/orderer/consensus"
-	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -297,7 +297,6 @@ func (c *BFTChain) lastPersistedProposalAndSignatures() (*types.Proposal, []type
 func (c *BFTChain) reportIsLeader(proposal *types.Proposal) {
 	panic("implement me")
 }
-
 
 func buildVerifier(
 	cv ConfigValidator,
