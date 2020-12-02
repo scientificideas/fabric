@@ -10,11 +10,15 @@
 package smartbft
 
 import (
-	"errors"
+	"bytes"
+	"encoding/pem"
+	"path"
 
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
+	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/metrics"
 	"github.com/hyperledger/fabric/common/policies"
@@ -23,7 +27,9 @@ import (
 	"github.com/hyperledger/fabric/orderer/common/localconfig"
 	"github.com/hyperledger/fabric/orderer/common/multichannel"
 	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.com/hyperledger/fabric/orderer/consensus/inactive"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 // CreateChainCallback creates a new chain
@@ -65,7 +71,8 @@ type Consenter struct {
 	WALBaseDir            string
 	ClusterDialer         *cluster.PredicateDialer
 	Conf                  *localconfig.TopLevel
-	//Metrics               *Metrics
+	Metrics               *Metrics
+	BCCSP                 bccsp.BCCSP
 }
 
 // New creates Consenter of type smart bft
@@ -138,20 +145,61 @@ func New(
 	return consenter
 }
 
-// ReceiverByChain returns the MessageReceiver for the given channelID or nil
-// if not found.
+// ReceiverByChain returns the MessageReceiver for the given channelID or nil if not found.
 func (c *Consenter) ReceiverByChain(channelID string) MessageReceiver {
 	return nil
 }
 
+// HandleChain returns a new Chain instance or an error upon failure
 func (c *Consenter) HandleChain(support consensus.ConsenterSupport, metadata *cb.Metadata) (consensus.Chain, error) {
-	//TODO fully construct a follower.Chain
-	return nil, errors.New("not implemented")
-}
+	m := &smartbft.ConfigMetadata{}
+	if err := proto.Unmarshal(support.SharedConfig().ConsensusMetadata(), m); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal consensus metadata")
+	}
+	if m.Options == nil {
+		return nil, errors.New("failed to retrieve consensus metadata options")
+	}
 
-func (c *Consenter) JoinChain(support consensus.ConsenterSupport, joinBlock *cb.Block) (consensus.Chain, error) {
-	//TODO fully construct a follower.Chain
-	return nil, errors.New("not implemented")
+	selfID, err := c.detectSelfID(m.Consenters)
+	if err != nil {
+		if c.InactiveChainRegistry != nil {
+			c.Logger.Errorf("channel %s is not serviced by me", support.ChannelID())
+			c.InactiveChainRegistry.TrackChain(support.ChannelID(), support.Block(0), func() {
+				c.CreateChain(support.ChannelID())
+			})
+			return &inactive.Chain{Err: errors.Errorf("channel %s is not serviced by me", support.ChannelID())}, nil
+		}
+
+		return nil, errors.Wrap(err, "without a system channel, a follower should have been created")
+	}
+	c.Logger.Infof("Local consenter id is %d", selfID)
+
+	puller, err := newBlockPuller(support, c.ClusterDialer, c.Conf.General.Cluster, c.BCCSP)
+	if err != nil {
+		c.Logger.Panicf("Failed initializing block puller")
+	}
+
+	config, err := configFromMetadataOptions(selfID, m.Options)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed parsing smartbft configuration")
+	}
+	c.Logger.Debugf("SmartBFT-Go config: %+v", config)
+
+	// todo: BFT config validator
+	configValidator := &ConfigBlockValidator{
+		//ChannelConfigTemplator: c.Registrar,
+		//ValidatingChannel:      support.ChannelID(),
+		//Filters:                c.Registrar,
+		//ConfigUpdateProposer:   c.Registrar,
+		//Logger:                 c.Logger,
+	}
+
+	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics, c.BCCSP)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed creating a new BFTChain")
+	}
+
+	return chain, nil
 }
 
 // TargetChannel extracts the channel from the given proto.Message.
@@ -165,4 +213,26 @@ func (c *Consenter) TargetChannel(message proto.Message) string {
 	default:
 		return ""
 	}
+}
+
+func pemToDER(pemBytes []byte, id uint64, certType string, logger *flogging.FabricLogger) ([]byte, error) {
+	bl, _ := pem.Decode(pemBytes)
+	if bl == nil {
+		logger.Errorf("Rejecting PEM block of %s TLS cert for node %d, offending PEM is: %s", certType, id, string(pemBytes))
+		return nil, errors.Errorf("invalid PEM block")
+	}
+	return bl.Bytes, nil
+}
+
+func (c *Consenter) detectSelfID(consenters []*smartbft.Consenter) (uint64, error) {
+	var serverCertificates []string
+	for _, cst := range consenters {
+		serverCertificates = append(serverCertificates, string(cst.ServerTlsCert))
+		if bytes.Equal(c.Cert, cst.ServerTlsCert) {
+			return cst.ConsenterId, nil
+		}
+	}
+
+	c.Logger.Warning("Could not find", string(c.Cert), "among", serverCertificates)
+	return 0, cluster.ErrNotInChannel
 }
