@@ -7,19 +7,22 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
-	"time"
-	"github.com/hyperledger/fabric/bccsp"
+	"fmt"
 	"sync/atomic"
+	"time"
 
 	smartbft "github.com/SmartBFT-Go/consensus/pkg/consensus"
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/pkg/wal"
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/policies"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
+	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
 	"github.com/hyperledger/fabric/orderer/consensus"
-	"github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -134,7 +137,7 @@ func NewChain(
 
 	c.RuntimeConfig.Store(rtc)
 
-	//c.verifier = buildVerifier(cv, c.RuntimeConfig, support, requestInspector, policyManager)
+	c.verifier = buildVerifier(cv, c.RuntimeConfig, support, requestInspector, policyManager)
 	c.consensus = bftSmartConsensusBuild(c, requestInspector)
 
 	// Setup communication with list of remotes notes for the new channel
@@ -295,3 +298,51 @@ func (c *BFTChain) reportIsLeader(proposal *types.Proposal) {
 	panic("implement me")
 }
 
+func buildVerifier(
+	cv ConfigValidator,
+	runtimeConfig *atomic.Value,
+	support consensus.ConsenterSupport,
+	requestInspector *RequestInspector,
+	policyManager policies.Manager,
+) *Verifier {
+	channelDecorator := zap.String("channel", support.ChannelID())
+	logger := flogging.MustGetLogger("orderer.consensus.smartbft.verifier").With(channelDecorator)
+	return &Verifier{
+		ConfigValidator:       cv,
+		VerificationSequencer: support,
+		ReqInspector:          requestInspector,
+		Logger:                logger,
+		RuntimeConfig:         runtimeConfig,
+		ConsenterVerifier: &consenterVerifier{
+			logger:        logger,
+			channel:       support.ChannelID(),
+			policyManager: policyManager,
+		},
+
+		AccessController: &chainACL{
+			policyManager: policyManager,
+			Logger:        logger,
+		},
+		Ledger: support,
+	}
+}
+
+type chainACL struct {
+	policyManager policies.Manager
+	Logger        *flogging.FabricLogger
+}
+
+func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
+	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
+	if !ok {
+		return fmt.Errorf("could not find policy %s", policies.ChannelWriters)
+	}
+
+	err := policy.EvaluateSignedData(signatureSet)
+	if err != nil {
+		c.Logger.Debugf("SigFilter evaluation failed: %s, policyName: %s", err.Error(), policies.ChannelWriters)
+		return errors.Wrap(errors.WithStack(msgprocessor.ErrPermissionDenied), err.Error())
+	}
+	return nil
+
+}
