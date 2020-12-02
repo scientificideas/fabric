@@ -275,6 +275,10 @@ type RequestInspector struct {
 	ValidateIdentityStructure func(identity *msp.SerializedIdentity) error
 }
 
+func (ri *RequestInspector) RequestID(rawReq []byte) types.RequestInfo {
+	panic("implement me")
+}
+
 func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging.FabricLogger, bccsp bccsp.BCCSP) (*nodeConfig, error) {
 	env := &cb.Envelope{}
 	if err := proto.Unmarshal(block.Data.Data[0], env); err != nil {

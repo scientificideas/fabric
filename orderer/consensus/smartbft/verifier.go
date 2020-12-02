@@ -40,7 +40,6 @@ type AccessController interface {
 
 type requestVerifier func(req []byte, isolated bool) (types.RequestInfo, error)
 
-
 type NodeIdentitiesByID map[uint64][]byte
 
 // Verifier is used to determine whether a signature from one of the consenters is valid
@@ -53,4 +52,28 @@ type Verifier struct {
 	Ledger                Ledger
 	Logger                *flogging.FabricLogger
 	ConfigValidator       ConfigValidator
+}
+
+func (*Verifier) RequestsFromProposal(types.Proposal) []types.RequestInfo {
+	panic("implement me")
+}
+
+func (*Verifier) VerifyProposal(proposal types.Proposal) ([]types.RequestInfo, error) {
+	panic("implement me")
+}
+
+func (*Verifier) VerifyRequest(val []byte) (types.RequestInfo, error) {
+	panic("implement me")
+}
+
+func (*Verifier) VerifyConsenterSig(signature types.Signature, prop types.Proposal) error {
+	panic("implement me")
+}
+
+func (*Verifier) VerifySignature(signature types.Signature) error {
+	panic("implement me")
+}
+
+func (*Verifier) VerificationSequence() uint64 {
+	panic("implement me")
 }
