@@ -54,15 +54,16 @@ func (fake *PrivateDataResponseSender) DataType() string {
 	ret, specificReturn := fake.dataTypeReturnsOnCall[len(fake.dataTypeArgsForCall)]
 	fake.dataTypeArgsForCall = append(fake.dataTypeArgsForCall, struct {
 	}{})
+	stub := fake.DataTypeStub
+	fakeReturns := fake.dataTypeReturns
 	fake.recordInvocation("DataType", []interface{}{})
 	fake.dataTypeMutex.Unlock()
-	if fake.DataTypeStub != nil {
-		return fake.DataTypeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.dataTypeReturns
 	return fakeReturns.result1
 }
 
@@ -110,15 +111,16 @@ func (fake *PrivateDataResponseSender) SendBlockResponse(arg1 *common.Block, arg
 		arg3 deliver.Chain
 		arg4 *protoutil.SignedData
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.SendBlockResponseStub
+	fakeReturns := fake.sendBlockResponseReturns
 	fake.recordInvocation("SendBlockResponse", []interface{}{arg1, arg2, arg3, arg4})
 	fake.sendBlockResponseMutex.Unlock()
-	if fake.SendBlockResponseStub != nil {
-		return fake.SendBlockResponseStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendBlockResponseReturns
 	return fakeReturns.result1
 }
 
@@ -170,15 +172,16 @@ func (fake *PrivateDataResponseSender) SendStatusResponse(arg1 common.Status) er
 	fake.sendStatusResponseArgsForCall = append(fake.sendStatusResponseArgsForCall, struct {
 		arg1 common.Status
 	}{arg1})
+	stub := fake.SendStatusResponseStub
+	fakeReturns := fake.sendStatusResponseReturns
 	fake.recordInvocation("SendStatusResponse", []interface{}{arg1})
 	fake.sendStatusResponseMutex.Unlock()
-	if fake.SendStatusResponseStub != nil {
-		return fake.SendStatusResponseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendStatusResponseReturns
 	return fakeReturns.result1
 }
 

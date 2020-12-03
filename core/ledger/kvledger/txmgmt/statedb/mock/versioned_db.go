@@ -196,15 +196,16 @@ func (fake *VersionedDB) ApplyUpdates(arg1 *statedb.UpdateBatch, arg2 *version.H
 		arg1 *statedb.UpdateBatch
 		arg2 *version.Height
 	}{arg1, arg2})
+	stub := fake.ApplyUpdatesStub
+	fakeReturns := fake.applyUpdatesReturns
 	fake.recordInvocation("ApplyUpdates", []interface{}{arg1, arg2})
 	fake.applyUpdatesMutex.Unlock()
-	if fake.ApplyUpdatesStub != nil {
-		return fake.ApplyUpdatesStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.applyUpdatesReturns
 	return fakeReturns.result1
 }
 
@@ -255,15 +256,16 @@ func (fake *VersionedDB) BytesKeySupported() bool {
 	ret, specificReturn := fake.bytesKeySupportedReturnsOnCall[len(fake.bytesKeySupportedArgsForCall)]
 	fake.bytesKeySupportedArgsForCall = append(fake.bytesKeySupportedArgsForCall, struct {
 	}{})
+	stub := fake.BytesKeySupportedStub
+	fakeReturns := fake.bytesKeySupportedReturns
 	fake.recordInvocation("BytesKeySupported", []interface{}{})
 	fake.bytesKeySupportedMutex.Unlock()
-	if fake.BytesKeySupportedStub != nil {
-		return fake.BytesKeySupportedStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.bytesKeySupportedReturns
 	return fakeReturns.result1
 }
 
@@ -306,9 +308,10 @@ func (fake *VersionedDB) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
+	if stub != nil {
 		fake.CloseStub()
 	}
 }
@@ -332,15 +335,16 @@ func (fake *VersionedDB) ExecuteQuery(arg1 string, arg2 string) (statedb.Results
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.ExecuteQueryStub
+	fakeReturns := fake.executeQueryReturns
 	fake.recordInvocation("ExecuteQuery", []interface{}{arg1, arg2})
 	fake.executeQueryMutex.Unlock()
-	if fake.ExecuteQueryStub != nil {
-		return fake.ExecuteQueryStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeQueryReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -398,15 +402,16 @@ func (fake *VersionedDB) ExecuteQueryWithPagination(arg1 string, arg2 string, ar
 		arg3 string
 		arg4 int32
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.ExecuteQueryWithPaginationStub
+	fakeReturns := fake.executeQueryWithPaginationReturns
 	fake.recordInvocation("ExecuteQueryWithPagination", []interface{}{arg1, arg2, arg3, arg4})
 	fake.executeQueryWithPaginationMutex.Unlock()
-	if fake.ExecuteQueryWithPaginationStub != nil {
-		return fake.ExecuteQueryWithPaginationStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeQueryWithPaginationReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -461,15 +466,16 @@ func (fake *VersionedDB) GetFullScanIterator(arg1 func(string) bool) (statedb.Fu
 	fake.getFullScanIteratorArgsForCall = append(fake.getFullScanIteratorArgsForCall, struct {
 		arg1 func(string) bool
 	}{arg1})
+	stub := fake.GetFullScanIteratorStub
+	fakeReturns := fake.getFullScanIteratorReturns
 	fake.recordInvocation("GetFullScanIterator", []interface{}{arg1})
 	fake.getFullScanIteratorMutex.Unlock()
-	if fake.GetFullScanIteratorStub != nil {
-		return fake.GetFullScanIteratorStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getFullScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -523,15 +529,16 @@ func (fake *VersionedDB) GetLatestSavePoint() (*version.Height, error) {
 	ret, specificReturn := fake.getLatestSavePointReturnsOnCall[len(fake.getLatestSavePointArgsForCall)]
 	fake.getLatestSavePointArgsForCall = append(fake.getLatestSavePointArgsForCall, struct {
 	}{})
+	stub := fake.GetLatestSavePointStub
+	fakeReturns := fake.getLatestSavePointReturns
 	fake.recordInvocation("GetLatestSavePoint", []interface{}{})
 	fake.getLatestSavePointMutex.Unlock()
-	if fake.GetLatestSavePointStub != nil {
-		return fake.GetLatestSavePointStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getLatestSavePointReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -580,15 +587,16 @@ func (fake *VersionedDB) GetState(arg1 string, arg2 string) (*statedb.VersionedV
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStateStub
+	fakeReturns := fake.getStateReturns
 	fake.recordInvocation("GetState", []interface{}{arg1, arg2})
 	fake.getStateMutex.Unlock()
-	if fake.GetStateStub != nil {
-		return fake.GetStateStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -649,15 +657,16 @@ func (fake *VersionedDB) GetStateMultipleKeys(arg1 string, arg2 []string) ([]*st
 		arg1 string
 		arg2 []string
 	}{arg1, arg2Copy})
+	stub := fake.GetStateMultipleKeysStub
+	fakeReturns := fake.getStateMultipleKeysReturns
 	fake.recordInvocation("GetStateMultipleKeys", []interface{}{arg1, arg2Copy})
 	fake.getStateMultipleKeysMutex.Unlock()
-	if fake.GetStateMultipleKeysStub != nil {
-		return fake.GetStateMultipleKeysStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateMultipleKeysReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -714,15 +723,16 @@ func (fake *VersionedDB) GetStateRangeScanIterator(arg1 string, arg2 string, arg
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetStateRangeScanIteratorStub
+	fakeReturns := fake.getStateRangeScanIteratorReturns
 	fake.recordInvocation("GetStateRangeScanIterator", []interface{}{arg1, arg2, arg3})
 	fake.getStateRangeScanIteratorMutex.Unlock()
-	if fake.GetStateRangeScanIteratorStub != nil {
-		return fake.GetStateRangeScanIteratorStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -780,15 +790,16 @@ func (fake *VersionedDB) GetStateRangeScanIteratorWithPagination(arg1 string, ar
 		arg3 string
 		arg4 int32
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.GetStateRangeScanIteratorWithPaginationStub
+	fakeReturns := fake.getStateRangeScanIteratorWithPaginationReturns
 	fake.recordInvocation("GetStateRangeScanIteratorWithPagination", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getStateRangeScanIteratorWithPaginationMutex.Unlock()
-	if fake.GetStateRangeScanIteratorWithPaginationStub != nil {
-		return fake.GetStateRangeScanIteratorWithPaginationStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorWithPaginationReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -844,15 +855,16 @@ func (fake *VersionedDB) GetVersion(arg1 string, arg2 string) (*version.Height, 
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetVersionStub
+	fakeReturns := fake.getVersionReturns
 	fake.recordInvocation("GetVersion", []interface{}{arg1, arg2})
 	fake.getVersionMutex.Unlock()
-	if fake.GetVersionStub != nil {
-		return fake.GetVersionStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getVersionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -906,15 +918,16 @@ func (fake *VersionedDB) Open() error {
 	ret, specificReturn := fake.openReturnsOnCall[len(fake.openArgsForCall)]
 	fake.openArgsForCall = append(fake.openArgsForCall, struct {
 	}{})
+	stub := fake.OpenStub
+	fakeReturns := fake.openReturns
 	fake.recordInvocation("Open", []interface{}{})
 	fake.openMutex.Unlock()
-	if fake.OpenStub != nil {
-		return fake.OpenStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.openReturns
 	return fakeReturns.result1
 }
 
@@ -965,15 +978,16 @@ func (fake *VersionedDB) ValidateKeyValue(arg1 string, arg2 []byte) error {
 		arg1 string
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.ValidateKeyValueStub
+	fakeReturns := fake.validateKeyValueReturns
 	fake.recordInvocation("ValidateKeyValue", []interface{}{arg1, arg2Copy})
 	fake.validateKeyValueMutex.Unlock()
-	if fake.ValidateKeyValueStub != nil {
-		return fake.ValidateKeyValueStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.validateKeyValueReturns
 	return fakeReturns.result1
 }
 

@@ -53,15 +53,16 @@ func (fake *Platform) DockerBuildOptions(arg1 string) (util.DockerBuildOptions, 
 	fake.dockerBuildOptionsArgsForCall = append(fake.dockerBuildOptionsArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DockerBuildOptionsStub
+	fakeReturns := fake.dockerBuildOptionsReturns
 	fake.recordInvocation("DockerBuildOptions", []interface{}{arg1})
 	fake.dockerBuildOptionsMutex.Unlock()
-	if fake.DockerBuildOptionsStub != nil {
-		return fake.DockerBuildOptionsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.dockerBuildOptionsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -115,15 +116,16 @@ func (fake *Platform) GenerateDockerfile() (string, error) {
 	ret, specificReturn := fake.generateDockerfileReturnsOnCall[len(fake.generateDockerfileArgsForCall)]
 	fake.generateDockerfileArgsForCall = append(fake.generateDockerfileArgsForCall, struct {
 	}{})
+	stub := fake.GenerateDockerfileStub
+	fakeReturns := fake.generateDockerfileReturns
 	fake.recordInvocation("GenerateDockerfile", []interface{}{})
 	fake.generateDockerfileMutex.Unlock()
-	if fake.GenerateDockerfileStub != nil {
-		return fake.GenerateDockerfileStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.generateDockerfileReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -170,15 +172,16 @@ func (fake *Platform) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 

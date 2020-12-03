@@ -135,15 +135,16 @@ func (fake *Capabilities) ACLs() bool {
 	ret, specificReturn := fake.aCLsReturnsOnCall[len(fake.aCLsArgsForCall)]
 	fake.aCLsArgsForCall = append(fake.aCLsArgsForCall, struct {
 	}{})
+	stub := fake.ACLsStub
+	fakeReturns := fake.aCLsReturns
 	fake.recordInvocation("ACLs", []interface{}{})
 	fake.aCLsMutex.Unlock()
-	if fake.ACLsStub != nil {
-		return fake.ACLsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.aCLsReturns
 	return fakeReturns.result1
 }
 
@@ -187,15 +188,16 @@ func (fake *Capabilities) CollectionUpgrade() bool {
 	ret, specificReturn := fake.collectionUpgradeReturnsOnCall[len(fake.collectionUpgradeArgsForCall)]
 	fake.collectionUpgradeArgsForCall = append(fake.collectionUpgradeArgsForCall, struct {
 	}{})
+	stub := fake.CollectionUpgradeStub
+	fakeReturns := fake.collectionUpgradeReturns
 	fake.recordInvocation("CollectionUpgrade", []interface{}{})
 	fake.collectionUpgradeMutex.Unlock()
-	if fake.CollectionUpgradeStub != nil {
-		return fake.CollectionUpgradeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.collectionUpgradeReturns
 	return fakeReturns.result1
 }
 
@@ -239,15 +241,16 @@ func (fake *Capabilities) ForbidDuplicateTXIdInBlock() bool {
 	ret, specificReturn := fake.forbidDuplicateTXIdInBlockReturnsOnCall[len(fake.forbidDuplicateTXIdInBlockArgsForCall)]
 	fake.forbidDuplicateTXIdInBlockArgsForCall = append(fake.forbidDuplicateTXIdInBlockArgsForCall, struct {
 	}{})
+	stub := fake.ForbidDuplicateTXIdInBlockStub
+	fakeReturns := fake.forbidDuplicateTXIdInBlockReturns
 	fake.recordInvocation("ForbidDuplicateTXIdInBlock", []interface{}{})
 	fake.forbidDuplicateTXIdInBlockMutex.Unlock()
-	if fake.ForbidDuplicateTXIdInBlockStub != nil {
-		return fake.ForbidDuplicateTXIdInBlockStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.forbidDuplicateTXIdInBlockReturns
 	return fakeReturns.result1
 }
 
@@ -291,15 +294,16 @@ func (fake *Capabilities) KeyLevelEndorsement() bool {
 	ret, specificReturn := fake.keyLevelEndorsementReturnsOnCall[len(fake.keyLevelEndorsementArgsForCall)]
 	fake.keyLevelEndorsementArgsForCall = append(fake.keyLevelEndorsementArgsForCall, struct {
 	}{})
+	stub := fake.KeyLevelEndorsementStub
+	fakeReturns := fake.keyLevelEndorsementReturns
 	fake.recordInvocation("KeyLevelEndorsement", []interface{}{})
 	fake.keyLevelEndorsementMutex.Unlock()
-	if fake.KeyLevelEndorsementStub != nil {
-		return fake.KeyLevelEndorsementStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.keyLevelEndorsementReturns
 	return fakeReturns.result1
 }
 
@@ -343,15 +347,16 @@ func (fake *Capabilities) MetadataLifecycle() bool {
 	ret, specificReturn := fake.metadataLifecycleReturnsOnCall[len(fake.metadataLifecycleArgsForCall)]
 	fake.metadataLifecycleArgsForCall = append(fake.metadataLifecycleArgsForCall, struct {
 	}{})
+	stub := fake.MetadataLifecycleStub
+	fakeReturns := fake.metadataLifecycleReturns
 	fake.recordInvocation("MetadataLifecycle", []interface{}{})
 	fake.metadataLifecycleMutex.Unlock()
-	if fake.MetadataLifecycleStub != nil {
-		return fake.MetadataLifecycleStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.metadataLifecycleReturns
 	return fakeReturns.result1
 }
 
@@ -395,15 +400,16 @@ func (fake *Capabilities) PrivateChannelData() bool {
 	ret, specificReturn := fake.privateChannelDataReturnsOnCall[len(fake.privateChannelDataArgsForCall)]
 	fake.privateChannelDataArgsForCall = append(fake.privateChannelDataArgsForCall, struct {
 	}{})
+	stub := fake.PrivateChannelDataStub
+	fakeReturns := fake.privateChannelDataReturns
 	fake.recordInvocation("PrivateChannelData", []interface{}{})
 	fake.privateChannelDataMutex.Unlock()
-	if fake.PrivateChannelDataStub != nil {
-		return fake.PrivateChannelDataStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.privateChannelDataReturns
 	return fakeReturns.result1
 }
 
@@ -447,15 +453,16 @@ func (fake *Capabilities) StorePvtDataOfInvalidTx() bool {
 	ret, specificReturn := fake.storePvtDataOfInvalidTxReturnsOnCall[len(fake.storePvtDataOfInvalidTxArgsForCall)]
 	fake.storePvtDataOfInvalidTxArgsForCall = append(fake.storePvtDataOfInvalidTxArgsForCall, struct {
 	}{})
+	stub := fake.StorePvtDataOfInvalidTxStub
+	fakeReturns := fake.storePvtDataOfInvalidTxReturns
 	fake.recordInvocation("StorePvtDataOfInvalidTx", []interface{}{})
 	fake.storePvtDataOfInvalidTxMutex.Unlock()
-	if fake.StorePvtDataOfInvalidTxStub != nil {
-		return fake.StorePvtDataOfInvalidTxStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.storePvtDataOfInvalidTxReturns
 	return fakeReturns.result1
 }
 
@@ -499,15 +506,16 @@ func (fake *Capabilities) Supported() error {
 	ret, specificReturn := fake.supportedReturnsOnCall[len(fake.supportedArgsForCall)]
 	fake.supportedArgsForCall = append(fake.supportedArgsForCall, struct {
 	}{})
+	stub := fake.SupportedStub
+	fakeReturns := fake.supportedReturns
 	fake.recordInvocation("Supported", []interface{}{})
 	fake.supportedMutex.Unlock()
-	if fake.SupportedStub != nil {
-		return fake.SupportedStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.supportedReturns
 	return fakeReturns.result1
 }
 
@@ -551,15 +559,16 @@ func (fake *Capabilities) V1_1Validation() bool {
 	ret, specificReturn := fake.v1_1ValidationReturnsOnCall[len(fake.v1_1ValidationArgsForCall)]
 	fake.v1_1ValidationArgsForCall = append(fake.v1_1ValidationArgsForCall, struct {
 	}{})
+	stub := fake.V1_1ValidationStub
+	fakeReturns := fake.v1_1ValidationReturns
 	fake.recordInvocation("V1_1Validation", []interface{}{})
 	fake.v1_1ValidationMutex.Unlock()
-	if fake.V1_1ValidationStub != nil {
-		return fake.V1_1ValidationStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.v1_1ValidationReturns
 	return fakeReturns.result1
 }
 
@@ -603,15 +612,16 @@ func (fake *Capabilities) V1_2Validation() bool {
 	ret, specificReturn := fake.v1_2ValidationReturnsOnCall[len(fake.v1_2ValidationArgsForCall)]
 	fake.v1_2ValidationArgsForCall = append(fake.v1_2ValidationArgsForCall, struct {
 	}{})
+	stub := fake.V1_2ValidationStub
+	fakeReturns := fake.v1_2ValidationReturns
 	fake.recordInvocation("V1_2Validation", []interface{}{})
 	fake.v1_2ValidationMutex.Unlock()
-	if fake.V1_2ValidationStub != nil {
-		return fake.V1_2ValidationStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.v1_2ValidationReturns
 	return fakeReturns.result1
 }
 
@@ -655,15 +665,16 @@ func (fake *Capabilities) V1_3Validation() bool {
 	ret, specificReturn := fake.v1_3ValidationReturnsOnCall[len(fake.v1_3ValidationArgsForCall)]
 	fake.v1_3ValidationArgsForCall = append(fake.v1_3ValidationArgsForCall, struct {
 	}{})
+	stub := fake.V1_3ValidationStub
+	fakeReturns := fake.v1_3ValidationReturns
 	fake.recordInvocation("V1_3Validation", []interface{}{})
 	fake.v1_3ValidationMutex.Unlock()
-	if fake.V1_3ValidationStub != nil {
-		return fake.V1_3ValidationStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.v1_3ValidationReturns
 	return fakeReturns.result1
 }
 
@@ -707,15 +718,16 @@ func (fake *Capabilities) V2_0Validation() bool {
 	ret, specificReturn := fake.v2_0ValidationReturnsOnCall[len(fake.v2_0ValidationArgsForCall)]
 	fake.v2_0ValidationArgsForCall = append(fake.v2_0ValidationArgsForCall, struct {
 	}{})
+	stub := fake.V2_0ValidationStub
+	fakeReturns := fake.v2_0ValidationReturns
 	fake.recordInvocation("V2_0Validation", []interface{}{})
 	fake.v2_0ValidationMutex.Unlock()
-	if fake.V2_0ValidationStub != nil {
-		return fake.V2_0ValidationStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.v2_0ValidationReturns
 	return fakeReturns.result1
 }
 

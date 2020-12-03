@@ -73,15 +73,16 @@ func (fake *User) MakeNym(arg1 handlers.Big, arg2 handlers.IssuerPublicKey) (han
 		arg1 handlers.Big
 		arg2 handlers.IssuerPublicKey
 	}{arg1, arg2})
+	stub := fake.MakeNymStub
+	fakeReturns := fake.makeNymReturns
 	fake.recordInvocation("MakeNym", []interface{}{arg1, arg2})
 	fake.makeNymMutex.Unlock()
-	if fake.MakeNymStub != nil {
-		return fake.MakeNymStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.makeNymReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -138,15 +139,16 @@ func (fake *User) NewKey() (handlers.Big, error) {
 	ret, specificReturn := fake.newKeyReturnsOnCall[len(fake.newKeyArgsForCall)]
 	fake.newKeyArgsForCall = append(fake.newKeyArgsForCall, struct {
 	}{})
+	stub := fake.NewKeyStub
+	fakeReturns := fake.newKeyReturns
 	fake.recordInvocation("NewKey", []interface{}{})
 	fake.newKeyMutex.Unlock()
-	if fake.NewKeyStub != nil {
-		return fake.NewKeyStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newKeyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -199,15 +201,16 @@ func (fake *User) NewKeyFromBytes(arg1 []byte) (handlers.Big, error) {
 	fake.newKeyFromBytesArgsForCall = append(fake.newKeyFromBytesArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.NewKeyFromBytesStub
+	fakeReturns := fake.newKeyFromBytesReturns
 	fake.recordInvocation("NewKeyFromBytes", []interface{}{arg1Copy})
 	fake.newKeyFromBytesMutex.Unlock()
-	if fake.NewKeyFromBytesStub != nil {
-		return fake.NewKeyFromBytesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newKeyFromBytesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -267,15 +270,16 @@ func (fake *User) NewPublicNymFromBytes(arg1 []byte) (handlers.Ecp, error) {
 	fake.newPublicNymFromBytesArgsForCall = append(fake.newPublicNymFromBytesArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.NewPublicNymFromBytesStub
+	fakeReturns := fake.newPublicNymFromBytesReturns
 	fake.recordInvocation("NewPublicNymFromBytes", []interface{}{arg1Copy})
 	fake.newPublicNymFromBytesMutex.Unlock()
-	if fake.NewPublicNymFromBytesStub != nil {
-		return fake.NewPublicNymFromBytesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newPublicNymFromBytesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

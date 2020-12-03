@@ -32,15 +32,16 @@ func (fake *QueryExecutorProvider) TxQueryExecutor(arg1 string, arg2 string) led
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.TxQueryExecutorStub
+	fakeReturns := fake.txQueryExecutorReturns
 	fake.recordInvocation("TxQueryExecutor", []interface{}{arg1, arg2})
 	fake.txQueryExecutorMutex.Unlock()
-	if fake.TxQueryExecutorStub != nil {
-		return fake.TxQueryExecutorStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.txQueryExecutorReturns
 	return fakeReturns.result1
 }
 

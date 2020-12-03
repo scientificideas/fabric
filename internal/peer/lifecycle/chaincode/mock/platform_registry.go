@@ -45,15 +45,16 @@ func (fake *PlatformRegistry) GetDeploymentPayload(arg1 string, arg2 string) ([]
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetDeploymentPayloadStub
+	fakeReturns := fake.getDeploymentPayloadReturns
 	fake.recordInvocation("GetDeploymentPayload", []interface{}{arg1, arg2})
 	fake.getDeploymentPayloadMutex.Unlock()
-	if fake.GetDeploymentPayloadStub != nil {
-		return fake.GetDeploymentPayloadStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getDeploymentPayloadReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -109,15 +110,16 @@ func (fake *PlatformRegistry) NormalizePath(arg1 string, arg2 string) (string, e
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.NormalizePathStub
+	fakeReturns := fake.normalizePathReturns
 	fake.recordInvocation("NormalizePath", []interface{}{arg1, arg2})
 	fake.normalizePathMutex.Unlock()
-	if fake.NormalizePathStub != nil {
-		return fake.NormalizePathStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.normalizePathReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

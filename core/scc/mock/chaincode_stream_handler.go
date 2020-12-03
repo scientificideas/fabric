@@ -40,15 +40,16 @@ func (fake *ChaincodeStreamHandler) HandleChaincodeStream(arg1 ccintf.ChaincodeS
 	fake.handleChaincodeStreamArgsForCall = append(fake.handleChaincodeStreamArgsForCall, struct {
 		arg1 ccintf.ChaincodeStream
 	}{arg1})
+	stub := fake.HandleChaincodeStreamStub
+	fakeReturns := fake.handleChaincodeStreamReturns
 	fake.recordInvocation("HandleChaincodeStream", []interface{}{arg1})
 	fake.handleChaincodeStreamMutex.Unlock()
-	if fake.HandleChaincodeStreamStub != nil {
-		return fake.HandleChaincodeStreamStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.handleChaincodeStreamReturns
 	return fakeReturns.result1
 }
 
@@ -100,15 +101,16 @@ func (fake *ChaincodeStreamHandler) LaunchInProc(arg1 string) <-chan struct{} {
 	fake.launchInProcArgsForCall = append(fake.launchInProcArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LaunchInProcStub
+	fakeReturns := fake.launchInProcReturns
 	fake.recordInvocation("LaunchInProc", []interface{}{arg1})
 	fake.launchInProcMutex.Unlock()
-	if fake.LaunchInProcStub != nil {
-		return fake.LaunchInProcStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.launchInProcReturns
 	return fakeReturns.result1
 }
 

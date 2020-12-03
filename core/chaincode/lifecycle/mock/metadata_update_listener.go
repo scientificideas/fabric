@@ -24,9 +24,10 @@ func (fake *MetadataUpdateListener) HandleMetadataUpdate(arg1 string, arg2 chain
 		arg1 string
 		arg2 chaincode.MetadataSet
 	}{arg1, arg2})
+	stub := fake.HandleMetadataUpdateStub
 	fake.recordInvocation("HandleMetadataUpdate", []interface{}{arg1, arg2})
 	fake.handleMetadataUpdateMutex.Unlock()
-	if fake.HandleMetadataUpdateStub != nil {
+	if stub != nil {
 		fake.HandleMetadataUpdateStub(arg1, arg2)
 	}
 }

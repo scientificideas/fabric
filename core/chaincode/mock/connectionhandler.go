@@ -34,15 +34,16 @@ func (fake *ConnectionHandler) Stream(arg1 string, arg2 *ccintf.ChaincodeServerI
 		arg2 *ccintf.ChaincodeServerInfo
 		arg3 extcc.StreamHandler
 	}{arg1, arg2, arg3})
+	stub := fake.StreamStub
+	fakeReturns := fake.streamReturns
 	fake.recordInvocation("Stream", []interface{}{arg1, arg2, arg3})
 	fake.streamMutex.Unlock()
-	if fake.StreamStub != nil {
-		return fake.StreamStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.streamReturns
 	return fakeReturns.result1
 }
 

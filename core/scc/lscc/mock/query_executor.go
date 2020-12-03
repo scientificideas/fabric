@@ -230,9 +230,10 @@ func (fake *QueryExecutor) Done() {
 	fake.doneMutex.Lock()
 	fake.doneArgsForCall = append(fake.doneArgsForCall, struct {
 	}{})
+	stub := fake.DoneStub
 	fake.recordInvocation("Done", []interface{}{})
 	fake.doneMutex.Unlock()
-	if fake.DoneStub != nil {
+	if stub != nil {
 		fake.DoneStub()
 	}
 }
@@ -256,15 +257,16 @@ func (fake *QueryExecutor) ExecuteQuery(arg1 string, arg2 string) (ledger.Result
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.ExecuteQueryStub
+	fakeReturns := fake.executeQueryReturns
 	fake.recordInvocation("ExecuteQuery", []interface{}{arg1, arg2})
 	fake.executeQueryMutex.Unlock()
-	if fake.ExecuteQueryStub != nil {
-		return fake.ExecuteQueryStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeQueryReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -321,15 +323,16 @@ func (fake *QueryExecutor) ExecuteQueryOnPrivateData(arg1 string, arg2 string, a
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.ExecuteQueryOnPrivateDataStub
+	fakeReturns := fake.executeQueryOnPrivateDataReturns
 	fake.recordInvocation("ExecuteQueryOnPrivateData", []interface{}{arg1, arg2, arg3})
 	fake.executeQueryOnPrivateDataMutex.Unlock()
-	if fake.ExecuteQueryOnPrivateDataStub != nil {
-		return fake.ExecuteQueryOnPrivateDataStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeQueryOnPrivateDataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -387,15 +390,16 @@ func (fake *QueryExecutor) ExecuteQueryWithPagination(arg1 string, arg2 string, 
 		arg3 string
 		arg4 int32
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.ExecuteQueryWithPaginationStub
+	fakeReturns := fake.executeQueryWithPaginationReturns
 	fake.recordInvocation("ExecuteQueryWithPagination", []interface{}{arg1, arg2, arg3, arg4})
 	fake.executeQueryWithPaginationMutex.Unlock()
-	if fake.ExecuteQueryWithPaginationStub != nil {
-		return fake.ExecuteQueryWithPaginationStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.executeQueryWithPaginationReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -452,15 +456,16 @@ func (fake *QueryExecutor) GetPrivateData(arg1 string, arg2 string, arg3 string)
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetPrivateDataStub
+	fakeReturns := fake.getPrivateDataReturns
 	fake.recordInvocation("GetPrivateData", []interface{}{arg1, arg2, arg3})
 	fake.getPrivateDataMutex.Unlock()
-	if fake.GetPrivateDataStub != nil {
-		return fake.GetPrivateDataStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -517,15 +522,16 @@ func (fake *QueryExecutor) GetPrivateDataHash(arg1 string, arg2 string, arg3 str
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetPrivateDataHashStub
+	fakeReturns := fake.getPrivateDataHashReturns
 	fake.recordInvocation("GetPrivateDataHash", []interface{}{arg1, arg2, arg3})
 	fake.getPrivateDataHashMutex.Unlock()
-	if fake.GetPrivateDataHashStub != nil {
-		return fake.GetPrivateDataHashStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -582,15 +588,16 @@ func (fake *QueryExecutor) GetPrivateDataMetadata(arg1 string, arg2 string, arg3
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetPrivateDataMetadataStub
+	fakeReturns := fake.getPrivateDataMetadataReturns
 	fake.recordInvocation("GetPrivateDataMetadata", []interface{}{arg1, arg2, arg3})
 	fake.getPrivateDataMetadataMutex.Unlock()
-	if fake.GetPrivateDataMetadataStub != nil {
-		return fake.GetPrivateDataMetadataStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -652,15 +659,16 @@ func (fake *QueryExecutor) GetPrivateDataMetadataByHash(arg1 string, arg2 string
 		arg2 string
 		arg3 []byte
 	}{arg1, arg2, arg3Copy})
+	stub := fake.GetPrivateDataMetadataByHashStub
+	fakeReturns := fake.getPrivateDataMetadataByHashReturns
 	fake.recordInvocation("GetPrivateDataMetadataByHash", []interface{}{arg1, arg2, arg3Copy})
 	fake.getPrivateDataMetadataByHashMutex.Unlock()
-	if fake.GetPrivateDataMetadataByHashStub != nil {
-		return fake.GetPrivateDataMetadataByHashStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataMetadataByHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -722,15 +730,16 @@ func (fake *QueryExecutor) GetPrivateDataMultipleKeys(arg1 string, arg2 string, 
 		arg2 string
 		arg3 []string
 	}{arg1, arg2, arg3Copy})
+	stub := fake.GetPrivateDataMultipleKeysStub
+	fakeReturns := fake.getPrivateDataMultipleKeysReturns
 	fake.recordInvocation("GetPrivateDataMultipleKeys", []interface{}{arg1, arg2, arg3Copy})
 	fake.getPrivateDataMultipleKeysMutex.Unlock()
-	if fake.GetPrivateDataMultipleKeysStub != nil {
-		return fake.GetPrivateDataMultipleKeysStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataMultipleKeysReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -788,15 +797,16 @@ func (fake *QueryExecutor) GetPrivateDataRangeScanIterator(arg1 string, arg2 str
 		arg3 string
 		arg4 string
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.GetPrivateDataRangeScanIteratorStub
+	fakeReturns := fake.getPrivateDataRangeScanIteratorReturns
 	fake.recordInvocation("GetPrivateDataRangeScanIterator", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getPrivateDataRangeScanIteratorMutex.Unlock()
-	if fake.GetPrivateDataRangeScanIteratorStub != nil {
-		return fake.GetPrivateDataRangeScanIteratorStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataRangeScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -852,15 +862,16 @@ func (fake *QueryExecutor) GetState(arg1 string, arg2 string) ([]byte, error) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStateStub
+	fakeReturns := fake.getStateReturns
 	fake.recordInvocation("GetState", []interface{}{arg1, arg2})
 	fake.getStateMutex.Unlock()
-	if fake.GetStateStub != nil {
-		return fake.GetStateStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -916,15 +927,16 @@ func (fake *QueryExecutor) GetStateMetadata(arg1 string, arg2 string) (map[strin
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStateMetadataStub
+	fakeReturns := fake.getStateMetadataReturns
 	fake.recordInvocation("GetStateMetadata", []interface{}{arg1, arg2})
 	fake.getStateMetadataMutex.Unlock()
-	if fake.GetStateMetadataStub != nil {
-		return fake.GetStateMetadataStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -985,15 +997,16 @@ func (fake *QueryExecutor) GetStateMultipleKeys(arg1 string, arg2 []string) ([][
 		arg1 string
 		arg2 []string
 	}{arg1, arg2Copy})
+	stub := fake.GetStateMultipleKeysStub
+	fakeReturns := fake.getStateMultipleKeysReturns
 	fake.recordInvocation("GetStateMultipleKeys", []interface{}{arg1, arg2Copy})
 	fake.getStateMultipleKeysMutex.Unlock()
-	if fake.GetStateMultipleKeysStub != nil {
-		return fake.GetStateMultipleKeysStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateMultipleKeysReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1050,15 +1063,16 @@ func (fake *QueryExecutor) GetStateRangeScanIterator(arg1 string, arg2 string, a
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetStateRangeScanIteratorStub
+	fakeReturns := fake.getStateRangeScanIteratorReturns
 	fake.recordInvocation("GetStateRangeScanIterator", []interface{}{arg1, arg2, arg3})
 	fake.getStateRangeScanIteratorMutex.Unlock()
-	if fake.GetStateRangeScanIteratorStub != nil {
-		return fake.GetStateRangeScanIteratorStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1116,15 +1130,16 @@ func (fake *QueryExecutor) GetStateRangeScanIteratorWithPagination(arg1 string, 
 		arg3 string
 		arg4 int32
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.GetStateRangeScanIteratorWithPaginationStub
+	fakeReturns := fake.getStateRangeScanIteratorWithPaginationReturns
 	fake.recordInvocation("GetStateRangeScanIteratorWithPagination", []interface{}{arg1, arg2, arg3, arg4})
 	fake.getStateRangeScanIteratorWithPaginationMutex.Unlock()
-	if fake.GetStateRangeScanIteratorWithPaginationStub != nil {
-		return fake.GetStateRangeScanIteratorWithPaginationStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorWithPaginationReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

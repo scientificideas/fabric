@@ -53,15 +53,16 @@ func (fake *SyncProducer) Close() error {
 	ret, specificReturn := fake.closeReturnsOnCall[len(fake.closeArgsForCall)]
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
+	fakeReturns := fake.closeReturns
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
-		return fake.CloseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.closeReturns
 	return fakeReturns.result1
 }
 
@@ -106,15 +107,16 @@ func (fake *SyncProducer) SendMessage(arg1 *sarama.ProducerMessage) (int32, int6
 	fake.sendMessageArgsForCall = append(fake.sendMessageArgsForCall, struct {
 		arg1 *sarama.ProducerMessage
 	}{arg1})
+	stub := fake.SendMessageStub
+	fakeReturns := fake.sendMessageReturns
 	fake.recordInvocation("SendMessage", []interface{}{arg1})
 	fake.sendMessageMutex.Unlock()
-	if fake.SendMessageStub != nil {
-		return fake.SendMessageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.sendMessageReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -177,15 +179,16 @@ func (fake *SyncProducer) SendMessages(arg1 []*sarama.ProducerMessage) error {
 	fake.sendMessagesArgsForCall = append(fake.sendMessagesArgsForCall, struct {
 		arg1 []*sarama.ProducerMessage
 	}{arg1Copy})
+	stub := fake.SendMessagesStub
+	fakeReturns := fake.sendMessagesReturns
 	fake.recordInvocation("SendMessages", []interface{}{arg1Copy})
 	fake.sendMessagesMutex.Unlock()
-	if fake.SendMessagesStub != nil {
-		return fake.SendMessagesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendMessagesReturns
 	return fakeReturns.result1
 }
 

@@ -41,15 +41,16 @@ func (fake *ExternalBuilder) Build(arg1 string, arg2 []byte, arg3 io.Reader) (co
 		arg2 []byte
 		arg3 io.Reader
 	}{arg1, arg2Copy, arg3})
+	stub := fake.BuildStub
+	fakeReturns := fake.buildReturns
 	fake.recordInvocation("Build", []interface{}{arg1, arg2Copy, arg3})
 	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.buildReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -32,15 +32,16 @@ func (fake *LegacyCCPackageLocator) GetChaincodeDepSpec(arg1 string) (*peer.Chai
 	fake.getChaincodeDepSpecArgsForCall = append(fake.getChaincodeDepSpecArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetChaincodeDepSpecStub
+	fakeReturns := fake.getChaincodeDepSpecReturns
 	fake.recordInvocation("GetChaincodeDepSpec", []interface{}{arg1})
 	fake.getChaincodeDepSpecMutex.Unlock()
-	if fake.GetChaincodeDepSpecStub != nil {
-		return fake.GetChaincodeDepSpecStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getChaincodeDepSpecReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

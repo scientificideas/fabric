@@ -43,15 +43,16 @@ func (fake *Protobuf) Marshal(arg1 proto.Message) ([]byte, error) {
 	fake.marshalArgsForCall = append(fake.marshalArgsForCall, struct {
 		arg1 proto.Message
 	}{arg1})
+	stub := fake.MarshalStub
+	fakeReturns := fake.marshalReturns
 	fake.recordInvocation("Marshal", []interface{}{arg1})
 	fake.marshalMutex.Unlock()
-	if fake.MarshalStub != nil {
-		return fake.MarshalStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.marshalReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -112,15 +113,16 @@ func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 proto.Message) error {
 		arg1 []byte
 		arg2 proto.Message
 	}{arg1Copy, arg2})
+	stub := fake.UnmarshalStub
+	fakeReturns := fake.unmarshalReturns
 	fake.recordInvocation("Unmarshal", []interface{}{arg1Copy, arg2})
 	fake.unmarshalMutex.Unlock()
-	if fake.UnmarshalStub != nil {
-		return fake.UnmarshalStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.unmarshalReturns
 	return fakeReturns.result1
 }
 

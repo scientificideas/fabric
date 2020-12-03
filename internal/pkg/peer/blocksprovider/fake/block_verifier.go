@@ -35,15 +35,16 @@ func (fake *BlockVerifier) VerifyBlock(arg1 common.ChannelID, arg2 uint64, arg3 
 		arg2 uint64
 		arg3 *commona.Block
 	}{arg1, arg2, arg3})
+	stub := fake.VerifyBlockStub
+	fakeReturns := fake.verifyBlockReturns
 	fake.recordInvocation("VerifyBlock", []interface{}{arg1, arg2, arg3})
 	fake.verifyBlockMutex.Unlock()
-	if fake.VerifyBlockStub != nil {
-		return fake.VerifyBlockStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyBlockReturns
 	return fakeReturns.result1
 }
 

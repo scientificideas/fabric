@@ -59,15 +59,16 @@ func (fake *SystemChaincodeProvider) GetApplicationConfig(arg1 string) (channelc
 	fake.getApplicationConfigArgsForCall = append(fake.getApplicationConfigArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetApplicationConfigStub
+	fakeReturns := fake.getApplicationConfigReturns
 	fake.recordInvocation("GetApplicationConfig", []interface{}{arg1})
 	fake.getApplicationConfigMutex.Unlock()
-	if fake.GetApplicationConfigStub != nil {
-		return fake.GetApplicationConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getApplicationConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -122,15 +123,16 @@ func (fake *SystemChaincodeProvider) GetQueryExecutorForLedger(arg1 string) (led
 	fake.getQueryExecutorForLedgerArgsForCall = append(fake.getQueryExecutorForLedgerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetQueryExecutorForLedgerStub
+	fakeReturns := fake.getQueryExecutorForLedgerReturns
 	fake.recordInvocation("GetQueryExecutorForLedger", []interface{}{arg1})
 	fake.getQueryExecutorForLedgerMutex.Unlock()
-	if fake.GetQueryExecutorForLedgerStub != nil {
-		return fake.GetQueryExecutorForLedgerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getQueryExecutorForLedgerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -185,15 +187,16 @@ func (fake *SystemChaincodeProvider) PolicyManager(arg1 string) (policies.Manage
 	fake.policyManagerArgsForCall = append(fake.policyManagerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.PolicyManagerStub
+	fakeReturns := fake.policyManagerReturns
 	fake.recordInvocation("PolicyManager", []interface{}{arg1})
 	fake.policyManagerMutex.Unlock()
-	if fake.PolicyManagerStub != nil {
-		return fake.PolicyManagerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.policyManagerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

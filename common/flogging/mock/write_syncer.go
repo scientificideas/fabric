@@ -38,15 +38,16 @@ func (fake *WriteSyncer) Sync() error {
 	ret, specificReturn := fake.syncReturnsOnCall[len(fake.syncArgsForCall)]
 	fake.syncArgsForCall = append(fake.syncArgsForCall, struct {
 	}{})
+	stub := fake.SyncStub
+	fakeReturns := fake.syncReturns
 	fake.recordInvocation("Sync", []interface{}{})
 	fake.syncMutex.Unlock()
-	if fake.SyncStub != nil {
-		return fake.SyncStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.syncReturns
 	return fakeReturns.result1
 }
 
@@ -96,15 +97,16 @@ func (fake *WriteSyncer) Write(arg1 []byte) (int, error) {
 	fake.writeArgsForCall = append(fake.writeArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.WriteStub
+	fakeReturns := fake.writeReturns
 	fake.recordInvocation("Write", []interface{}{arg1Copy})
 	fake.writeMutex.Unlock()
-	if fake.WriteStub != nil {
-		return fake.WriteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.writeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -30,9 +30,10 @@ func (fake *MetadataHandler) InitializeMetadata(arg1 string, arg2 chaincode.Meta
 		arg1 string
 		arg2 chaincode.MetadataSet
 	}{arg1, arg2})
+	stub := fake.InitializeMetadataStub
 	fake.recordInvocation("InitializeMetadata", []interface{}{arg1, arg2})
 	fake.initializeMetadataMutex.Unlock()
-	if fake.InitializeMetadataStub != nil {
+	if stub != nil {
 		fake.InitializeMetadataStub(arg1, arg2)
 	}
 }
@@ -62,9 +63,10 @@ func (fake *MetadataHandler) UpdateMetadata(arg1 string, arg2 chaincode.Metadata
 		arg1 string
 		arg2 chaincode.MetadataSet
 	}{arg1, arg2})
+	stub := fake.UpdateMetadataStub
 	fake.recordInvocation("UpdateMetadata", []interface{}{arg1, arg2})
 	fake.updateMetadataMutex.Unlock()
-	if fake.UpdateMetadataStub != nil {
+	if stub != nil {
 		fake.UpdateMetadataStub(arg1, arg2)
 	}
 }

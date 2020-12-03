@@ -71,15 +71,16 @@ func (fake *MSPManager) DeserializeIdentity(arg1 []byte) (msp.Identity, error) {
 	fake.deserializeIdentityArgsForCall = append(fake.deserializeIdentityArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.DeserializeIdentityStub
+	fakeReturns := fake.deserializeIdentityReturns
 	fake.recordInvocation("DeserializeIdentity", []interface{}{arg1Copy})
 	fake.deserializeIdentityMutex.Unlock()
-	if fake.DeserializeIdentityStub != nil {
-		return fake.DeserializeIdentityStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deserializeIdentityReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -133,15 +134,16 @@ func (fake *MSPManager) GetMSPs() (map[string]msp.MSP, error) {
 	ret, specificReturn := fake.getMSPsReturnsOnCall[len(fake.getMSPsArgsForCall)]
 	fake.getMSPsArgsForCall = append(fake.getMSPsArgsForCall, struct {
 	}{})
+	stub := fake.GetMSPsStub
+	fakeReturns := fake.getMSPsReturns
 	fake.recordInvocation("GetMSPs", []interface{}{})
 	fake.getMSPsMutex.Unlock()
-	if fake.GetMSPsStub != nil {
-		return fake.GetMSPsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getMSPsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -189,15 +191,16 @@ func (fake *MSPManager) IsWellFormed(arg1 *mspa.SerializedIdentity) error {
 	fake.isWellFormedArgsForCall = append(fake.isWellFormedArgsForCall, struct {
 		arg1 *mspa.SerializedIdentity
 	}{arg1})
+	stub := fake.IsWellFormedStub
+	fakeReturns := fake.isWellFormedReturns
 	fake.recordInvocation("IsWellFormed", []interface{}{arg1})
 	fake.isWellFormedMutex.Unlock()
-	if fake.IsWellFormedStub != nil {
-		return fake.IsWellFormedStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isWellFormedReturns
 	return fakeReturns.result1
 }
 
@@ -254,15 +257,16 @@ func (fake *MSPManager) Setup(arg1 []msp.MSP) error {
 	fake.setupArgsForCall = append(fake.setupArgsForCall, struct {
 		arg1 []msp.MSP
 	}{arg1Copy})
+	stub := fake.SetupStub
+	fakeReturns := fake.setupReturns
 	fake.recordInvocation("Setup", []interface{}{arg1Copy})
 	fake.setupMutex.Unlock()
-	if fake.SetupStub != nil {
-		return fake.SetupStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.setupReturns
 	return fakeReturns.result1
 }
 

@@ -73,15 +73,16 @@ func (fake *Gossip) IdentityInfo() api.PeerIdentitySet {
 	ret, specificReturn := fake.identityInfoReturnsOnCall[len(fake.identityInfoArgsForCall)]
 	fake.identityInfoArgsForCall = append(fake.identityInfoArgsForCall, struct {
 	}{})
+	stub := fake.IdentityInfoStub
+	fakeReturns := fake.identityInfoReturns
 	fake.recordInvocation("IdentityInfo", []interface{}{})
 	fake.identityInfoMutex.Unlock()
-	if fake.IdentityInfoStub != nil {
-		return fake.IdentityInfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.identityInfoReturns
 	return fakeReturns.result1
 }
 
@@ -125,15 +126,16 @@ func (fake *Gossip) Peers() []discovery.NetworkMember {
 	ret, specificReturn := fake.peersReturnsOnCall[len(fake.peersArgsForCall)]
 	fake.peersArgsForCall = append(fake.peersArgsForCall, struct {
 	}{})
+	stub := fake.PeersStub
+	fakeReturns := fake.peersReturns
 	fake.recordInvocation("Peers", []interface{}{})
 	fake.peersMutex.Unlock()
-	if fake.PeersStub != nil {
-		return fake.PeersStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.peersReturns
 	return fakeReturns.result1
 }
 
@@ -178,15 +180,16 @@ func (fake *Gossip) PeersOfChannel(arg1 common.ChannelID) []discovery.NetworkMem
 	fake.peersOfChannelArgsForCall = append(fake.peersOfChannelArgsForCall, struct {
 		arg1 common.ChannelID
 	}{arg1})
+	stub := fake.PeersOfChannelStub
+	fakeReturns := fake.peersOfChannelReturns
 	fake.recordInvocation("PeersOfChannel", []interface{}{arg1})
 	fake.peersOfChannelMutex.Unlock()
-	if fake.PeersOfChannelStub != nil {
-		return fake.PeersOfChannelStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.peersOfChannelReturns
 	return fakeReturns.result1
 }
 
@@ -238,15 +241,16 @@ func (fake *Gossip) SelfChannelInfo(arg1 common.ChannelID) *protoext.SignedGossi
 	fake.selfChannelInfoArgsForCall = append(fake.selfChannelInfoArgsForCall, struct {
 		arg1 common.ChannelID
 	}{arg1})
+	stub := fake.SelfChannelInfoStub
+	fakeReturns := fake.selfChannelInfoReturns
 	fake.recordInvocation("SelfChannelInfo", []interface{}{arg1})
 	fake.selfChannelInfoMutex.Unlock()
-	if fake.SelfChannelInfoStub != nil {
-		return fake.SelfChannelInfoStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.selfChannelInfoReturns
 	return fakeReturns.result1
 }
 
@@ -297,15 +301,16 @@ func (fake *Gossip) SelfMembershipInfo() discovery.NetworkMember {
 	ret, specificReturn := fake.selfMembershipInfoReturnsOnCall[len(fake.selfMembershipInfoArgsForCall)]
 	fake.selfMembershipInfoArgsForCall = append(fake.selfMembershipInfoArgsForCall, struct {
 	}{})
+	stub := fake.SelfMembershipInfoStub
+	fakeReturns := fake.selfMembershipInfoReturns
 	fake.recordInvocation("SelfMembershipInfo", []interface{}{})
 	fake.selfMembershipInfoMutex.Unlock()
-	if fake.SelfMembershipInfoStub != nil {
-		return fake.SelfMembershipInfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.selfMembershipInfoReturns
 	return fakeReturns.result1
 }
 

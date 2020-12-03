@@ -28,9 +28,10 @@ func (fake *Logger) Warn(arg1 ...interface{}) {
 	fake.warnArgsForCall = append(fake.warnArgsForCall, struct {
 		arg1 []interface{}
 	}{arg1})
+	stub := fake.WarnStub
 	fake.recordInvocation("Warn", []interface{}{arg1})
 	fake.warnMutex.Unlock()
-	if fake.WarnStub != nil {
+	if stub != nil {
 		fake.WarnStub(arg1...)
 	}
 }
@@ -60,9 +61,10 @@ func (fake *Logger) Warnf(arg1 string, arg2 ...interface{}) {
 		arg1 string
 		arg2 []interface{}
 	}{arg1, arg2})
+	stub := fake.WarnfStub
 	fake.recordInvocation("Warnf", []interface{}{arg1, arg2})
 	fake.warnfMutex.Unlock()
-	if fake.WarnfStub != nil {
+	if stub != nil {
 		fake.WarnfStub(arg1, arg2...)
 	}
 }

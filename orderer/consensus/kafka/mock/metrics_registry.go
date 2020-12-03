@@ -78,9 +78,10 @@ func (fake *MetricsRegistry) Each(arg1 func(string, interface{})) {
 	fake.eachArgsForCall = append(fake.eachArgsForCall, struct {
 		arg1 func(string, interface{})
 	}{arg1})
+	stub := fake.EachStub
 	fake.recordInvocation("Each", []interface{}{arg1})
 	fake.eachMutex.Unlock()
-	if fake.EachStub != nil {
+	if stub != nil {
 		fake.EachStub(arg1)
 	}
 }
@@ -110,15 +111,16 @@ func (fake *MetricsRegistry) Get(arg1 string) interface{} {
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetStub
+	fakeReturns := fake.getReturns
 	fake.recordInvocation("Get", []interface{}{arg1})
 	fake.getMutex.Unlock()
-	if fake.GetStub != nil {
-		return fake.GetStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getReturns
 	return fakeReturns.result1
 }
 
@@ -169,15 +171,16 @@ func (fake *MetricsRegistry) GetAll() map[string]map[string]interface{} {
 	ret, specificReturn := fake.getAllReturnsOnCall[len(fake.getAllArgsForCall)]
 	fake.getAllArgsForCall = append(fake.getAllArgsForCall, struct {
 	}{})
+	stub := fake.GetAllStub
+	fakeReturns := fake.getAllReturns
 	fake.recordInvocation("GetAll", []interface{}{})
 	fake.getAllMutex.Unlock()
-	if fake.GetAllStub != nil {
-		return fake.GetAllStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getAllReturns
 	return fakeReturns.result1
 }
 
@@ -223,15 +226,16 @@ func (fake *MetricsRegistry) GetOrRegister(arg1 string, arg2 interface{}) interf
 		arg1 string
 		arg2 interface{}
 	}{arg1, arg2})
+	stub := fake.GetOrRegisterStub
+	fakeReturns := fake.getOrRegisterReturns
 	fake.recordInvocation("GetOrRegister", []interface{}{arg1, arg2})
 	fake.getOrRegisterMutex.Unlock()
-	if fake.GetOrRegisterStub != nil {
-		return fake.GetOrRegisterStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getOrRegisterReturns
 	return fakeReturns.result1
 }
 
@@ -284,15 +288,16 @@ func (fake *MetricsRegistry) Register(arg1 string, arg2 interface{}) error {
 		arg1 string
 		arg2 interface{}
 	}{arg1, arg2})
+	stub := fake.RegisterStub
+	fakeReturns := fake.registerReturns
 	fake.recordInvocation("Register", []interface{}{arg1, arg2})
 	fake.registerMutex.Unlock()
-	if fake.RegisterStub != nil {
-		return fake.RegisterStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.registerReturns
 	return fakeReturns.result1
 }
 
@@ -342,9 +347,10 @@ func (fake *MetricsRegistry) RunHealthchecks() {
 	fake.runHealthchecksMutex.Lock()
 	fake.runHealthchecksArgsForCall = append(fake.runHealthchecksArgsForCall, struct {
 	}{})
+	stub := fake.RunHealthchecksStub
 	fake.recordInvocation("RunHealthchecks", []interface{}{})
 	fake.runHealthchecksMutex.Unlock()
-	if fake.RunHealthchecksStub != nil {
+	if stub != nil {
 		fake.RunHealthchecksStub()
 	}
 }
@@ -366,9 +372,10 @@ func (fake *MetricsRegistry) Unregister(arg1 string) {
 	fake.unregisterArgsForCall = append(fake.unregisterArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.UnregisterStub
 	fake.recordInvocation("Unregister", []interface{}{arg1})
 	fake.unregisterMutex.Unlock()
-	if fake.UnregisterStub != nil {
+	if stub != nil {
 		fake.UnregisterStub(arg1)
 	}
 }
@@ -396,9 +403,10 @@ func (fake *MetricsRegistry) UnregisterAll() {
 	fake.unregisterAllMutex.Lock()
 	fake.unregisterAllArgsForCall = append(fake.unregisterAllArgsForCall, struct {
 	}{})
+	stub := fake.UnregisterAllStub
 	fake.recordInvocation("UnregisterAll", []interface{}{})
 	fake.unregisterAllMutex.Unlock()
-	if fake.UnregisterAllStub != nil {
+	if stub != nil {
 		fake.UnregisterAllStub()
 	}
 }

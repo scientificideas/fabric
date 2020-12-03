@@ -103,15 +103,16 @@ func (fake *CCPackage) GetChaincodeData() *ccprovider.ChaincodeData {
 	ret, specificReturn := fake.getChaincodeDataReturnsOnCall[len(fake.getChaincodeDataArgsForCall)]
 	fake.getChaincodeDataArgsForCall = append(fake.getChaincodeDataArgsForCall, struct {
 	}{})
+	stub := fake.GetChaincodeDataStub
+	fakeReturns := fake.getChaincodeDataReturns
 	fake.recordInvocation("GetChaincodeData", []interface{}{})
 	fake.getChaincodeDataMutex.Unlock()
-	if fake.GetChaincodeDataStub != nil {
-		return fake.GetChaincodeDataStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getChaincodeDataReturns
 	return fakeReturns.result1
 }
 
@@ -155,15 +156,16 @@ func (fake *CCPackage) GetDepSpec() *peer.ChaincodeDeploymentSpec {
 	ret, specificReturn := fake.getDepSpecReturnsOnCall[len(fake.getDepSpecArgsForCall)]
 	fake.getDepSpecArgsForCall = append(fake.getDepSpecArgsForCall, struct {
 	}{})
+	stub := fake.GetDepSpecStub
+	fakeReturns := fake.getDepSpecReturns
 	fake.recordInvocation("GetDepSpec", []interface{}{})
 	fake.getDepSpecMutex.Unlock()
-	if fake.GetDepSpecStub != nil {
-		return fake.GetDepSpecStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getDepSpecReturns
 	return fakeReturns.result1
 }
 
@@ -207,15 +209,16 @@ func (fake *CCPackage) GetDepSpecBytes() []byte {
 	ret, specificReturn := fake.getDepSpecBytesReturnsOnCall[len(fake.getDepSpecBytesArgsForCall)]
 	fake.getDepSpecBytesArgsForCall = append(fake.getDepSpecBytesArgsForCall, struct {
 	}{})
+	stub := fake.GetDepSpecBytesStub
+	fakeReturns := fake.getDepSpecBytesReturns
 	fake.recordInvocation("GetDepSpecBytes", []interface{}{})
 	fake.getDepSpecBytesMutex.Unlock()
-	if fake.GetDepSpecBytesStub != nil {
-		return fake.GetDepSpecBytesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getDepSpecBytesReturns
 	return fakeReturns.result1
 }
 
@@ -259,15 +262,16 @@ func (fake *CCPackage) GetId() []byte {
 	ret, specificReturn := fake.getIdReturnsOnCall[len(fake.getIdArgsForCall)]
 	fake.getIdArgsForCall = append(fake.getIdArgsForCall, struct {
 	}{})
+	stub := fake.GetIdStub
+	fakeReturns := fake.getIdReturns
 	fake.recordInvocation("GetId", []interface{}{})
 	fake.getIdMutex.Unlock()
-	if fake.GetIdStub != nil {
-		return fake.GetIdStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getIdReturns
 	return fakeReturns.result1
 }
 
@@ -311,15 +315,16 @@ func (fake *CCPackage) GetPackageObject() proto.Message {
 	ret, specificReturn := fake.getPackageObjectReturnsOnCall[len(fake.getPackageObjectArgsForCall)]
 	fake.getPackageObjectArgsForCall = append(fake.getPackageObjectArgsForCall, struct {
 	}{})
+	stub := fake.GetPackageObjectStub
+	fakeReturns := fake.getPackageObjectReturns
 	fake.recordInvocation("GetPackageObject", []interface{}{})
 	fake.getPackageObjectMutex.Unlock()
-	if fake.GetPackageObjectStub != nil {
-		return fake.GetPackageObjectStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getPackageObjectReturns
 	return fakeReturns.result1
 }
 
@@ -369,15 +374,16 @@ func (fake *CCPackage) InitFromBuffer(arg1 []byte) (*ccprovider.ChaincodeData, e
 	fake.initFromBufferArgsForCall = append(fake.initFromBufferArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.InitFromBufferStub
+	fakeReturns := fake.initFromBufferReturns
 	fake.recordInvocation("InitFromBuffer", []interface{}{arg1Copy})
 	fake.initFromBufferMutex.Unlock()
-	if fake.InitFromBufferStub != nil {
-		return fake.InitFromBufferStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.initFromBufferReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -431,15 +437,16 @@ func (fake *CCPackage) PutChaincodeToFS() error {
 	ret, specificReturn := fake.putChaincodeToFSReturnsOnCall[len(fake.putChaincodeToFSArgsForCall)]
 	fake.putChaincodeToFSArgsForCall = append(fake.putChaincodeToFSArgsForCall, struct {
 	}{})
+	stub := fake.PutChaincodeToFSStub
+	fakeReturns := fake.putChaincodeToFSReturns
 	fake.recordInvocation("PutChaincodeToFS", []interface{}{})
 	fake.putChaincodeToFSMutex.Unlock()
-	if fake.PutChaincodeToFSStub != nil {
-		return fake.PutChaincodeToFSStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.putChaincodeToFSReturns
 	return fakeReturns.result1
 }
 
@@ -484,15 +491,16 @@ func (fake *CCPackage) ValidateCC(arg1 *ccprovider.ChaincodeData) error {
 	fake.validateCCArgsForCall = append(fake.validateCCArgsForCall, struct {
 		arg1 *ccprovider.ChaincodeData
 	}{arg1})
+	stub := fake.ValidateCCStub
+	fakeReturns := fake.validateCCReturns
 	fake.recordInvocation("ValidateCC", []interface{}{arg1})
 	fake.validateCCMutex.Unlock()
-	if fake.ValidateCCStub != nil {
-		return fake.ValidateCCStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.validateCCReturns
 	return fakeReturns.result1
 }
 

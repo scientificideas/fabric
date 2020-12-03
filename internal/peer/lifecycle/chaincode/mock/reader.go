@@ -29,15 +29,16 @@ func (fake *Reader) ReadFile(arg1 string) ([]byte, error) {
 	fake.readFileArgsForCall = append(fake.readFileArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ReadFileStub
+	fakeReturns := fake.readFileReturns
 	fake.recordInvocation("ReadFile", []interface{}{arg1})
 	fake.readFileMutex.Unlock()
-	if fake.ReadFileStub != nil {
-		return fake.ReadFileStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.readFileReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

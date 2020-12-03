@@ -44,15 +44,16 @@ func (fake *MembershipInfoProvider) AmMemberOf(arg1 string, arg2 *peer.Collectio
 		arg1 string
 		arg2 *peer.CollectionPolicyConfig
 	}{arg1, arg2})
+	stub := fake.AmMemberOfStub
+	fakeReturns := fake.amMemberOfReturns
 	fake.recordInvocation("AmMemberOf", []interface{}{arg1, arg2})
 	fake.amMemberOfMutex.Unlock()
-	if fake.AmMemberOfStub != nil {
-		return fake.AmMemberOfStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.amMemberOfReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -106,15 +107,16 @@ func (fake *MembershipInfoProvider) MyImplicitCollectionName() string {
 	ret, specificReturn := fake.myImplicitCollectionNameReturnsOnCall[len(fake.myImplicitCollectionNameArgsForCall)]
 	fake.myImplicitCollectionNameArgsForCall = append(fake.myImplicitCollectionNameArgsForCall, struct {
 	}{})
+	stub := fake.MyImplicitCollectionNameStub
+	fakeReturns := fake.myImplicitCollectionNameReturns
 	fake.recordInvocation("MyImplicitCollectionName", []interface{}{})
 	fake.myImplicitCollectionNameMutex.Unlock()
-	if fake.MyImplicitCollectionNameStub != nil {
-		return fake.MyImplicitCollectionNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.myImplicitCollectionNameReturns
 	return fakeReturns.result1
 }
 

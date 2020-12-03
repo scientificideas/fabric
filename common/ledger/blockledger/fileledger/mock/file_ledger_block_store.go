@@ -59,15 +59,16 @@ func (fake *FileLedgerBlockStore) AddBlock(arg1 *common.Block) error {
 	fake.addBlockArgsForCall = append(fake.addBlockArgsForCall, struct {
 		arg1 *common.Block
 	}{arg1})
+	stub := fake.AddBlockStub
+	fakeReturns := fake.addBlockReturns
 	fake.recordInvocation("AddBlock", []interface{}{arg1})
 	fake.addBlockMutex.Unlock()
-	if fake.AddBlockStub != nil {
-		return fake.AddBlockStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.addBlockReturns
 	return fakeReturns.result1
 }
 
@@ -118,15 +119,16 @@ func (fake *FileLedgerBlockStore) GetBlockchainInfo() (*common.BlockchainInfo, e
 	ret, specificReturn := fake.getBlockchainInfoReturnsOnCall[len(fake.getBlockchainInfoArgsForCall)]
 	fake.getBlockchainInfoArgsForCall = append(fake.getBlockchainInfoArgsForCall, struct {
 	}{})
+	stub := fake.GetBlockchainInfoStub
+	fakeReturns := fake.getBlockchainInfoReturns
 	fake.recordInvocation("GetBlockchainInfo", []interface{}{})
 	fake.getBlockchainInfoMutex.Unlock()
-	if fake.GetBlockchainInfoStub != nil {
-		return fake.GetBlockchainInfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getBlockchainInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -174,15 +176,16 @@ func (fake *FileLedgerBlockStore) RetrieveBlocks(arg1 uint64) (ledger.ResultsIte
 	fake.retrieveBlocksArgsForCall = append(fake.retrieveBlocksArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
+	stub := fake.RetrieveBlocksStub
+	fakeReturns := fake.retrieveBlocksReturns
 	fake.recordInvocation("RetrieveBlocks", []interface{}{arg1})
 	fake.retrieveBlocksMutex.Unlock()
-	if fake.RetrieveBlocksStub != nil {
-		return fake.RetrieveBlocksStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveBlocksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -235,9 +238,10 @@ func (fake *FileLedgerBlockStore) Shutdown() {
 	fake.shutdownMutex.Lock()
 	fake.shutdownArgsForCall = append(fake.shutdownArgsForCall, struct {
 	}{})
+	stub := fake.ShutdownStub
 	fake.recordInvocation("Shutdown", []interface{}{})
 	fake.shutdownMutex.Unlock()
-	if fake.ShutdownStub != nil {
+	if stub != nil {
 		fake.ShutdownStub()
 	}
 }

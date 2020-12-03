@@ -65,15 +65,16 @@ func (fake *QueryExecuter) GetPrivateDataHash(arg1 string, arg2 string, arg3 str
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetPrivateDataHashStub
+	fakeReturns := fake.getPrivateDataHashReturns
 	fake.recordInvocation("GetPrivateDataHash", []interface{}{arg1, arg2, arg3})
 	fake.getPrivateDataHashMutex.Unlock()
-	if fake.GetPrivateDataHashStub != nil {
-		return fake.GetPrivateDataHashStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -129,15 +130,16 @@ func (fake *QueryExecuter) GetState(arg1 string, arg2 string) (*statedb.Versione
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStateStub
+	fakeReturns := fake.getStateReturns
 	fake.recordInvocation("GetState", []interface{}{arg1, arg2})
 	fake.getStateMutex.Unlock()
-	if fake.GetStateStub != nil {
-		return fake.GetStateStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -194,15 +196,16 @@ func (fake *QueryExecuter) GetStateRangeScanIterator(arg1 string, arg2 string, a
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetStateRangeScanIteratorStub
+	fakeReturns := fake.getStateRangeScanIteratorReturns
 	fake.recordInvocation("GetStateRangeScanIterator", []interface{}{arg1, arg2, arg3})
 	fake.getStateRangeScanIteratorMutex.Unlock()
-	if fake.GetStateRangeScanIteratorStub != nil {
-		return fake.GetStateRangeScanIteratorStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

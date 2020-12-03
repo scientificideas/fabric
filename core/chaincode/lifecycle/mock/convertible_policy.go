@@ -53,15 +53,16 @@ func (fake *ConvertiblePolicy) Convert() (*common.SignaturePolicyEnvelope, error
 	ret, specificReturn := fake.convertReturnsOnCall[len(fake.convertArgsForCall)]
 	fake.convertArgsForCall = append(fake.convertArgsForCall, struct {
 	}{})
+	stub := fake.ConvertStub
+	fakeReturns := fake.convertReturns
 	fake.recordInvocation("Convert", []interface{}{})
 	fake.convertMutex.Unlock()
-	if fake.ConvertStub != nil {
-		return fake.ConvertStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.convertReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -114,15 +115,16 @@ func (fake *ConvertiblePolicy) EvaluateIdentities(arg1 []msp.Identity) error {
 	fake.evaluateIdentitiesArgsForCall = append(fake.evaluateIdentitiesArgsForCall, struct {
 		arg1 []msp.Identity
 	}{arg1Copy})
+	stub := fake.EvaluateIdentitiesStub
+	fakeReturns := fake.evaluateIdentitiesReturns
 	fake.recordInvocation("EvaluateIdentities", []interface{}{arg1Copy})
 	fake.evaluateIdentitiesMutex.Unlock()
-	if fake.EvaluateIdentitiesStub != nil {
-		return fake.EvaluateIdentitiesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.evaluateIdentitiesReturns
 	return fakeReturns.result1
 }
 
@@ -179,15 +181,16 @@ func (fake *ConvertiblePolicy) EvaluateSignedData(arg1 []*protoutil.SignedData) 
 	fake.evaluateSignedDataArgsForCall = append(fake.evaluateSignedDataArgsForCall, struct {
 		arg1 []*protoutil.SignedData
 	}{arg1Copy})
+	stub := fake.EvaluateSignedDataStub
+	fakeReturns := fake.evaluateSignedDataReturns
 	fake.recordInvocation("EvaluateSignedData", []interface{}{arg1Copy})
 	fake.evaluateSignedDataMutex.Unlock()
-	if fake.EvaluateSignedDataStub != nil {
-		return fake.EvaluateSignedDataStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.evaluateSignedDataReturns
 	return fakeReturns.result1
 }
 

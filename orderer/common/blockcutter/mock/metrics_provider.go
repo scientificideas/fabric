@@ -51,15 +51,16 @@ func (fake *MetricsProvider) NewCounter(arg1 metrics.CounterOpts) metrics.Counte
 	fake.newCounterArgsForCall = append(fake.newCounterArgsForCall, struct {
 		arg1 metrics.CounterOpts
 	}{arg1})
+	stub := fake.NewCounterStub
+	fakeReturns := fake.newCounterReturns
 	fake.recordInvocation("NewCounter", []interface{}{arg1})
 	fake.newCounterMutex.Unlock()
-	if fake.NewCounterStub != nil {
-		return fake.NewCounterStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.newCounterReturns
 	return fakeReturns.result1
 }
 
@@ -111,15 +112,16 @@ func (fake *MetricsProvider) NewGauge(arg1 metrics.GaugeOpts) metrics.Gauge {
 	fake.newGaugeArgsForCall = append(fake.newGaugeArgsForCall, struct {
 		arg1 metrics.GaugeOpts
 	}{arg1})
+	stub := fake.NewGaugeStub
+	fakeReturns := fake.newGaugeReturns
 	fake.recordInvocation("NewGauge", []interface{}{arg1})
 	fake.newGaugeMutex.Unlock()
-	if fake.NewGaugeStub != nil {
-		return fake.NewGaugeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.newGaugeReturns
 	return fakeReturns.result1
 }
 
@@ -171,15 +173,16 @@ func (fake *MetricsProvider) NewHistogram(arg1 metrics.HistogramOpts) metrics.Hi
 	fake.newHistogramArgsForCall = append(fake.newHistogramArgsForCall, struct {
 		arg1 metrics.HistogramOpts
 	}{arg1})
+	stub := fake.NewHistogramStub
+	fakeReturns := fake.newHistogramReturns
 	fake.recordInvocation("NewHistogram", []interface{}{arg1})
 	fake.newHistogramMutex.Unlock()
-	if fake.NewHistogramStub != nil {
-		return fake.NewHistogramStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.newHistogramReturns
 	return fakeReturns.result1
 }
 

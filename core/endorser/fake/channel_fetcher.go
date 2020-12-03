@@ -29,15 +29,16 @@ func (fake *ChannelFetcher) Channel(arg1 string) *endorser.Channel {
 	fake.channelArgsForCall = append(fake.channelArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ChannelStub
+	fakeReturns := fake.channelReturns
 	fake.recordInvocation("Channel", []interface{}{arg1})
 	fake.channelMutex.Unlock()
-	if fake.ChannelStub != nil {
-		return fake.ChannelStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.channelReturns
 	return fakeReturns.result1
 }
 

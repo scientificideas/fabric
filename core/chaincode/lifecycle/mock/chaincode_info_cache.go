@@ -33,15 +33,16 @@ func (fake *ChaincodeInfoCache) ChaincodeInfo(arg1 string, arg2 string) (*lifecy
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.ChaincodeInfoStub
+	fakeReturns := fake.chaincodeInfoReturns
 	fake.recordInvocation("ChaincodeInfo", []interface{}{arg1, arg2})
 	fake.chaincodeInfoMutex.Unlock()
-	if fake.ChaincodeInfoStub != nil {
-		return fake.ChaincodeInfoStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

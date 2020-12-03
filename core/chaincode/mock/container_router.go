@@ -78,15 +78,16 @@ func (fake *ContainerRouter) Build(arg1 string) error {
 	fake.buildArgsForCall = append(fake.buildArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.BuildStub
+	fakeReturns := fake.buildReturns
 	fake.recordInvocation("Build", []interface{}{arg1})
 	fake.buildMutex.Unlock()
-	if fake.BuildStub != nil {
-		return fake.BuildStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.buildReturns
 	return fakeReturns.result1
 }
 
@@ -138,15 +139,16 @@ func (fake *ContainerRouter) ChaincodeServerInfo(arg1 string) (*ccintf.Chaincode
 	fake.chaincodeServerInfoArgsForCall = append(fake.chaincodeServerInfoArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ChaincodeServerInfoStub
+	fakeReturns := fake.chaincodeServerInfoReturns
 	fake.recordInvocation("ChaincodeServerInfo", []interface{}{arg1})
 	fake.chaincodeServerInfoMutex.Unlock()
-	if fake.ChaincodeServerInfoStub != nil {
-		return fake.ChaincodeServerInfoStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeServerInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -202,15 +204,16 @@ func (fake *ContainerRouter) Start(arg1 string, arg2 *ccintf.PeerConnection) err
 		arg1 string
 		arg2 *ccintf.PeerConnection
 	}{arg1, arg2})
+	stub := fake.StartStub
+	fakeReturns := fake.startReturns
 	fake.recordInvocation("Start", []interface{}{arg1, arg2})
 	fake.startMutex.Unlock()
-	if fake.StartStub != nil {
-		return fake.StartStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.startReturns
 	return fakeReturns.result1
 }
 
@@ -262,15 +265,16 @@ func (fake *ContainerRouter) Stop(arg1 string) error {
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.StopStub
+	fakeReturns := fake.stopReturns
 	fake.recordInvocation("Stop", []interface{}{arg1})
 	fake.stopMutex.Unlock()
-	if fake.StopStub != nil {
-		return fake.StopStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.stopReturns
 	return fakeReturns.result1
 }
 
@@ -322,15 +326,16 @@ func (fake *ContainerRouter) Wait(arg1 string) (int, error) {
 	fake.waitArgsForCall = append(fake.waitArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.WaitStub
+	fakeReturns := fake.waitReturns
 	fake.recordInvocation("Wait", []interface{}{arg1})
 	fake.waitMutex.Unlock()
-	if fake.WaitStub != nil {
-		return fake.WaitStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.waitReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

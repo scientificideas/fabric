@@ -33,9 +33,10 @@ func (fake *Histogram) Observe(arg1 float64) {
 	fake.observeArgsForCall = append(fake.observeArgsForCall, struct {
 		arg1 float64
 	}{arg1})
+	stub := fake.ObserveStub
 	fake.recordInvocation("Observe", []interface{}{arg1})
 	fake.observeMutex.Unlock()
-	if fake.ObserveStub != nil {
+	if stub != nil {
 		fake.ObserveStub(arg1)
 	}
 }
@@ -65,15 +66,16 @@ func (fake *Histogram) With(arg1 ...string) metrics.Histogram {
 	fake.withArgsForCall = append(fake.withArgsForCall, struct {
 		arg1 []string
 	}{arg1})
+	stub := fake.WithStub
+	fakeReturns := fake.withReturns
 	fake.recordInvocation("With", []interface{}{arg1})
 	fake.withMutex.Unlock()
-	if fake.WithStub != nil {
-		return fake.WithStub(arg1...)
+	if stub != nil {
+		return stub(arg1...)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.withReturns
 	return fakeReturns.result1
 }
 

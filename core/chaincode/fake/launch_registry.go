@@ -42,15 +42,16 @@ func (fake *LaunchRegistry) Deregister(arg1 string) error {
 	fake.deregisterArgsForCall = append(fake.deregisterArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeregisterStub
+	fakeReturns := fake.deregisterReturns
 	fake.recordInvocation("Deregister", []interface{}{arg1})
 	fake.deregisterMutex.Unlock()
-	if fake.DeregisterStub != nil {
-		return fake.DeregisterStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deregisterReturns
 	return fakeReturns.result1
 }
 
@@ -102,15 +103,16 @@ func (fake *LaunchRegistry) Launching(arg1 string) (*chaincode.LaunchState, bool
 	fake.launchingArgsForCall = append(fake.launchingArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LaunchingStub
+	fakeReturns := fake.launchingReturns
 	fake.recordInvocation("Launching", []interface{}{arg1})
 	fake.launchingMutex.Unlock()
-	if fake.LaunchingStub != nil {
-		return fake.LaunchingStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.launchingReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -45,11 +45,6 @@ type FakeConsenterSupport struct {
 	blockCutterReturnsOnCall map[int]struct {
 		result1 blockcutter.Receiver
 	}
-	ChainIDStub              func() string
-	chainIDMutex             sync.RWMutex
-	chainIDReturns struct {
-		result1 string
-	}
 	ChannelConfigStub        func() channelconfig.Channel
 	channelConfigMutex       sync.RWMutex
 	channelConfigArgsForCall []struct {
@@ -224,15 +219,16 @@ func (fake *FakeConsenterSupport) Append(arg1 *common.Block) error {
 	fake.appendArgsForCall = append(fake.appendArgsForCall, struct {
 		arg1 *common.Block
 	}{arg1})
+	stub := fake.AppendStub
+	fakeReturns := fake.appendReturns
 	fake.recordInvocation("Append", []interface{}{arg1})
 	fake.appendMutex.Unlock()
-	if fake.AppendStub != nil {
-		return fake.AppendStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.appendReturns
 	return fakeReturns.result1
 }
 
@@ -284,15 +280,16 @@ func (fake *FakeConsenterSupport) Block(arg1 uint64) *common.Block {
 	fake.blockArgsForCall = append(fake.blockArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
+	stub := fake.BlockStub
+	fakeReturns := fake.blockReturns
 	fake.recordInvocation("Block", []interface{}{arg1})
 	fake.blockMutex.Unlock()
-	if fake.BlockStub != nil {
-		return fake.BlockStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.blockReturns
 	return fakeReturns.result1
 }
 
@@ -343,15 +340,16 @@ func (fake *FakeConsenterSupport) BlockCutter() blockcutter.Receiver {
 	ret, specificReturn := fake.blockCutterReturnsOnCall[len(fake.blockCutterArgsForCall)]
 	fake.blockCutterArgsForCall = append(fake.blockCutterArgsForCall, struct {
 	}{})
+	stub := fake.BlockCutterStub
+	fakeReturns := fake.blockCutterReturns
 	fake.recordInvocation("BlockCutter", []interface{}{})
 	fake.blockCutterMutex.Unlock()
-	if fake.BlockCutterStub != nil {
-		return fake.BlockCutterStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.blockCutterReturns
 	return fakeReturns.result1
 }
 
@@ -390,29 +388,21 @@ func (fake *FakeConsenterSupport) BlockCutterReturnsOnCall(i int, result1 blockc
 	}{result1}
 }
 
-func (fake *FakeConsenterSupport) ChainIDReturns(result1 string) {
-	fake.chainIDMutex.Lock()
-	defer fake.chainIDMutex.Unlock()
-	fake.ChainIDStub = nil
-	fake.chainIDReturns = struct {
-		result1 string
-	}{result1}
-}
-
 func (fake *FakeConsenterSupport) ChannelConfig() channelconfig.Channel {
 	fake.channelConfigMutex.Lock()
 	ret, specificReturn := fake.channelConfigReturnsOnCall[len(fake.channelConfigArgsForCall)]
 	fake.channelConfigArgsForCall = append(fake.channelConfigArgsForCall, struct {
 	}{})
+	stub := fake.ChannelConfigStub
+	fakeReturns := fake.channelConfigReturns
 	fake.recordInvocation("ChannelConfig", []interface{}{})
 	fake.channelConfigMutex.Unlock()
-	if fake.ChannelConfigStub != nil {
-		return fake.ChannelConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.channelConfigReturns
 	return fakeReturns.result1
 }
 
@@ -456,15 +446,16 @@ func (fake *FakeConsenterSupport) ChannelID() string {
 	ret, specificReturn := fake.channelIDReturnsOnCall[len(fake.channelIDArgsForCall)]
 	fake.channelIDArgsForCall = append(fake.channelIDArgsForCall, struct {
 	}{})
+	stub := fake.ChannelIDStub
+	fakeReturns := fake.channelIDReturns
 	fake.recordInvocation("ChannelID", []interface{}{})
 	fake.channelIDMutex.Unlock()
-	if fake.ChannelIDStub != nil {
-		return fake.ChannelIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.channelIDReturns
 	return fakeReturns.result1
 }
 
@@ -509,15 +500,16 @@ func (fake *FakeConsenterSupport) ClassifyMsg(arg1 *common.ChannelHeader) msgpro
 	fake.classifyMsgArgsForCall = append(fake.classifyMsgArgsForCall, struct {
 		arg1 *common.ChannelHeader
 	}{arg1})
+	stub := fake.ClassifyMsgStub
+	fakeReturns := fake.classifyMsgReturns
 	fake.recordInvocation("ClassifyMsg", []interface{}{arg1})
 	fake.classifyMsgMutex.Unlock()
-	if fake.ClassifyMsgStub != nil {
-		return fake.ClassifyMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.classifyMsgReturns
 	return fakeReturns.result1
 }
 
@@ -574,15 +566,16 @@ func (fake *FakeConsenterSupport) CreateNextBlock(arg1 []*common.Envelope) *comm
 	fake.createNextBlockArgsForCall = append(fake.createNextBlockArgsForCall, struct {
 		arg1 []*common.Envelope
 	}{arg1Copy})
+	stub := fake.CreateNextBlockStub
+	fakeReturns := fake.createNextBlockReturns
 	fake.recordInvocation("CreateNextBlock", []interface{}{arg1Copy})
 	fake.createNextBlockMutex.Unlock()
-	if fake.CreateNextBlockStub != nil {
-		return fake.CreateNextBlockStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.createNextBlockReturns
 	return fakeReturns.result1
 }
 
@@ -633,15 +626,16 @@ func (fake *FakeConsenterSupport) Height() uint64 {
 	ret, specificReturn := fake.heightReturnsOnCall[len(fake.heightArgsForCall)]
 	fake.heightArgsForCall = append(fake.heightArgsForCall, struct {
 	}{})
+	stub := fake.HeightStub
+	fakeReturns := fake.heightReturns
 	fake.recordInvocation("Height", []interface{}{})
 	fake.heightMutex.Unlock()
-	if fake.HeightStub != nil {
-		return fake.HeightStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.heightReturns
 	return fakeReturns.result1
 }
 
@@ -686,15 +680,16 @@ func (fake *FakeConsenterSupport) ProcessConfigMsg(arg1 *common.Envelope) (*comm
 	fake.processConfigMsgArgsForCall = append(fake.processConfigMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessConfigMsgStub
+	fakeReturns := fake.processConfigMsgReturns
 	fake.recordInvocation("ProcessConfigMsg", []interface{}{arg1})
 	fake.processConfigMsgMutex.Unlock()
-	if fake.ProcessConfigMsgStub != nil {
-		return fake.ProcessConfigMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.processConfigMsgReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -752,15 +747,16 @@ func (fake *FakeConsenterSupport) ProcessConfigUpdateMsg(arg1 *common.Envelope) 
 	fake.processConfigUpdateMsgArgsForCall = append(fake.processConfigUpdateMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessConfigUpdateMsgStub
+	fakeReturns := fake.processConfigUpdateMsgReturns
 	fake.recordInvocation("ProcessConfigUpdateMsg", []interface{}{arg1})
 	fake.processConfigUpdateMsgMutex.Unlock()
-	if fake.ProcessConfigUpdateMsgStub != nil {
-		return fake.ProcessConfigUpdateMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.processConfigUpdateMsgReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -818,15 +814,16 @@ func (fake *FakeConsenterSupport) ProcessNormalMsg(arg1 *common.Envelope) (uint6
 	fake.processNormalMsgArgsForCall = append(fake.processNormalMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessNormalMsgStub
+	fakeReturns := fake.processNormalMsgReturns
 	fake.recordInvocation("ProcessNormalMsg", []interface{}{arg1})
 	fake.processNormalMsgMutex.Unlock()
-	if fake.ProcessNormalMsgStub != nil {
-		return fake.ProcessNormalMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.processNormalMsgReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -880,15 +877,16 @@ func (fake *FakeConsenterSupport) Sequence() uint64 {
 	ret, specificReturn := fake.sequenceReturnsOnCall[len(fake.sequenceArgsForCall)]
 	fake.sequenceArgsForCall = append(fake.sequenceArgsForCall, struct {
 	}{})
+	stub := fake.SequenceStub
+	fakeReturns := fake.sequenceReturns
 	fake.recordInvocation("Sequence", []interface{}{})
 	fake.sequenceMutex.Unlock()
-	if fake.SequenceStub != nil {
-		return fake.SequenceStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sequenceReturns
 	return fakeReturns.result1
 }
 
@@ -932,15 +930,16 @@ func (fake *FakeConsenterSupport) Serialize() ([]byte, error) {
 	ret, specificReturn := fake.serializeReturnsOnCall[len(fake.serializeArgsForCall)]
 	fake.serializeArgsForCall = append(fake.serializeArgsForCall, struct {
 	}{})
+	stub := fake.SerializeStub
+	fakeReturns := fake.serializeReturns
 	fake.recordInvocation("Serialize", []interface{}{})
 	fake.serializeMutex.Unlock()
-	if fake.SerializeStub != nil {
-		return fake.SerializeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.serializeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -987,15 +986,16 @@ func (fake *FakeConsenterSupport) SharedConfig() channelconfig.Orderer {
 	ret, specificReturn := fake.sharedConfigReturnsOnCall[len(fake.sharedConfigArgsForCall)]
 	fake.sharedConfigArgsForCall = append(fake.sharedConfigArgsForCall, struct {
 	}{})
+	stub := fake.SharedConfigStub
+	fakeReturns := fake.sharedConfigReturns
 	fake.recordInvocation("SharedConfig", []interface{}{})
 	fake.sharedConfigMutex.Unlock()
-	if fake.SharedConfigStub != nil {
-		return fake.SharedConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sharedConfigReturns
 	return fakeReturns.result1
 }
 
@@ -1045,15 +1045,16 @@ func (fake *FakeConsenterSupport) Sign(arg1 []byte) ([]byte, error) {
 	fake.signArgsForCall = append(fake.signArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1Copy})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1114,15 +1115,16 @@ func (fake *FakeConsenterSupport) VerifyBlockSignature(arg1 []*protoutil.SignedD
 		arg1 []*protoutil.SignedData
 		arg2 *common.ConfigEnvelope
 	}{arg1Copy, arg2})
+	stub := fake.VerifyBlockSignatureStub
+	fakeReturns := fake.verifyBlockSignatureReturns
 	fake.recordInvocation("VerifyBlockSignature", []interface{}{arg1Copy, arg2})
 	fake.verifyBlockSignatureMutex.Unlock()
-	if fake.VerifyBlockSignatureStub != nil {
-		return fake.VerifyBlockSignatureStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyBlockSignatureReturns
 	return fakeReturns.result1
 }
 
@@ -1179,9 +1181,10 @@ func (fake *FakeConsenterSupport) WriteBlock(arg1 *common.Block, arg2 []byte) {
 		arg1 *common.Block
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.WriteBlockStub
 	fake.recordInvocation("WriteBlock", []interface{}{arg1, arg2Copy})
 	fake.writeBlockMutex.Unlock()
-	if fake.WriteBlockStub != nil {
+	if stub != nil {
 		fake.WriteBlockStub(arg1, arg2)
 	}
 }
@@ -1216,9 +1219,10 @@ func (fake *FakeConsenterSupport) WriteConfigBlock(arg1 *common.Block, arg2 []by
 		arg1 *common.Block
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.WriteConfigBlockStub
 	fake.recordInvocation("WriteConfigBlock", []interface{}{arg1, arg2Copy})
 	fake.writeConfigBlockMutex.Unlock()
-	if fake.WriteConfigBlockStub != nil {
+	if stub != nil {
 		fake.WriteConfigBlockStub(arg1, arg2)
 	}
 }

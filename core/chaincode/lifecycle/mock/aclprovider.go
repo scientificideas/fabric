@@ -43,15 +43,16 @@ func (fake *ACLProvider) CheckACL(arg1 string, arg2 string, arg3 interface{}) er
 		arg2 string
 		arg3 interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.CheckACLStub
+	fakeReturns := fake.checkACLReturns
 	fake.recordInvocation("CheckACL", []interface{}{arg1, arg2, arg3})
 	fake.checkACLMutex.Unlock()
-	if fake.CheckACLStub != nil {
-		return fake.CheckACLStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkACLReturns
 	return fakeReturns.result1
 }
 
@@ -104,15 +105,16 @@ func (fake *ACLProvider) CheckACLNoChannel(arg1 string, arg2 interface{}) error 
 		arg1 string
 		arg2 interface{}
 	}{arg1, arg2})
+	stub := fake.CheckACLNoChannelStub
+	fakeReturns := fake.checkACLNoChannelReturns
 	fake.recordInvocation("CheckACLNoChannel", []interface{}{arg1, arg2})
 	fake.checkACLNoChannelMutex.Unlock()
-	if fake.CheckACLNoChannelStub != nil {
-		return fake.CheckACLNoChannelStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkACLNoChannelReturns
 	return fakeReturns.result1
 }
 

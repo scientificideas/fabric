@@ -36,15 +36,16 @@ func (fake *PrivateDataDistributor) DistributePrivateData(arg1 string, arg2 stri
 		arg3 *transientstore.TxPvtReadWriteSetWithConfigInfo
 		arg4 uint64
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.DistributePrivateDataStub
+	fakeReturns := fake.distributePrivateDataReturns
 	fake.recordInvocation("DistributePrivateData", []interface{}{arg1, arg2, arg3, arg4})
 	fake.distributePrivateDataMutex.Unlock()
-	if fake.DistributePrivateDataStub != nil {
-		return fake.DistributePrivateDataStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.distributePrivateDataReturns
 	return fakeReturns.result1
 }
 

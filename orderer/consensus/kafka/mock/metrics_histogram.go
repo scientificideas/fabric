@@ -137,9 +137,10 @@ func (fake *MetricsHistogram) Clear() {
 	fake.clearMutex.Lock()
 	fake.clearArgsForCall = append(fake.clearArgsForCall, struct {
 	}{})
+	stub := fake.ClearStub
 	fake.recordInvocation("Clear", []interface{}{})
 	fake.clearMutex.Unlock()
-	if fake.ClearStub != nil {
+	if stub != nil {
 		fake.ClearStub()
 	}
 }
@@ -161,15 +162,16 @@ func (fake *MetricsHistogram) Count() int64 {
 	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
 	fake.countArgsForCall = append(fake.countArgsForCall, struct {
 	}{})
+	stub := fake.CountStub
+	fakeReturns := fake.countReturns
 	fake.recordInvocation("Count", []interface{}{})
 	fake.countMutex.Unlock()
-	if fake.CountStub != nil {
-		return fake.CountStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.countReturns
 	return fakeReturns.result1
 }
 
@@ -213,15 +215,16 @@ func (fake *MetricsHistogram) Max() int64 {
 	ret, specificReturn := fake.maxReturnsOnCall[len(fake.maxArgsForCall)]
 	fake.maxArgsForCall = append(fake.maxArgsForCall, struct {
 	}{})
+	stub := fake.MaxStub
+	fakeReturns := fake.maxReturns
 	fake.recordInvocation("Max", []interface{}{})
 	fake.maxMutex.Unlock()
-	if fake.MaxStub != nil {
-		return fake.MaxStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.maxReturns
 	return fakeReturns.result1
 }
 
@@ -265,15 +268,16 @@ func (fake *MetricsHistogram) Mean() float64 {
 	ret, specificReturn := fake.meanReturnsOnCall[len(fake.meanArgsForCall)]
 	fake.meanArgsForCall = append(fake.meanArgsForCall, struct {
 	}{})
+	stub := fake.MeanStub
+	fakeReturns := fake.meanReturns
 	fake.recordInvocation("Mean", []interface{}{})
 	fake.meanMutex.Unlock()
-	if fake.MeanStub != nil {
-		return fake.MeanStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.meanReturns
 	return fakeReturns.result1
 }
 
@@ -317,15 +321,16 @@ func (fake *MetricsHistogram) Min() int64 {
 	ret, specificReturn := fake.minReturnsOnCall[len(fake.minArgsForCall)]
 	fake.minArgsForCall = append(fake.minArgsForCall, struct {
 	}{})
+	stub := fake.MinStub
+	fakeReturns := fake.minReturns
 	fake.recordInvocation("Min", []interface{}{})
 	fake.minMutex.Unlock()
-	if fake.MinStub != nil {
-		return fake.MinStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.minReturns
 	return fakeReturns.result1
 }
 
@@ -370,15 +375,16 @@ func (fake *MetricsHistogram) Percentile(arg1 float64) float64 {
 	fake.percentileArgsForCall = append(fake.percentileArgsForCall, struct {
 		arg1 float64
 	}{arg1})
+	stub := fake.PercentileStub
+	fakeReturns := fake.percentileReturns
 	fake.recordInvocation("Percentile", []interface{}{arg1})
 	fake.percentileMutex.Unlock()
-	if fake.PercentileStub != nil {
-		return fake.PercentileStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.percentileReturns
 	return fakeReturns.result1
 }
 
@@ -435,15 +441,16 @@ func (fake *MetricsHistogram) Percentiles(arg1 []float64) []float64 {
 	fake.percentilesArgsForCall = append(fake.percentilesArgsForCall, struct {
 		arg1 []float64
 	}{arg1Copy})
+	stub := fake.PercentilesStub
+	fakeReturns := fake.percentilesReturns
 	fake.recordInvocation("Percentiles", []interface{}{arg1Copy})
 	fake.percentilesMutex.Unlock()
-	if fake.PercentilesStub != nil {
-		return fake.PercentilesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.percentilesReturns
 	return fakeReturns.result1
 }
 
@@ -494,15 +501,16 @@ func (fake *MetricsHistogram) Sample() metrics.Sample {
 	ret, specificReturn := fake.sampleReturnsOnCall[len(fake.sampleArgsForCall)]
 	fake.sampleArgsForCall = append(fake.sampleArgsForCall, struct {
 	}{})
+	stub := fake.SampleStub
+	fakeReturns := fake.sampleReturns
 	fake.recordInvocation("Sample", []interface{}{})
 	fake.sampleMutex.Unlock()
-	if fake.SampleStub != nil {
-		return fake.SampleStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sampleReturns
 	return fakeReturns.result1
 }
 
@@ -546,15 +554,16 @@ func (fake *MetricsHistogram) Snapshot() metrics.Histogram {
 	ret, specificReturn := fake.snapshotReturnsOnCall[len(fake.snapshotArgsForCall)]
 	fake.snapshotArgsForCall = append(fake.snapshotArgsForCall, struct {
 	}{})
+	stub := fake.SnapshotStub
+	fakeReturns := fake.snapshotReturns
 	fake.recordInvocation("Snapshot", []interface{}{})
 	fake.snapshotMutex.Unlock()
-	if fake.SnapshotStub != nil {
-		return fake.SnapshotStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.snapshotReturns
 	return fakeReturns.result1
 }
 
@@ -598,15 +607,16 @@ func (fake *MetricsHistogram) StdDev() float64 {
 	ret, specificReturn := fake.stdDevReturnsOnCall[len(fake.stdDevArgsForCall)]
 	fake.stdDevArgsForCall = append(fake.stdDevArgsForCall, struct {
 	}{})
+	stub := fake.StdDevStub
+	fakeReturns := fake.stdDevReturns
 	fake.recordInvocation("StdDev", []interface{}{})
 	fake.stdDevMutex.Unlock()
-	if fake.StdDevStub != nil {
-		return fake.StdDevStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.stdDevReturns
 	return fakeReturns.result1
 }
 
@@ -650,15 +660,16 @@ func (fake *MetricsHistogram) Sum() int64 {
 	ret, specificReturn := fake.sumReturnsOnCall[len(fake.sumArgsForCall)]
 	fake.sumArgsForCall = append(fake.sumArgsForCall, struct {
 	}{})
+	stub := fake.SumStub
+	fakeReturns := fake.sumReturns
 	fake.recordInvocation("Sum", []interface{}{})
 	fake.sumMutex.Unlock()
-	if fake.SumStub != nil {
-		return fake.SumStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sumReturns
 	return fakeReturns.result1
 }
 
@@ -702,9 +713,10 @@ func (fake *MetricsHistogram) Update(arg1 int64) {
 	fake.updateArgsForCall = append(fake.updateArgsForCall, struct {
 		arg1 int64
 	}{arg1})
+	stub := fake.UpdateStub
 	fake.recordInvocation("Update", []interface{}{arg1})
 	fake.updateMutex.Unlock()
-	if fake.UpdateStub != nil {
+	if stub != nil {
 		fake.UpdateStub(arg1)
 	}
 }
@@ -733,15 +745,16 @@ func (fake *MetricsHistogram) Variance() float64 {
 	ret, specificReturn := fake.varianceReturnsOnCall[len(fake.varianceArgsForCall)]
 	fake.varianceArgsForCall = append(fake.varianceArgsForCall, struct {
 	}{})
+	stub := fake.VarianceStub
+	fakeReturns := fake.varianceReturns
 	fake.recordInvocation("Variance", []interface{}{})
 	fake.varianceMutex.Unlock()
-	if fake.VarianceStub != nil {
-		return fake.VarianceStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.varianceReturns
 	return fakeReturns.result1
 }
 

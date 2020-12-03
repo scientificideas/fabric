@@ -33,15 +33,16 @@ func (fake *Inspector) Inspect(arg1 context.Context, arg2 proto.Message) error {
 		arg1 context.Context
 		arg2 proto.Message
 	}{arg1, arg2})
+	stub := fake.InspectStub
+	fakeReturns := fake.inspectReturns
 	fake.recordInvocation("Inspect", []interface{}{arg1, arg2})
 	fake.inspectMutex.Unlock()
-	if fake.InspectStub != nil {
-		return fake.InspectStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.inspectReturns
 	return fakeReturns.result1
 }
 

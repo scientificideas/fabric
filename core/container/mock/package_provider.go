@@ -37,15 +37,16 @@ func (fake *PackageProvider) GetChaincodePackage(arg1 string) (*persistence.Chai
 	fake.getChaincodePackageArgsForCall = append(fake.getChaincodePackageArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetChaincodePackageStub
+	fakeReturns := fake.getChaincodePackageReturns
 	fake.recordInvocation("GetChaincodePackage", []interface{}{arg1})
 	fake.getChaincodePackageMutex.Unlock()
-	if fake.GetChaincodePackageStub != nil {
-		return fake.GetChaincodePackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
-	fakeReturns := fake.getChaincodePackageReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3, fakeReturns.result4
 }
 

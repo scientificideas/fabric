@@ -8,6 +8,8 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -97,7 +99,9 @@ func init() {
 	proto.RegisterType((*Echo)(nil), "Echo")
 }
 
-func init() { proto.RegisterFile("test.proto", fileDescriptor_c161fcfdc0c3ff1e) }
+func init() {
+	proto.RegisterFile("test.proto", fileDescriptor_c161fcfdc0c3ff1e)
+}
 
 var fileDescriptor_c161fcfdc0c3ff1e = []byte{
 	// 203 bytes of a gzipped FileDescriptorProto
@@ -118,11 +122,11 @@ var fileDescriptor_c161fcfdc0c3ff1e = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConn
+var _ grpc.ClientConnInterface
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion4
+const _ = grpc.SupportPackageIsVersion6
 
 // TestServiceClient is the client API for TestService service.
 //
@@ -132,10 +136,10 @@ type TestServiceClient interface {
 }
 
 type testServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewTestServiceClient(cc *grpc.ClientConn) TestServiceClient {
+func NewTestServiceClient(cc grpc.ClientConnInterface) TestServiceClient {
 	return &testServiceClient{cc}
 }
 
@@ -151,6 +155,14 @@ func (c *testServiceClient) EmptyCall(ctx context.Context, in *Empty, opts ...gr
 // TestServiceServer is the server API for TestService service.
 type TestServiceServer interface {
 	EmptyCall(context.Context, *Empty) (*Empty, error)
+}
+
+// UnimplementedTestServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedTestServiceServer struct {
+}
+
+func (*UnimplementedTestServiceServer) EmptyCall(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmptyCall not implemented")
 }
 
 func RegisterTestServiceServer(s *grpc.Server, srv TestServiceServer) {
@@ -197,10 +209,10 @@ type EmptyServiceClient interface {
 }
 
 type emptyServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewEmptyServiceClient(cc *grpc.ClientConn) EmptyServiceClient {
+func NewEmptyServiceClient(cc grpc.ClientConnInterface) EmptyServiceClient {
 	return &emptyServiceClient{cc}
 }
 
@@ -248,6 +260,17 @@ func (x *emptyServiceEmptyStreamClient) Recv() (*Empty, error) {
 type EmptyServiceServer interface {
 	EmptyCall(context.Context, *Empty) (*Empty, error)
 	EmptyStream(EmptyService_EmptyStreamServer) error
+}
+
+// UnimplementedEmptyServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedEmptyServiceServer struct {
+}
+
+func (*UnimplementedEmptyServiceServer) EmptyCall(ctx context.Context, req *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EmptyCall not implemented")
+}
+func (*UnimplementedEmptyServiceServer) EmptyStream(srv EmptyService_EmptyStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method EmptyStream not implemented")
 }
 
 func RegisterEmptyServiceServer(s *grpc.Server, srv EmptyServiceServer) {
@@ -326,10 +349,10 @@ type EchoServiceClient interface {
 }
 
 type echoServiceClient struct {
-	cc *grpc.ClientConn
+	cc grpc.ClientConnInterface
 }
 
-func NewEchoServiceClient(cc *grpc.ClientConn) EchoServiceClient {
+func NewEchoServiceClient(cc grpc.ClientConnInterface) EchoServiceClient {
 	return &echoServiceClient{cc}
 }
 
@@ -345,6 +368,14 @@ func (c *echoServiceClient) EchoCall(ctx context.Context, in *Echo, opts ...grpc
 // EchoServiceServer is the server API for EchoService service.
 type EchoServiceServer interface {
 	EchoCall(context.Context, *Echo) (*Echo, error)
+}
+
+// UnimplementedEchoServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedEchoServiceServer struct {
+}
+
+func (*UnimplementedEchoServiceServer) EchoCall(ctx context.Context, req *Echo) (*Echo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EchoCall not implemented")
 }
 
 func RegisterEchoServiceServer(s *grpc.Server, srv EchoServiceServer) {

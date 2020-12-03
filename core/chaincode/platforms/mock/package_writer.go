@@ -37,15 +37,16 @@ func (fake *PackageWriter) Write(arg1 string, arg2 []byte, arg3 *tar.Writer) err
 		arg2 []byte
 		arg3 *tar.Writer
 	}{arg1, arg2Copy, arg3})
+	stub := fake.WriteStub
+	fakeReturns := fake.writeReturns
 	fake.recordInvocation("Write", []interface{}{arg1, arg2Copy, arg3})
 	fake.writeMutex.Unlock()
-	if fake.WriteStub != nil {
-		return fake.WriteStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.writeReturns
 	return fakeReturns.result1
 }
 

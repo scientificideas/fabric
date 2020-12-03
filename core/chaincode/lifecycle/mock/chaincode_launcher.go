@@ -40,15 +40,16 @@ func (fake *ChaincodeLauncher) Launch(arg1 string) error {
 	fake.launchArgsForCall = append(fake.launchArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LaunchStub
+	fakeReturns := fake.launchReturns
 	fake.recordInvocation("Launch", []interface{}{arg1})
 	fake.launchMutex.Unlock()
-	if fake.LaunchStub != nil {
-		return fake.LaunchStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.launchReturns
 	return fakeReturns.result1
 }
 
@@ -100,15 +101,16 @@ func (fake *ChaincodeLauncher) Stop(arg1 string) error {
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.StopStub
+	fakeReturns := fake.stopReturns
 	fake.recordInvocation("Stop", []interface{}{arg1})
 	fake.stopMutex.Unlock()
-	if fake.StopStub != nil {
-		return fake.StopStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.stopReturns
 	return fakeReturns.result1
 }
 

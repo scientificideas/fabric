@@ -36,15 +36,16 @@ func (fake *ChannelSupportRegistrar) BroadcastChannelSupport(arg1 *common.Envelo
 	fake.broadcastChannelSupportArgsForCall = append(fake.broadcastChannelSupportArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.BroadcastChannelSupportStub
+	fakeReturns := fake.broadcastChannelSupportReturns
 	fake.recordInvocation("BroadcastChannelSupport", []interface{}{arg1})
 	fake.broadcastChannelSupportMutex.Unlock()
-	if fake.BroadcastChannelSupportStub != nil {
-		return fake.BroadcastChannelSupportStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
-	fakeReturns := fake.broadcastChannelSupportReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3, fakeReturns.result4
 }
 

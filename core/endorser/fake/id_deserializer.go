@@ -48,15 +48,16 @@ func (fake *IdentityDeserializer) DeserializeIdentity(arg1 []byte) (msp.Identity
 	fake.deserializeIdentityArgsForCall = append(fake.deserializeIdentityArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.DeserializeIdentityStub
+	fakeReturns := fake.deserializeIdentityReturns
 	fake.recordInvocation("DeserializeIdentity", []interface{}{arg1Copy})
 	fake.deserializeIdentityMutex.Unlock()
-	if fake.DeserializeIdentityStub != nil {
-		return fake.DeserializeIdentityStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deserializeIdentityReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -111,15 +112,16 @@ func (fake *IdentityDeserializer) IsWellFormed(arg1 *mspa.SerializedIdentity) er
 	fake.isWellFormedArgsForCall = append(fake.isWellFormedArgsForCall, struct {
 		arg1 *mspa.SerializedIdentity
 	}{arg1})
+	stub := fake.IsWellFormedStub
+	fakeReturns := fake.isWellFormedReturns
 	fake.recordInvocation("IsWellFormed", []interface{}{arg1})
 	fake.isWellFormedMutex.Unlock()
-	if fake.IsWellFormedStub != nil {
-		return fake.IsWellFormedStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isWellFormedReturns
 	return fakeReturns.result1
 }
 

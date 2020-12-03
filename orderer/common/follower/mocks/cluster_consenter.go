@@ -35,15 +35,16 @@ func (fake *ClusterConsenter) IsChannelMember(arg1 *common.Block) (bool, error) 
 	fake.isChannelMemberArgsForCall = append(fake.isChannelMemberArgsForCall, struct {
 		arg1 *common.Block
 	}{arg1})
+	stub := fake.IsChannelMemberStub
+	fakeReturns := fake.isChannelMemberReturns
 	fake.recordInvocation("IsChannelMember", []interface{}{arg1})
 	fake.isChannelMemberMutex.Unlock()
-	if fake.IsChannelMemberStub != nil {
-		return fake.IsChannelMemberStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.isChannelMemberReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -96,9 +97,10 @@ func (fake *ClusterConsenter) RemoveInactiveChainRegistry() {
 	fake.removeInactiveChainRegistryMutex.Lock()
 	fake.removeInactiveChainRegistryArgsForCall = append(fake.removeInactiveChainRegistryArgsForCall, struct {
 	}{})
+	stub := fake.RemoveInactiveChainRegistryStub
 	fake.recordInvocation("RemoveInactiveChainRegistry", []interface{}{})
 	fake.removeInactiveChainRegistryMutex.Unlock()
-	if fake.RemoveInactiveChainRegistryStub != nil {
+	if stub != nil {
 		fake.RemoveInactiveChainRegistryStub()
 	}
 }

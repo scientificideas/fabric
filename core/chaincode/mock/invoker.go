@@ -36,15 +36,16 @@ func (fake *Invoker) Invoke(arg1 *ccprovider.TransactionParams, arg2 string, arg
 		arg2 string
 		arg3 *peer.ChaincodeInput
 	}{arg1, arg2, arg3})
+	stub := fake.InvokeStub
+	fakeReturns := fake.invokeReturns
 	fake.recordInvocation("Invoke", []interface{}{arg1, arg2, arg3})
 	fake.invokeMutex.Unlock()
-	if fake.InvokeStub != nil {
-		return fake.InvokeStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.invokeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

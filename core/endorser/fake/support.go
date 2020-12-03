@@ -203,15 +203,16 @@ func (fake *Support) ChaincodeEndorsementInfo(arg1 string, arg2 string, arg3 led
 		arg2 string
 		arg3 ledger.QueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.ChaincodeEndorsementInfoStub
+	fakeReturns := fake.chaincodeEndorsementInfoReturns
 	fake.recordInvocation("ChaincodeEndorsementInfo", []interface{}{arg1, arg2, arg3})
 	fake.chaincodeEndorsementInfoMutex.Unlock()
-	if fake.ChaincodeEndorsementInfoStub != nil {
-		return fake.ChaincodeEndorsementInfoStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeEndorsementInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -267,15 +268,16 @@ func (fake *Support) CheckACL(arg1 string, arg2 *peer.SignedProposal) error {
 		arg1 string
 		arg2 *peer.SignedProposal
 	}{arg1, arg2})
+	stub := fake.CheckACLStub
+	fakeReturns := fake.checkACLReturns
 	fake.recordInvocation("CheckACL", []interface{}{arg1, arg2})
 	fake.checkACLMutex.Unlock()
-	if fake.CheckACLStub != nil {
-		return fake.CheckACLStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkACLReturns
 	return fakeReturns.result1
 }
 
@@ -335,15 +337,16 @@ func (fake *Support) EndorseWithPlugin(arg1 string, arg2 string, arg3 []byte, ar
 		arg3 []byte
 		arg4 *peer.SignedProposal
 	}{arg1, arg2, arg3Copy, arg4})
+	stub := fake.EndorseWithPluginStub
+	fakeReturns := fake.endorseWithPluginReturns
 	fake.recordInvocation("EndorseWithPlugin", []interface{}{arg1, arg2, arg3Copy, arg4})
 	fake.endorseWithPluginMutex.Unlock()
-	if fake.EndorseWithPluginStub != nil {
-		return fake.EndorseWithPluginStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.endorseWithPluginReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -403,15 +406,16 @@ func (fake *Support) Execute(arg1 *ccprovider.TransactionParams, arg2 string, ar
 		arg2 string
 		arg3 *peer.ChaincodeInput
 	}{arg1, arg2, arg3})
+	stub := fake.ExecuteStub
+	fakeReturns := fake.executeReturns
 	fake.recordInvocation("Execute", []interface{}{arg1, arg2, arg3})
 	fake.executeMutex.Unlock()
-	if fake.ExecuteStub != nil {
-		return fake.ExecuteStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.executeReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -472,15 +476,16 @@ func (fake *Support) ExecuteLegacyInit(arg1 *ccprovider.TransactionParams, arg2 
 		arg3 string
 		arg4 *peer.ChaincodeInput
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.ExecuteLegacyInitStub
+	fakeReturns := fake.executeLegacyInitReturns
 	fake.recordInvocation("ExecuteLegacyInit", []interface{}{arg1, arg2, arg3, arg4})
 	fake.executeLegacyInitMutex.Unlock()
-	if fake.ExecuteLegacyInitStub != nil {
-		return fake.ExecuteLegacyInitStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.executeLegacyInitReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -537,15 +542,16 @@ func (fake *Support) GetDeployedCCInfoProvider() ledger.DeployedChaincodeInfoPro
 	ret, specificReturn := fake.getDeployedCCInfoProviderReturnsOnCall[len(fake.getDeployedCCInfoProviderArgsForCall)]
 	fake.getDeployedCCInfoProviderArgsForCall = append(fake.getDeployedCCInfoProviderArgsForCall, struct {
 	}{})
+	stub := fake.GetDeployedCCInfoProviderStub
+	fakeReturns := fake.getDeployedCCInfoProviderReturns
 	fake.recordInvocation("GetDeployedCCInfoProvider", []interface{}{})
 	fake.getDeployedCCInfoProviderMutex.Unlock()
-	if fake.GetDeployedCCInfoProviderStub != nil {
-		return fake.GetDeployedCCInfoProviderStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getDeployedCCInfoProviderReturns
 	return fakeReturns.result1
 }
 
@@ -590,15 +596,16 @@ func (fake *Support) GetHistoryQueryExecutor(arg1 string) (ledger.HistoryQueryEx
 	fake.getHistoryQueryExecutorArgsForCall = append(fake.getHistoryQueryExecutorArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetHistoryQueryExecutorStub
+	fakeReturns := fake.getHistoryQueryExecutorReturns
 	fake.recordInvocation("GetHistoryQueryExecutor", []interface{}{arg1})
 	fake.getHistoryQueryExecutorMutex.Unlock()
-	if fake.GetHistoryQueryExecutorStub != nil {
-		return fake.GetHistoryQueryExecutorStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getHistoryQueryExecutorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -653,15 +660,16 @@ func (fake *Support) GetLedgerHeight(arg1 string) (uint64, error) {
 	fake.getLedgerHeightArgsForCall = append(fake.getLedgerHeightArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetLedgerHeightStub
+	fakeReturns := fake.getLedgerHeightReturns
 	fake.recordInvocation("GetLedgerHeight", []interface{}{arg1})
 	fake.getLedgerHeightMutex.Unlock()
-	if fake.GetLedgerHeightStub != nil {
-		return fake.GetLedgerHeightStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getLedgerHeightReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -717,15 +725,16 @@ func (fake *Support) GetTransactionByID(arg1 string, arg2 string) (*peer.Process
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetTransactionByIDStub
+	fakeReturns := fake.getTransactionByIDReturns
 	fake.recordInvocation("GetTransactionByID", []interface{}{arg1, arg2})
 	fake.getTransactionByIDMutex.Unlock()
-	if fake.GetTransactionByIDStub != nil {
-		return fake.GetTransactionByIDStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getTransactionByIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -781,15 +790,16 @@ func (fake *Support) GetTxSimulator(arg1 string, arg2 string) (ledger.TxSimulato
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetTxSimulatorStub
+	fakeReturns := fake.getTxSimulatorReturns
 	fake.recordInvocation("GetTxSimulator", []interface{}{arg1, arg2})
 	fake.getTxSimulatorMutex.Unlock()
-	if fake.GetTxSimulatorStub != nil {
-		return fake.GetTxSimulatorStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getTxSimulatorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -844,15 +854,16 @@ func (fake *Support) IsSysCC(arg1 string) bool {
 	fake.isSysCCArgsForCall = append(fake.isSysCCArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.IsSysCCStub
+	fakeReturns := fake.isSysCCReturns
 	fake.recordInvocation("IsSysCC", []interface{}{arg1})
 	fake.isSysCCMutex.Unlock()
-	if fake.IsSysCCStub != nil {
-		return fake.IsSysCCStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isSysCCReturns
 	return fakeReturns.result1
 }
 
@@ -903,15 +914,16 @@ func (fake *Support) Serialize() ([]byte, error) {
 	ret, specificReturn := fake.serializeReturnsOnCall[len(fake.serializeArgsForCall)]
 	fake.serializeArgsForCall = append(fake.serializeArgsForCall, struct {
 	}{})
+	stub := fake.SerializeStub
+	fakeReturns := fake.serializeReturns
 	fake.recordInvocation("Serialize", []interface{}{})
 	fake.serializeMutex.Unlock()
-	if fake.SerializeStub != nil {
-		return fake.SerializeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.serializeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -964,15 +976,16 @@ func (fake *Support) Sign(arg1 []byte) ([]byte, error) {
 	fake.signArgsForCall = append(fake.signArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1Copy})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

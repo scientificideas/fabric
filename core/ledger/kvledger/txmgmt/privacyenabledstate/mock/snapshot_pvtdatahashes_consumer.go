@@ -57,15 +57,16 @@ func (fake *SnapshotPvtdataHashesConsumer) ConsumeSnapshotData(arg1 string, arg2
 		arg4 []byte
 		arg5 *version.Height
 	}{arg1, arg2, arg3Copy, arg4Copy, arg5})
+	stub := fake.ConsumeSnapshotDataStub
+	fakeReturns := fake.consumeSnapshotDataReturns
 	fake.recordInvocation("ConsumeSnapshotData", []interface{}{arg1, arg2, arg3Copy, arg4Copy, arg5})
 	fake.consumeSnapshotDataMutex.Unlock()
-	if fake.ConsumeSnapshotDataStub != nil {
-		return fake.ConsumeSnapshotDataStub(arg1, arg2, arg3, arg4, arg5)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.consumeSnapshotDataReturns
 	return fakeReturns.result1
 }
 
@@ -116,15 +117,16 @@ func (fake *SnapshotPvtdataHashesConsumer) Done() error {
 	ret, specificReturn := fake.doneReturnsOnCall[len(fake.doneArgsForCall)]
 	fake.doneArgsForCall = append(fake.doneArgsForCall, struct {
 	}{})
+	stub := fake.DoneStub
+	fakeReturns := fake.doneReturns
 	fake.recordInvocation("Done", []interface{}{})
 	fake.doneMutex.Unlock()
-	if fake.DoneStub != nil {
-		return fake.DoneStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.doneReturns
 	return fakeReturns.result1
 }
 

@@ -108,15 +108,16 @@ func (fake *ChannelSupport) ClassifyMsg(arg1 *common.ChannelHeader) msgprocessor
 	fake.classifyMsgArgsForCall = append(fake.classifyMsgArgsForCall, struct {
 		arg1 *common.ChannelHeader
 	}{arg1})
+	stub := fake.ClassifyMsgStub
+	fakeReturns := fake.classifyMsgReturns
 	fake.recordInvocation("ClassifyMsg", []interface{}{arg1})
 	fake.classifyMsgMutex.Unlock()
-	if fake.ClassifyMsgStub != nil {
-		return fake.ClassifyMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.classifyMsgReturns
 	return fakeReturns.result1
 }
 
@@ -169,15 +170,16 @@ func (fake *ChannelSupport) Configure(arg1 *common.Envelope, arg2 uint64) error 
 		arg1 *common.Envelope
 		arg2 uint64
 	}{arg1, arg2})
+	stub := fake.ConfigureStub
+	fakeReturns := fake.configureReturns
 	fake.recordInvocation("Configure", []interface{}{arg1, arg2})
 	fake.configureMutex.Unlock()
-	if fake.ConfigureStub != nil {
-		return fake.ConfigureStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.configureReturns
 	return fakeReturns.result1
 }
 
@@ -230,15 +232,16 @@ func (fake *ChannelSupport) Order(arg1 *common.Envelope, arg2 uint64) error {
 		arg1 *common.Envelope
 		arg2 uint64
 	}{arg1, arg2})
+	stub := fake.OrderStub
+	fakeReturns := fake.orderReturns
 	fake.recordInvocation("Order", []interface{}{arg1, arg2})
 	fake.orderMutex.Unlock()
-	if fake.OrderStub != nil {
-		return fake.OrderStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.orderReturns
 	return fakeReturns.result1
 }
 
@@ -290,15 +293,16 @@ func (fake *ChannelSupport) ProcessConfigMsg(arg1 *common.Envelope) (*common.Env
 	fake.processConfigMsgArgsForCall = append(fake.processConfigMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessConfigMsgStub
+	fakeReturns := fake.processConfigMsgReturns
 	fake.recordInvocation("ProcessConfigMsg", []interface{}{arg1})
 	fake.processConfigMsgMutex.Unlock()
-	if fake.ProcessConfigMsgStub != nil {
-		return fake.ProcessConfigMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.processConfigMsgReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -356,15 +360,16 @@ func (fake *ChannelSupport) ProcessConfigUpdateMsg(arg1 *common.Envelope) (*comm
 	fake.processConfigUpdateMsgArgsForCall = append(fake.processConfigUpdateMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessConfigUpdateMsgStub
+	fakeReturns := fake.processConfigUpdateMsgReturns
 	fake.recordInvocation("ProcessConfigUpdateMsg", []interface{}{arg1})
 	fake.processConfigUpdateMsgMutex.Unlock()
-	if fake.ProcessConfigUpdateMsgStub != nil {
-		return fake.ProcessConfigUpdateMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.processConfigUpdateMsgReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -422,15 +427,16 @@ func (fake *ChannelSupport) ProcessNormalMsg(arg1 *common.Envelope) (uint64, err
 	fake.processNormalMsgArgsForCall = append(fake.processNormalMsgArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.ProcessNormalMsgStub
+	fakeReturns := fake.processNormalMsgReturns
 	fake.recordInvocation("ProcessNormalMsg", []interface{}{arg1})
 	fake.processNormalMsgMutex.Unlock()
-	if fake.ProcessNormalMsgStub != nil {
-		return fake.ProcessNormalMsgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.processNormalMsgReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -484,15 +490,16 @@ func (fake *ChannelSupport) WaitReady() error {
 	ret, specificReturn := fake.waitReadyReturnsOnCall[len(fake.waitReadyArgsForCall)]
 	fake.waitReadyArgsForCall = append(fake.waitReadyArgsForCall, struct {
 	}{})
+	stub := fake.WaitReadyStub
+	fakeReturns := fake.waitReadyReturns
 	fake.recordInvocation("WaitReady", []interface{}{})
 	fake.waitReadyMutex.Unlock()
-	if fake.WaitReadyStub != nil {
-		return fake.WaitReadyStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.waitReadyReturns
 	return fakeReturns.result1
 }
 

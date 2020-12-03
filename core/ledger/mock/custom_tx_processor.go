@@ -34,15 +34,16 @@ func (fake *CustomTxProcessor) GenerateSimulationResults(arg1 *common.Envelope, 
 		arg2 ledger.TxSimulator
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.GenerateSimulationResultsStub
+	fakeReturns := fake.generateSimulationResultsReturns
 	fake.recordInvocation("GenerateSimulationResults", []interface{}{arg1, arg2, arg3})
 	fake.generateSimulationResultsMutex.Unlock()
-	if fake.GenerateSimulationResultsStub != nil {
-		return fake.GenerateSimulationResultsStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generateSimulationResultsReturns
 	return fakeReturns.result1
 }
 

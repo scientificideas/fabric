@@ -31,15 +31,16 @@ func (fake *ApplicationConfigRetriever) GetApplicationConfig(arg1 string) (chann
 	fake.getApplicationConfigArgsForCall = append(fake.getApplicationConfigArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetApplicationConfigStub
+	fakeReturns := fake.getApplicationConfigReturns
 	fake.recordInvocation("GetApplicationConfig", []interface{}{arg1})
 	fake.getApplicationConfigMutex.Unlock()
-	if fake.GetApplicationConfigStub != nil {
-		return fake.GetApplicationConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getApplicationConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

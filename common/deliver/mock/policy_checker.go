@@ -32,15 +32,16 @@ func (fake *PolicyChecker) CheckPolicy(arg1 *common.Envelope, arg2 string) error
 		arg1 *common.Envelope
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.CheckPolicyStub
+	fakeReturns := fake.checkPolicyReturns
 	fake.recordInvocation("CheckPolicy", []interface{}{arg1, arg2})
 	fake.checkPolicyMutex.Unlock()
-	if fake.CheckPolicyStub != nil {
-		return fake.CheckPolicyStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyReturns
 	return fakeReturns.result1
 }
 

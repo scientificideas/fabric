@@ -130,15 +130,16 @@ func (fake *DeployedChaincodeInfoProvider) AllChaincodesInfo(arg1 string, arg2 l
 		arg1 string
 		arg2 ledger.SimpleQueryExecutor
 	}{arg1, arg2})
+	stub := fake.AllChaincodesInfoStub
+	fakeReturns := fake.allChaincodesInfoReturns
 	fake.recordInvocation("AllChaincodesInfo", []interface{}{arg1, arg2})
 	fake.allChaincodesInfoMutex.Unlock()
-	if fake.AllChaincodesInfoStub != nil {
-		return fake.AllChaincodesInfoStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.allChaincodesInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -195,15 +196,16 @@ func (fake *DeployedChaincodeInfoProvider) AllCollectionsConfigPkg(arg1 string, 
 		arg2 string
 		arg3 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.AllCollectionsConfigPkgStub
+	fakeReturns := fake.allCollectionsConfigPkgReturns
 	fake.recordInvocation("AllCollectionsConfigPkg", []interface{}{arg1, arg2, arg3})
 	fake.allCollectionsConfigPkgMutex.Unlock()
-	if fake.AllCollectionsConfigPkgStub != nil {
-		return fake.AllCollectionsConfigPkgStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.allCollectionsConfigPkgReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -260,15 +262,16 @@ func (fake *DeployedChaincodeInfoProvider) ChaincodeInfo(arg1 string, arg2 strin
 		arg2 string
 		arg3 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.ChaincodeInfoStub
+	fakeReturns := fake.chaincodeInfoReturns
 	fake.recordInvocation("ChaincodeInfo", []interface{}{arg1, arg2, arg3})
 	fake.chaincodeInfoMutex.Unlock()
-	if fake.ChaincodeInfoStub != nil {
-		return fake.ChaincodeInfoStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -326,15 +329,16 @@ func (fake *DeployedChaincodeInfoProvider) CollectionInfo(arg1 string, arg2 stri
 		arg3 string
 		arg4 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.CollectionInfoStub
+	fakeReturns := fake.collectionInfoReturns
 	fake.recordInvocation("CollectionInfo", []interface{}{arg1, arg2, arg3, arg4})
 	fake.collectionInfoMutex.Unlock()
-	if fake.CollectionInfoStub != nil {
-		return fake.CollectionInfoStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.collectionInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -389,15 +393,16 @@ func (fake *DeployedChaincodeInfoProvider) GenerateImplicitCollectionForOrg(arg1
 	fake.generateImplicitCollectionForOrgArgsForCall = append(fake.generateImplicitCollectionForOrgArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GenerateImplicitCollectionForOrgStub
+	fakeReturns := fake.generateImplicitCollectionForOrgReturns
 	fake.recordInvocation("GenerateImplicitCollectionForOrg", []interface{}{arg1})
 	fake.generateImplicitCollectionForOrgMutex.Unlock()
-	if fake.GenerateImplicitCollectionForOrgStub != nil {
-		return fake.GenerateImplicitCollectionForOrgStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.generateImplicitCollectionForOrgReturns
 	return fakeReturns.result1
 }
 
@@ -451,15 +456,16 @@ func (fake *DeployedChaincodeInfoProvider) ImplicitCollections(arg1 string, arg2
 		arg2 string
 		arg3 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.ImplicitCollectionsStub
+	fakeReturns := fake.implicitCollectionsReturns
 	fake.recordInvocation("ImplicitCollections", []interface{}{arg1, arg2, arg3})
 	fake.implicitCollectionsMutex.Unlock()
-	if fake.ImplicitCollectionsStub != nil {
-		return fake.ImplicitCollectionsStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.implicitCollectionsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -513,15 +519,16 @@ func (fake *DeployedChaincodeInfoProvider) Namespaces() []string {
 	ret, specificReturn := fake.namespacesReturnsOnCall[len(fake.namespacesArgsForCall)]
 	fake.namespacesArgsForCall = append(fake.namespacesArgsForCall, struct {
 	}{})
+	stub := fake.NamespacesStub
+	fakeReturns := fake.namespacesReturns
 	fake.recordInvocation("Namespaces", []interface{}{})
 	fake.namespacesMutex.Unlock()
-	if fake.NamespacesStub != nil {
-		return fake.NamespacesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.namespacesReturns
 	return fakeReturns.result1
 }
 
@@ -566,15 +573,16 @@ func (fake *DeployedChaincodeInfoProvider) UpdatedChaincodes(arg1 map[string][]*
 	fake.updatedChaincodesArgsForCall = append(fake.updatedChaincodesArgsForCall, struct {
 		arg1 map[string][]*kvrwset.KVWrite
 	}{arg1})
+	stub := fake.UpdatedChaincodesStub
+	fakeReturns := fake.updatedChaincodesReturns
 	fake.recordInvocation("UpdatedChaincodes", []interface{}{arg1})
 	fake.updatedChaincodesMutex.Unlock()
-	if fake.UpdatedChaincodesStub != nil {
-		return fake.UpdatedChaincodesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.updatedChaincodesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

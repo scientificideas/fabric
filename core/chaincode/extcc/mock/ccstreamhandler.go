@@ -30,15 +30,16 @@ func (fake *StreamHandler) HandleChaincodeStream(arg1 ccintf.ChaincodeStream) er
 	fake.handleChaincodeStreamArgsForCall = append(fake.handleChaincodeStreamArgsForCall, struct {
 		arg1 ccintf.ChaincodeStream
 	}{arg1})
+	stub := fake.HandleChaincodeStreamStub
+	fakeReturns := fake.handleChaincodeStreamReturns
 	fake.recordInvocation("HandleChaincodeStream", []interface{}{arg1})
 	fake.handleChaincodeStreamMutex.Unlock()
-	if fake.HandleChaincodeStreamStub != nil {
-		return fake.HandleChaincodeStreamStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.handleChaincodeStreamReturns
 	return fakeReturns.result1
 }
 

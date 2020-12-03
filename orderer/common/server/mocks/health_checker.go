@@ -31,15 +31,16 @@ func (fake *HealthChecker) RegisterChecker(arg1 string, arg2 healthz.HealthCheck
 		arg1 string
 		arg2 healthz.HealthChecker
 	}{arg1, arg2})
+	stub := fake.RegisterCheckerStub
+	fakeReturns := fake.registerCheckerReturns
 	fake.recordInvocation("RegisterChecker", []interface{}{arg1, arg2})
 	fake.registerCheckerMutex.Unlock()
-	if fake.RegisterCheckerStub != nil {
-		return fake.RegisterCheckerStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.registerCheckerReturns
 	return fakeReturns.result1
 }
 
