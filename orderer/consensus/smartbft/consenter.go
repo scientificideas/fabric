@@ -110,7 +110,7 @@ func New(
 		Chains:                r,
 		SignerSerializer:      signerSerializer,
 		WALBaseDir:            walConfig.WALDir,
-		//Metrics:               NewMetrics(metricsProvider),
+		Metrics:               NewMetrics(metricsProvider),
 		CreateChain: r.CreateChain,
 	}
 
