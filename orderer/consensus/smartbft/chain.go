@@ -72,7 +72,6 @@ type BFTChain struct {
 	verifier         *Verifier
 	assembler        *Assembler
 	Metrics          *Metrics
-	bccsp            bccsp.BCCSP
 }
 
 // NewChain creates new BFT Smart chain

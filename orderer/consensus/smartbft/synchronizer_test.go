@@ -13,14 +13,14 @@ import (
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
+	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/common/flogging"
 	mocks2 "github.com/hyperledger/fabric/orderer/consensus/mocks"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
-	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/hyperledger/fabric/protoutil"
 	"go.uber.org/zap"
 )
 
@@ -48,7 +48,7 @@ func TestSynchronizerSync(t *testing.T) {
 	t.Run("no remotes", func(t *testing.T) {
 		bp := &mocks.FakeBlockPuller{}
 		fakeCS := &mocks2.FakeConsenterSupport{}
-		fakeCS.ChainIDReturns("mychannel")
+		fakeCS.ChannelIDReturns("mychannel")
 		fakeCS.HeightReturns(100)
 		fakeCS.BlockReturns(b99)
 		fakeCS.SequenceReturns(blockNum2configSqn[99])
@@ -98,7 +98,7 @@ func TestSynchronizerSync(t *testing.T) {
 		ledger := map[uint64]*cb.Block{99: b99}
 
 		fakeCS := &mocks2.FakeConsenterSupport{}
-		fakeCS.ChainIDReturns("mychannel")
+		fakeCS.ChannelIDReturns("mychannel")
 		fakeCS.HeightCalls(func() uint64 { return height })
 		fakeCS.SequenceCalls(func() uint64 { return blockNum2configSqn[height-1] })
 		fakeCS.WriteConfigBlockCalls(func(b *cb.Block, m []byte) {
@@ -152,7 +152,7 @@ func TestSynchronizerSync(t *testing.T) {
 		ledger := map[uint64]*cb.Block{99: b99}
 
 		fakeCS := &mocks2.FakeConsenterSupport{}
-		fakeCS.ChainIDReturns("mychannel")
+		fakeCS.ChannelIDReturns("mychannel")
 		fakeCS.HeightCalls(func() uint64 { return height })
 		fakeCS.SequenceCalls(func() uint64 { return blockNum2configSqn[height-1] })
 		fakeCS.WriteConfigBlockCalls(func(b *cb.Block, m []byte) {
@@ -205,7 +205,7 @@ func TestSynchronizerSync(t *testing.T) {
 		ledger := map[uint64]*cb.Block{99: b99}
 
 		fakeCS := &mocks2.FakeConsenterSupport{}
-		fakeCS.ChainIDReturns("mychannel")
+		fakeCS.ChannelIDReturns("mychannel")
 		fakeCS.HeightCalls(func() uint64 { return height })
 		fakeCS.SequenceCalls(func() uint64 { return blockNum2configSqn[height-1] })
 		fakeCS.WriteConfigBlockCalls(func(b *cb.Block, m []byte) {
@@ -257,7 +257,7 @@ func TestSynchronizerSync(t *testing.T) {
 		ledger := map[uint64]*cb.Block{99: b99}
 
 		fakeCS := &mocks2.FakeConsenterSupport{}
-		fakeCS.ChainIDReturns("mychannel")
+		fakeCS.ChannelIDReturns("mychannel")
 		fakeCS.HeightCalls(func() uint64 { return height })
 		fakeCS.SequenceCalls(func() uint64 { return blockNum2configSqn[height-1] })
 		fakeCS.WriteConfigBlockCalls(func(b *cb.Block, m []byte) {
