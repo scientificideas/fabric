@@ -51,8 +51,10 @@ type AccessController interface {
 
 type requestVerifier func(req []byte, isolated bool) (types.RequestInfo, error)
 
+// NodeIdentitiesByID stores Identities by id
 type NodeIdentitiesByID map[uint64][]byte
 
+// IdentityToID looks up the Identity in NodeIdentitiesByID and returns id and flag true if found
 func (nibd NodeIdentitiesByID) IdentityToID(identity []byte) (uint64, bool) {
 	sID := &msp.SerializedIdentity{}
 	if err := proto.Unmarshal(identity, sID); err != nil {
@@ -60,7 +62,9 @@ func (nibd NodeIdentitiesByID) IdentityToID(identity []byte) (uint64, bool) {
 	}
 	for id, currIdentity := range nibd {
 		currentID := &msp.SerializedIdentity{}
-		proto.Unmarshal(currIdentity, currentID)
+		if err := proto.Unmarshal(currIdentity, currentID); err != nil {
+			return 0, false
+		}
 		if proto.Equal(currentID, sID) {
 			return id, true
 		}
@@ -68,6 +72,7 @@ func (nibd NodeIdentitiesByID) IdentityToID(identity []byte) (uint64, bool) {
 	return 0, false
 }
 
+// Verifier verifies proposals and signatures
 type Verifier struct {
 	RuntimeConfig         *atomic.Value
 	ReqInspector          *RequestInspector
@@ -79,6 +84,7 @@ type Verifier struct {
 	ConfigValidator       ConfigValidator
 }
 
+// AuxiliaryData unmarshals and returns auxiliary data from signature
 func (v *Verifier) AuxiliaryData(msg []byte) []byte {
 	sig := &Signature{}
 	if err := sig.Unmarshal(msg); err != nil {
@@ -87,6 +93,7 @@ func (v *Verifier) AuxiliaryData(msg []byte) []byte {
 	return sig.AuxiliaryInput
 }
 
+// VerifyProposal verifies proposal and returns []RequestInfo
 func (v *Verifier) VerifyProposal(proposal types.Proposal) ([]types.RequestInfo, error) {
 	block, err := ProposalToBlock(proposal)
 	if err != nil {
@@ -111,6 +118,7 @@ func (v *Verifier) VerifyProposal(proposal types.Proposal) ([]types.RequestInfo,
 	return requests, nil
 }
 
+// RequestsFromProposal converts proposal to []RequestInfo
 func (v *Verifier) RequestsFromProposal(proposal types.Proposal) []types.RequestInfo {
 	block, err := ProposalToBlock(proposal)
 	if err != nil {
@@ -130,6 +138,7 @@ func (v *Verifier) RequestsFromProposal(proposal types.Proposal) []types.Request
 	return res
 }
 
+// VerifySignature verifies signature
 func (v *Verifier) VerifySignature(signature types.Signature) error {
 	id2Identity := v.RuntimeConfig.Load().(RuntimeConfig).ID2Identities
 	identity, exists := id2Identity[signature.ID]
@@ -142,6 +151,7 @@ func (v *Verifier) VerifySignature(signature types.Signature) error {
 	})
 }
 
+// VerifyRequest verifies raw request
 func (v *Verifier) VerifyRequest(rawRequest []byte) (types.RequestInfo, error) {
 	return v.verifyRequest(rawRequest, false)
 }
@@ -183,6 +193,7 @@ func (v *Verifier) verifyRequest(rawRequest []byte, noConfigAllowed bool) (types
 	return v.ReqInspector.requestIDFromSigHeader(req.sigHdr)
 }
 
+// VerifyConsenterSig verifies consenter signature
 func (v *Verifier) VerifyConsenterSig(signature types.Signature, prop types.Proposal) ([]byte, error) {
 	id2Identity := v.RuntimeConfig.Load().(RuntimeConfig).ID2Identities
 
@@ -219,6 +230,7 @@ func (v *Verifier) VerifyConsenterSig(signature types.Signature, prop types.Prop
 	return sig.AuxiliaryInput, v.ConsenterVerifier.Evaluate([]*protoutil.SignedData{signedData})
 }
 
+// VerificationSequence returns verification sequence
 func (v *Verifier) VerificationSequence() uint64 {
 	return v.VerificationSequencer.Sequence()
 }
@@ -419,6 +431,7 @@ type consenterVerifier struct {
 	policyManager policies.Manager
 }
 
+// Evaluate evaluates signed data and returns no error if signature is valid and satisfies the policy
 func (cv *consenterVerifier) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := cv.policyManager.GetPolicy(policies.ChannelOrdererWriters)
 	if !ok {

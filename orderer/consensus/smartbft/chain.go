@@ -253,11 +253,11 @@ func bftSmartConsensusBuild(
 	return consensus
 }
 
-func (B BFTChain) Order(env *cb.Envelope, configSeq uint64) error {
+func (c *BFTChain) Order(env *cb.Envelope, configSeq uint64) error {
 	panic("implement me")
 }
 
-func (B BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
+func (c *BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
 	panic("implement me")
 }
 
@@ -265,19 +265,19 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 	panic("implement me")
 }
 
-func (B BFTChain) WaitReady() error {
+func (c *BFTChain) WaitReady() error {
 	panic("implement me")
 }
 
-func (B BFTChain) Errored() <-chan struct{} {
+func (c *BFTChain) Errored() <-chan struct{} {
 	panic("implement me")
 }
 
-func (B BFTChain) Start() {
+func (c *BFTChain) Start() {
 	panic("implement me")
 }
 
-func (B BFTChain) Halt() {
+func (c *BFTChain) Halt() {
 	panic("implement me")
 }
 
