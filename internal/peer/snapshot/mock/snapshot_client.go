@@ -68,15 +68,16 @@ func (fake *SnapshotClient) Cancel(arg1 context.Context, arg2 *peer.SignedSnapsh
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
+	stub := fake.CancelStub
+	fakeReturns := fake.cancelReturns
 	fake.recordInvocation("Cancel", []interface{}{arg1, arg2, arg3})
 	fake.cancelMutex.Unlock()
-	if fake.CancelStub != nil {
-		return fake.CancelStub(arg1, arg2, arg3...)
+	if stub != nil {
+		return stub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.cancelReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -133,15 +134,16 @@ func (fake *SnapshotClient) Generate(arg1 context.Context, arg2 *peer.SignedSnap
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
+	stub := fake.GenerateStub
+	fakeReturns := fake.generateReturns
 	fake.recordInvocation("Generate", []interface{}{arg1, arg2, arg3})
 	fake.generateMutex.Unlock()
-	if fake.GenerateStub != nil {
-		return fake.GenerateStub(arg1, arg2, arg3...)
+	if stub != nil {
+		return stub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.generateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -198,15 +200,16 @@ func (fake *SnapshotClient) QueryPendings(arg1 context.Context, arg2 *peer.Signe
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
+	stub := fake.QueryPendingsStub
+	fakeReturns := fake.queryPendingsReturns
 	fake.recordInvocation("QueryPendings", []interface{}{arg1, arg2, arg3})
 	fake.queryPendingsMutex.Unlock()
-	if fake.QueryPendingsStub != nil {
-		return fake.QueryPendingsStub(arg1, arg2, arg3...)
+	if stub != nil {
+		return stub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.queryPendingsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

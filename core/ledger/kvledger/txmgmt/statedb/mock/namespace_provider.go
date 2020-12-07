@@ -31,15 +31,16 @@ func (fake *NamespaceProvider) PossibleNamespaces(arg1 statedb.VersionedDB) ([]s
 	fake.possibleNamespacesArgsForCall = append(fake.possibleNamespacesArgsForCall, struct {
 		arg1 statedb.VersionedDB
 	}{arg1})
+	stub := fake.PossibleNamespacesStub
+	fakeReturns := fake.possibleNamespacesReturns
 	fake.recordInvocation("PossibleNamespaces", []interface{}{arg1})
 	fake.possibleNamespacesMutex.Unlock()
-	if fake.PossibleNamespacesStub != nil {
-		return fake.PossibleNamespacesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.possibleNamespacesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

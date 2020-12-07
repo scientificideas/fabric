@@ -29,15 +29,16 @@ func (fake *ACLProvider) CheckACLNoChannel(arg1 string, arg2 interface{}) error 
 		arg1 string
 		arg2 interface{}
 	}{arg1, arg2})
+	stub := fake.CheckACLNoChannelStub
+	fakeReturns := fake.checkACLNoChannelReturns
 	fake.recordInvocation("CheckACLNoChannel", []interface{}{arg1, arg2})
 	fake.checkACLNoChannelMutex.Unlock()
-	if fake.CheckACLNoChannelStub != nil {
-		return fake.CheckACLNoChannelStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkACLNoChannelReturns
 	return fakeReturns.result1
 }
 

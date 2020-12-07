@@ -34,15 +34,16 @@ func (fake *PlatformBuilder) GenerateDockerBuild(arg1 string, arg2 string, arg3 
 		arg2 string
 		arg3 io.Reader
 	}{arg1, arg2, arg3})
+	stub := fake.GenerateDockerBuildStub
+	fakeReturns := fake.generateDockerBuildReturns
 	fake.recordInvocation("GenerateDockerBuild", []interface{}{arg1, arg2, arg3})
 	fake.generateDockerBuildMutex.Unlock()
-	if fake.GenerateDockerBuildStub != nil {
-		return fake.GenerateDockerBuildStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.generateDockerBuildReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

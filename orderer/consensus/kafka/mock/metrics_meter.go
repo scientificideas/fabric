@@ -86,15 +86,16 @@ func (fake *MetricsMeter) Count() int64 {
 	ret, specificReturn := fake.countReturnsOnCall[len(fake.countArgsForCall)]
 	fake.countArgsForCall = append(fake.countArgsForCall, struct {
 	}{})
+	stub := fake.CountStub
+	fakeReturns := fake.countReturns
 	fake.recordInvocation("Count", []interface{}{})
 	fake.countMutex.Unlock()
-	if fake.CountStub != nil {
-		return fake.CountStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.countReturns
 	return fakeReturns.result1
 }
 
@@ -138,9 +139,10 @@ func (fake *MetricsMeter) Mark(arg1 int64) {
 	fake.markArgsForCall = append(fake.markArgsForCall, struct {
 		arg1 int64
 	}{arg1})
+	stub := fake.MarkStub
 	fake.recordInvocation("Mark", []interface{}{arg1})
 	fake.markMutex.Unlock()
-	if fake.MarkStub != nil {
+	if stub != nil {
 		fake.MarkStub(arg1)
 	}
 }
@@ -169,15 +171,16 @@ func (fake *MetricsMeter) Rate1() float64 {
 	ret, specificReturn := fake.rate1ReturnsOnCall[len(fake.rate1ArgsForCall)]
 	fake.rate1ArgsForCall = append(fake.rate1ArgsForCall, struct {
 	}{})
+	stub := fake.Rate1Stub
+	fakeReturns := fake.rate1Returns
 	fake.recordInvocation("Rate1", []interface{}{})
 	fake.rate1Mutex.Unlock()
-	if fake.Rate1Stub != nil {
-		return fake.Rate1Stub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.rate1Returns
 	return fakeReturns.result1
 }
 
@@ -221,15 +224,16 @@ func (fake *MetricsMeter) Rate15() float64 {
 	ret, specificReturn := fake.rate15ReturnsOnCall[len(fake.rate15ArgsForCall)]
 	fake.rate15ArgsForCall = append(fake.rate15ArgsForCall, struct {
 	}{})
+	stub := fake.Rate15Stub
+	fakeReturns := fake.rate15Returns
 	fake.recordInvocation("Rate15", []interface{}{})
 	fake.rate15Mutex.Unlock()
-	if fake.Rate15Stub != nil {
-		return fake.Rate15Stub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.rate15Returns
 	return fakeReturns.result1
 }
 
@@ -273,15 +277,16 @@ func (fake *MetricsMeter) Rate5() float64 {
 	ret, specificReturn := fake.rate5ReturnsOnCall[len(fake.rate5ArgsForCall)]
 	fake.rate5ArgsForCall = append(fake.rate5ArgsForCall, struct {
 	}{})
+	stub := fake.Rate5Stub
+	fakeReturns := fake.rate5Returns
 	fake.recordInvocation("Rate5", []interface{}{})
 	fake.rate5Mutex.Unlock()
-	if fake.Rate5Stub != nil {
-		return fake.Rate5Stub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.rate5Returns
 	return fakeReturns.result1
 }
 
@@ -325,15 +330,16 @@ func (fake *MetricsMeter) RateMean() float64 {
 	ret, specificReturn := fake.rateMeanReturnsOnCall[len(fake.rateMeanArgsForCall)]
 	fake.rateMeanArgsForCall = append(fake.rateMeanArgsForCall, struct {
 	}{})
+	stub := fake.RateMeanStub
+	fakeReturns := fake.rateMeanReturns
 	fake.recordInvocation("RateMean", []interface{}{})
 	fake.rateMeanMutex.Unlock()
-	if fake.RateMeanStub != nil {
-		return fake.RateMeanStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.rateMeanReturns
 	return fakeReturns.result1
 }
 
@@ -377,15 +383,16 @@ func (fake *MetricsMeter) Snapshot() metrics.Meter {
 	ret, specificReturn := fake.snapshotReturnsOnCall[len(fake.snapshotArgsForCall)]
 	fake.snapshotArgsForCall = append(fake.snapshotArgsForCall, struct {
 	}{})
+	stub := fake.SnapshotStub
+	fakeReturns := fake.snapshotReturns
 	fake.recordInvocation("Snapshot", []interface{}{})
 	fake.snapshotMutex.Unlock()
-	if fake.SnapshotStub != nil {
-		return fake.SnapshotStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.snapshotReturns
 	return fakeReturns.result1
 }
 
@@ -428,9 +435,10 @@ func (fake *MetricsMeter) Stop() {
 	fake.stopMutex.Lock()
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
 	}{})
+	stub := fake.StopStub
 	fake.recordInvocation("Stop", []interface{}{})
 	fake.stopMutex.Unlock()
-	if fake.StopStub != nil {
+	if stub != nil {
 		fake.StopStub()
 	}
 }

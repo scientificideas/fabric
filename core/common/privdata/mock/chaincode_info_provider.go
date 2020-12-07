@@ -67,15 +67,16 @@ func (fake *ChaincodeInfoProvider) AllCollectionsConfigPkg(arg1 string, arg2 str
 		arg2 string
 		arg3 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.AllCollectionsConfigPkgStub
+	fakeReturns := fake.allCollectionsConfigPkgReturns
 	fake.recordInvocation("AllCollectionsConfigPkg", []interface{}{arg1, arg2, arg3})
 	fake.allCollectionsConfigPkgMutex.Unlock()
-	if fake.AllCollectionsConfigPkgStub != nil {
-		return fake.AllCollectionsConfigPkgStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.allCollectionsConfigPkgReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -132,15 +133,16 @@ func (fake *ChaincodeInfoProvider) ChaincodeInfo(arg1 string, arg2 string, arg3 
 		arg2 string
 		arg3 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.ChaincodeInfoStub
+	fakeReturns := fake.chaincodeInfoReturns
 	fake.recordInvocation("ChaincodeInfo", []interface{}{arg1, arg2, arg3})
 	fake.chaincodeInfoMutex.Unlock()
-	if fake.ChaincodeInfoStub != nil {
-		return fake.ChaincodeInfoStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -198,15 +200,16 @@ func (fake *ChaincodeInfoProvider) CollectionInfo(arg1 string, arg2 string, arg3
 		arg3 string
 		arg4 ledger.SimpleQueryExecutor
 	}{arg1, arg2, arg3, arg4})
+	stub := fake.CollectionInfoStub
+	fakeReturns := fake.collectionInfoReturns
 	fake.recordInvocation("CollectionInfo", []interface{}{arg1, arg2, arg3, arg4})
 	fake.collectionInfoMutex.Unlock()
-	if fake.CollectionInfoStub != nil {
-		return fake.CollectionInfoStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.collectionInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

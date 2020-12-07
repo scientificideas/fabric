@@ -34,15 +34,16 @@ func (fake *MessageHandler) Handle(arg1 *peer.ChaincodeMessage, arg2 *chaincode.
 		arg1 *peer.ChaincodeMessage
 		arg2 *chaincode.TransactionContext
 	}{arg1, arg2})
+	stub := fake.HandleStub
+	fakeReturns := fake.handleReturns
 	fake.recordInvocation("Handle", []interface{}{arg1, arg2})
 	fake.handleMutex.Unlock()
-	if fake.HandleStub != nil {
-		return fake.HandleStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.handleReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

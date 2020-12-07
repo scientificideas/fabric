@@ -149,15 +149,16 @@ func (fake *DockerClient) AttachToContainer(arg1 docker.AttachToContainerOptions
 	fake.attachToContainerArgsForCall = append(fake.attachToContainerArgsForCall, struct {
 		arg1 docker.AttachToContainerOptions
 	}{arg1})
+	stub := fake.AttachToContainerStub
+	fakeReturns := fake.attachToContainerReturns
 	fake.recordInvocation("AttachToContainer", []interface{}{arg1})
 	fake.attachToContainerMutex.Unlock()
-	if fake.AttachToContainerStub != nil {
-		return fake.AttachToContainerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.attachToContainerReturns
 	return fakeReturns.result1
 }
 
@@ -209,15 +210,16 @@ func (fake *DockerClient) BuildImage(arg1 docker.BuildImageOptions) error {
 	fake.buildImageArgsForCall = append(fake.buildImageArgsForCall, struct {
 		arg1 docker.BuildImageOptions
 	}{arg1})
+	stub := fake.BuildImageStub
+	fakeReturns := fake.buildImageReturns
 	fake.recordInvocation("BuildImage", []interface{}{arg1})
 	fake.buildImageMutex.Unlock()
-	if fake.BuildImageStub != nil {
-		return fake.BuildImageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.buildImageReturns
 	return fakeReturns.result1
 }
 
@@ -269,15 +271,16 @@ func (fake *DockerClient) CreateContainer(arg1 docker.CreateContainerOptions) (*
 	fake.createContainerArgsForCall = append(fake.createContainerArgsForCall, struct {
 		arg1 docker.CreateContainerOptions
 	}{arg1})
+	stub := fake.CreateContainerStub
+	fakeReturns := fake.createContainerReturns
 	fake.recordInvocation("CreateContainer", []interface{}{arg1})
 	fake.createContainerMutex.Unlock()
-	if fake.CreateContainerStub != nil {
-		return fake.CreateContainerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.createContainerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -332,15 +335,16 @@ func (fake *DockerClient) InspectImage(arg1 string) (*docker.Image, error) {
 	fake.inspectImageArgsForCall = append(fake.inspectImageArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.InspectImageStub
+	fakeReturns := fake.inspectImageReturns
 	fake.recordInvocation("InspectImage", []interface{}{arg1})
 	fake.inspectImageMutex.Unlock()
-	if fake.InspectImageStub != nil {
-		return fake.InspectImageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.inspectImageReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -395,15 +399,16 @@ func (fake *DockerClient) KillContainer(arg1 docker.KillContainerOptions) error 
 	fake.killContainerArgsForCall = append(fake.killContainerArgsForCall, struct {
 		arg1 docker.KillContainerOptions
 	}{arg1})
+	stub := fake.KillContainerStub
+	fakeReturns := fake.killContainerReturns
 	fake.recordInvocation("KillContainer", []interface{}{arg1})
 	fake.killContainerMutex.Unlock()
-	if fake.KillContainerStub != nil {
-		return fake.KillContainerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.killContainerReturns
 	return fakeReturns.result1
 }
 
@@ -455,15 +460,16 @@ func (fake *DockerClient) PingWithContext(arg1 context.Context) error {
 	fake.pingWithContextArgsForCall = append(fake.pingWithContextArgsForCall, struct {
 		arg1 context.Context
 	}{arg1})
+	stub := fake.PingWithContextStub
+	fakeReturns := fake.pingWithContextReturns
 	fake.recordInvocation("PingWithContext", []interface{}{arg1})
 	fake.pingWithContextMutex.Unlock()
-	if fake.PingWithContextStub != nil {
-		return fake.PingWithContextStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.pingWithContextReturns
 	return fakeReturns.result1
 }
 
@@ -515,15 +521,16 @@ func (fake *DockerClient) RemoveContainer(arg1 docker.RemoveContainerOptions) er
 	fake.removeContainerArgsForCall = append(fake.removeContainerArgsForCall, struct {
 		arg1 docker.RemoveContainerOptions
 	}{arg1})
+	stub := fake.RemoveContainerStub
+	fakeReturns := fake.removeContainerReturns
 	fake.recordInvocation("RemoveContainer", []interface{}{arg1})
 	fake.removeContainerMutex.Unlock()
-	if fake.RemoveContainerStub != nil {
-		return fake.RemoveContainerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.removeContainerReturns
 	return fakeReturns.result1
 }
 
@@ -576,15 +583,16 @@ func (fake *DockerClient) StartContainer(arg1 string, arg2 *docker.HostConfig) e
 		arg1 string
 		arg2 *docker.HostConfig
 	}{arg1, arg2})
+	stub := fake.StartContainerStub
+	fakeReturns := fake.startContainerReturns
 	fake.recordInvocation("StartContainer", []interface{}{arg1, arg2})
 	fake.startContainerMutex.Unlock()
-	if fake.StartContainerStub != nil {
-		return fake.StartContainerStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.startContainerReturns
 	return fakeReturns.result1
 }
 
@@ -637,15 +645,16 @@ func (fake *DockerClient) StopContainer(arg1 string, arg2 uint) error {
 		arg1 string
 		arg2 uint
 	}{arg1, arg2})
+	stub := fake.StopContainerStub
+	fakeReturns := fake.stopContainerReturns
 	fake.recordInvocation("StopContainer", []interface{}{arg1, arg2})
 	fake.stopContainerMutex.Unlock()
-	if fake.StopContainerStub != nil {
-		return fake.StopContainerStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.stopContainerReturns
 	return fakeReturns.result1
 }
 
@@ -698,15 +707,16 @@ func (fake *DockerClient) UploadToContainer(arg1 string, arg2 docker.UploadToCon
 		arg1 string
 		arg2 docker.UploadToContainerOptions
 	}{arg1, arg2})
+	stub := fake.UploadToContainerStub
+	fakeReturns := fake.uploadToContainerReturns
 	fake.recordInvocation("UploadToContainer", []interface{}{arg1, arg2})
 	fake.uploadToContainerMutex.Unlock()
-	if fake.UploadToContainerStub != nil {
-		return fake.UploadToContainerStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadToContainerReturns
 	return fakeReturns.result1
 }
 
@@ -758,15 +768,16 @@ func (fake *DockerClient) WaitContainer(arg1 string) (int, error) {
 	fake.waitContainerArgsForCall = append(fake.waitContainerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.WaitContainerStub
+	fakeReturns := fake.waitContainerReturns
 	fake.recordInvocation("WaitContainer", []interface{}{arg1})
 	fake.waitContainerMutex.Unlock()
-	if fake.WaitContainerStub != nil {
-		return fake.WaitContainerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.waitContainerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

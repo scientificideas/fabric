@@ -29,15 +29,16 @@ func (fake *OrdererConfigFetcher) OrdererConfig() (channelconfig.Orderer, bool) 
 	ret, specificReturn := fake.ordererConfigReturnsOnCall[len(fake.ordererConfigArgsForCall)]
 	fake.ordererConfigArgsForCall = append(fake.ordererConfigArgsForCall, struct {
 	}{})
+	stub := fake.OrdererConfigStub
+	fakeReturns := fake.ordererConfigReturns
 	fake.recordInvocation("OrdererConfig", []interface{}{})
 	fake.ordererConfigMutex.Unlock()
-	if fake.OrdererConfigStub != nil {
-		return fake.OrdererConfigStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.ordererConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

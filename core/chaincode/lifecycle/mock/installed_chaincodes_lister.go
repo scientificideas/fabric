@@ -42,15 +42,16 @@ func (fake *InstalledChaincodesLister) GetInstalledChaincode(arg1 string) (*chai
 	fake.getInstalledChaincodeArgsForCall = append(fake.getInstalledChaincodeArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetInstalledChaincodeStub
+	fakeReturns := fake.getInstalledChaincodeReturns
 	fake.recordInvocation("GetInstalledChaincode", []interface{}{arg1})
 	fake.getInstalledChaincodeMutex.Unlock()
-	if fake.GetInstalledChaincodeStub != nil {
-		return fake.GetInstalledChaincodeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getInstalledChaincodeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -104,15 +105,16 @@ func (fake *InstalledChaincodesLister) ListInstalledChaincodes() []*chaincode.In
 	ret, specificReturn := fake.listInstalledChaincodesReturnsOnCall[len(fake.listInstalledChaincodesArgsForCall)]
 	fake.listInstalledChaincodesArgsForCall = append(fake.listInstalledChaincodesArgsForCall, struct {
 	}{})
+	stub := fake.ListInstalledChaincodesStub
+	fakeReturns := fake.listInstalledChaincodesReturns
 	fake.recordInvocation("ListInstalledChaincodes", []interface{}{})
 	fake.listInstalledChaincodesMutex.Unlock()
-	if fake.ListInstalledChaincodesStub != nil {
-		return fake.ListInstalledChaincodesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.listInstalledChaincodesReturns
 	return fakeReturns.result1
 }
 

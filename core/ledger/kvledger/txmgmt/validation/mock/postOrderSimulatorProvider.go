@@ -31,15 +31,16 @@ func (fake *PostOrderSimulatorProvider) NewTxSimulator(arg1 string) (ledger.TxSi
 	fake.newTxSimulatorArgsForCall = append(fake.newTxSimulatorArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.NewTxSimulatorStub
+	fakeReturns := fake.newTxSimulatorReturns
 	fake.recordInvocation("NewTxSimulator", []interface{}{arg1})
 	fake.newTxSimulatorMutex.Unlock()
-	if fake.NewTxSimulatorStub != nil {
-		return fake.NewTxSimulatorStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newTxSimulatorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

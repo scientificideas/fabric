@@ -55,15 +55,16 @@ func (fake *Factory) ChannelIDs() []string {
 	ret, specificReturn := fake.channelIDsReturnsOnCall[len(fake.channelIDsArgsForCall)]
 	fake.channelIDsArgsForCall = append(fake.channelIDsArgsForCall, struct {
 	}{})
+	stub := fake.ChannelIDsStub
+	fakeReturns := fake.channelIDsReturns
 	fake.recordInvocation("ChannelIDs", []interface{}{})
 	fake.channelIDsMutex.Unlock()
-	if fake.ChannelIDsStub != nil {
-		return fake.ChannelIDsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.channelIDsReturns
 	return fakeReturns.result1
 }
 
@@ -106,9 +107,10 @@ func (fake *Factory) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
+	if stub != nil {
 		fake.CloseStub()
 	}
 }
@@ -131,15 +133,16 @@ func (fake *Factory) GetOrCreate(arg1 string) (blockledger.ReadWriter, error) {
 	fake.getOrCreateArgsForCall = append(fake.getOrCreateArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetOrCreateStub
+	fakeReturns := fake.getOrCreateReturns
 	fake.recordInvocation("GetOrCreate", []interface{}{arg1})
 	fake.getOrCreateMutex.Unlock()
-	if fake.GetOrCreateStub != nil {
-		return fake.GetOrCreateStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getOrCreateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -194,15 +197,16 @@ func (fake *Factory) Remove(arg1 string) error {
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.RemoveStub
+	fakeReturns := fake.removeReturns
 	fake.recordInvocation("Remove", []interface{}{arg1})
 	fake.removeMutex.Unlock()
-	if fake.RemoveStub != nil {
-		return fake.RemoveStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.removeReturns
 	return fakeReturns.result1
 }
 

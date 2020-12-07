@@ -68,15 +68,16 @@ func (fake *ChaincodeStore) Delete(arg1 string) error {
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{arg1})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -127,15 +128,16 @@ func (fake *ChaincodeStore) ListInstalledChaincodes() ([]chaincode.InstalledChai
 	ret, specificReturn := fake.listInstalledChaincodesReturnsOnCall[len(fake.listInstalledChaincodesArgsForCall)]
 	fake.listInstalledChaincodesArgsForCall = append(fake.listInstalledChaincodesArgsForCall, struct {
 	}{})
+	stub := fake.ListInstalledChaincodesStub
+	fakeReturns := fake.listInstalledChaincodesReturns
 	fake.recordInvocation("ListInstalledChaincodes", []interface{}{})
 	fake.listInstalledChaincodesMutex.Unlock()
-	if fake.ListInstalledChaincodesStub != nil {
-		return fake.ListInstalledChaincodesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.listInstalledChaincodesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -183,15 +185,16 @@ func (fake *ChaincodeStore) Load(arg1 string) ([]byte, error) {
 	fake.loadArgsForCall = append(fake.loadArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.LoadStub
+	fakeReturns := fake.loadReturns
 	fake.recordInvocation("Load", []interface{}{arg1})
 	fake.loadMutex.Unlock()
-	if fake.LoadStub != nil {
-		return fake.LoadStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.loadReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -252,15 +255,16 @@ func (fake *ChaincodeStore) Save(arg1 string, arg2 []byte) (string, error) {
 		arg1 string
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.SaveStub
+	fakeReturns := fake.saveReturns
 	fake.recordInvocation("Save", []interface{}{arg1, arg2Copy})
 	fake.saveMutex.Unlock()
-	if fake.SaveStub != nil {
-		return fake.SaveStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.saveReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

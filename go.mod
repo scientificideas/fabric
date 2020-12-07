@@ -5,7 +5,7 @@ go 1.14
 // develop
 replace github.com/hyperledger/fabric => ./
 
-replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201116172056-f89d13cfe818
+replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201207144633-9abfba6dd094
 
 replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2
 

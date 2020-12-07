@@ -29,15 +29,16 @@ func (fake *IdentityDeserializerFactory) GetIdentityDeserializer(arg1 string) ms
 	fake.getIdentityDeserializerArgsForCall = append(fake.getIdentityDeserializerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetIdentityDeserializerStub
+	fakeReturns := fake.getIdentityDeserializerReturns
 	fake.recordInvocation("GetIdentityDeserializer", []interface{}{arg1})
 	fake.getIdentityDeserializerMutex.Unlock()
-	if fake.GetIdentityDeserializerStub != nil {
-		return fake.GetIdentityDeserializerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getIdentityDeserializerReturns
 	return fakeReturns.result1
 }
 

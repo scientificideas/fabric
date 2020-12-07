@@ -29,15 +29,16 @@ func (fake *ChannelConfigGetter) GetChannelConfig(arg1 string) channelconfig.Res
 	fake.getChannelConfigArgsForCall = append(fake.getChannelConfigArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetChannelConfigStub
+	fakeReturns := fake.getChannelConfigReturns
 	fake.recordInvocation("GetChannelConfig", []interface{}{arg1})
 	fake.getChannelConfigMutex.Unlock()
-	if fake.GetChannelConfigStub != nil {
-		return fake.GetChannelConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getChannelConfigReturns
 	return fakeReturns.result1
 }
 

@@ -117,15 +117,16 @@ func (fake *CollectionStore) AccessFilter(arg1 string, arg2 *peer.CollectionPoli
 		arg1 string
 		arg2 *peer.CollectionPolicyConfig
 	}{arg1, arg2})
+	stub := fake.AccessFilterStub
+	fakeReturns := fake.accessFilterReturns
 	fake.recordInvocation("AccessFilter", []interface{}{arg1, arg2})
 	fake.accessFilterMutex.Unlock()
-	if fake.AccessFilterStub != nil {
-		return fake.AccessFilterStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.accessFilterReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -180,15 +181,16 @@ func (fake *CollectionStore) RetrieveCollection(arg1 privdata.CollectionCriteria
 	fake.retrieveCollectionArgsForCall = append(fake.retrieveCollectionArgsForCall, struct {
 		arg1 privdata.CollectionCriteria
 	}{arg1})
+	stub := fake.RetrieveCollectionStub
+	fakeReturns := fake.retrieveCollectionReturns
 	fake.recordInvocation("RetrieveCollection", []interface{}{arg1})
 	fake.retrieveCollectionMutex.Unlock()
-	if fake.RetrieveCollectionStub != nil {
-		return fake.RetrieveCollectionStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveCollectionReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -243,15 +245,16 @@ func (fake *CollectionStore) RetrieveCollectionAccessPolicy(arg1 privdata.Collec
 	fake.retrieveCollectionAccessPolicyArgsForCall = append(fake.retrieveCollectionAccessPolicyArgsForCall, struct {
 		arg1 privdata.CollectionCriteria
 	}{arg1})
+	stub := fake.RetrieveCollectionAccessPolicyStub
+	fakeReturns := fake.retrieveCollectionAccessPolicyReturns
 	fake.recordInvocation("RetrieveCollectionAccessPolicy", []interface{}{arg1})
 	fake.retrieveCollectionAccessPolicyMutex.Unlock()
-	if fake.RetrieveCollectionAccessPolicyStub != nil {
-		return fake.RetrieveCollectionAccessPolicyStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveCollectionAccessPolicyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -306,15 +309,16 @@ func (fake *CollectionStore) RetrieveCollectionConfig(arg1 privdata.CollectionCr
 	fake.retrieveCollectionConfigArgsForCall = append(fake.retrieveCollectionConfigArgsForCall, struct {
 		arg1 privdata.CollectionCriteria
 	}{arg1})
+	stub := fake.RetrieveCollectionConfigStub
+	fakeReturns := fake.retrieveCollectionConfigReturns
 	fake.recordInvocation("RetrieveCollectionConfig", []interface{}{arg1})
 	fake.retrieveCollectionConfigMutex.Unlock()
-	if fake.RetrieveCollectionConfigStub != nil {
-		return fake.RetrieveCollectionConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveCollectionConfigReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -369,15 +373,16 @@ func (fake *CollectionStore) RetrieveCollectionConfigPackage(arg1 privdata.Colle
 	fake.retrieveCollectionConfigPackageArgsForCall = append(fake.retrieveCollectionConfigPackageArgsForCall, struct {
 		arg1 privdata.CollectionCriteria
 	}{arg1})
+	stub := fake.RetrieveCollectionConfigPackageStub
+	fakeReturns := fake.retrieveCollectionConfigPackageReturns
 	fake.recordInvocation("RetrieveCollectionConfigPackage", []interface{}{arg1})
 	fake.retrieveCollectionConfigPackageMutex.Unlock()
-	if fake.RetrieveCollectionConfigPackageStub != nil {
-		return fake.RetrieveCollectionConfigPackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveCollectionConfigPackageReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -432,15 +437,16 @@ func (fake *CollectionStore) RetrieveCollectionPersistenceConfigs(arg1 privdata.
 	fake.retrieveCollectionPersistenceConfigsArgsForCall = append(fake.retrieveCollectionPersistenceConfigsArgsForCall, struct {
 		arg1 privdata.CollectionCriteria
 	}{arg1})
+	stub := fake.RetrieveCollectionPersistenceConfigsStub
+	fakeReturns := fake.retrieveCollectionPersistenceConfigsReturns
 	fake.recordInvocation("RetrieveCollectionPersistenceConfigs", []interface{}{arg1})
 	fake.retrieveCollectionPersistenceConfigsMutex.Unlock()
-	if fake.RetrieveCollectionPersistenceConfigsStub != nil {
-		return fake.RetrieveCollectionPersistenceConfigsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.retrieveCollectionPersistenceConfigsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -497,15 +503,16 @@ func (fake *CollectionStore) RetrieveReadWritePermission(arg1 privdata.Collectio
 		arg2 *peer.SignedProposal
 		arg3 ledger.QueryExecutor
 	}{arg1, arg2, arg3})
+	stub := fake.RetrieveReadWritePermissionStub
+	fakeReturns := fake.retrieveReadWritePermissionReturns
 	fake.recordInvocation("RetrieveReadWritePermission", []interface{}{arg1, arg2, arg3})
 	fake.retrieveReadWritePermissionMutex.Unlock()
-	if fake.RetrieveReadWritePermissionStub != nil {
-		return fake.RetrieveReadWritePermissionStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.retrieveReadWritePermissionReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 

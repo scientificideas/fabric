@@ -35,15 +35,16 @@ func (fake *TransactionRegistry) Add(arg1 string, arg2 string) bool {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.AddStub
+	fakeReturns := fake.addReturns
 	fake.recordInvocation("Add", []interface{}{arg1, arg2})
 	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
-		return fake.AddStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.addReturns
 	return fakeReturns.result1
 }
 
@@ -95,9 +96,10 @@ func (fake *TransactionRegistry) Remove(arg1 string, arg2 string) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.RemoveStub
 	fake.recordInvocation("Remove", []interface{}{arg1, arg2})
 	fake.removeMutex.Unlock()
-	if fake.RemoveStub != nil {
+	if stub != nil {
 		fake.RemoveStub(arg1, arg2)
 	}
 }

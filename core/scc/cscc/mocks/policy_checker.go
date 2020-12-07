@@ -71,15 +71,16 @@ func (fake *PolicyChecker) CheckPolicy(arg1 string, arg2 string, arg3 *peer.Sign
 		arg2 string
 		arg3 *peer.SignedProposal
 	}{arg1, arg2, arg3})
+	stub := fake.CheckPolicyStub
+	fakeReturns := fake.checkPolicyReturns
 	fake.recordInvocation("CheckPolicy", []interface{}{arg1, arg2, arg3})
 	fake.checkPolicyMutex.Unlock()
-	if fake.CheckPolicyStub != nil {
-		return fake.CheckPolicyStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyReturns
 	return fakeReturns.result1
 }
 
@@ -138,15 +139,16 @@ func (fake *PolicyChecker) CheckPolicyBySignedData(arg1 string, arg2 string, arg
 		arg2 string
 		arg3 []*protoutil.SignedData
 	}{arg1, arg2, arg3Copy})
+	stub := fake.CheckPolicyBySignedDataStub
+	fakeReturns := fake.checkPolicyBySignedDataReturns
 	fake.recordInvocation("CheckPolicyBySignedData", []interface{}{arg1, arg2, arg3Copy})
 	fake.checkPolicyBySignedDataMutex.Unlock()
-	if fake.CheckPolicyBySignedDataStub != nil {
-		return fake.CheckPolicyBySignedDataStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyBySignedDataReturns
 	return fakeReturns.result1
 }
 
@@ -199,15 +201,16 @@ func (fake *PolicyChecker) CheckPolicyNoChannel(arg1 string, arg2 *peer.SignedPr
 		arg1 string
 		arg2 *peer.SignedProposal
 	}{arg1, arg2})
+	stub := fake.CheckPolicyNoChannelStub
+	fakeReturns := fake.checkPolicyNoChannelReturns
 	fake.recordInvocation("CheckPolicyNoChannel", []interface{}{arg1, arg2})
 	fake.checkPolicyNoChannelMutex.Unlock()
-	if fake.CheckPolicyNoChannelStub != nil {
-		return fake.CheckPolicyNoChannelStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyNoChannelReturns
 	return fakeReturns.result1
 }
 
@@ -265,15 +268,16 @@ func (fake *PolicyChecker) CheckPolicyNoChannelBySignedData(arg1 string, arg2 []
 		arg1 string
 		arg2 []*protoutil.SignedData
 	}{arg1, arg2Copy})
+	stub := fake.CheckPolicyNoChannelBySignedDataStub
+	fakeReturns := fake.checkPolicyNoChannelBySignedDataReturns
 	fake.recordInvocation("CheckPolicyNoChannelBySignedData", []interface{}{arg1, arg2Copy})
 	fake.checkPolicyNoChannelBySignedDataMutex.Unlock()
-	if fake.CheckPolicyNoChannelBySignedDataStub != nil {
-		return fake.CheckPolicyNoChannelBySignedDataStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkPolicyNoChannelBySignedDataReturns
 	return fakeReturns.result1
 }
 

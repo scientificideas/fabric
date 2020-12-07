@@ -42,9 +42,10 @@ func (fake *QueryResultsIterator) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
+	if stub != nil {
 		fake.CloseStub()
 	}
 }
@@ -66,15 +67,16 @@ func (fake *QueryResultsIterator) GetBookmarkAndClose() string {
 	ret, specificReturn := fake.getBookmarkAndCloseReturnsOnCall[len(fake.getBookmarkAndCloseArgsForCall)]
 	fake.getBookmarkAndCloseArgsForCall = append(fake.getBookmarkAndCloseArgsForCall, struct {
 	}{})
+	stub := fake.GetBookmarkAndCloseStub
+	fakeReturns := fake.getBookmarkAndCloseReturns
 	fake.recordInvocation("GetBookmarkAndClose", []interface{}{})
 	fake.getBookmarkAndCloseMutex.Unlock()
-	if fake.GetBookmarkAndCloseStub != nil {
-		return fake.GetBookmarkAndCloseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getBookmarkAndCloseReturns
 	return fakeReturns.result1
 }
 
@@ -118,15 +120,16 @@ func (fake *QueryResultsIterator) Next() (ledger.QueryResult, error) {
 	ret, specificReturn := fake.nextReturnsOnCall[len(fake.nextArgsForCall)]
 	fake.nextArgsForCall = append(fake.nextArgsForCall, struct {
 	}{})
+	stub := fake.NextStub
+	fakeReturns := fake.nextReturns
 	fake.recordInvocation("Next", []interface{}{})
 	fake.nextMutex.Unlock()
-	if fake.NextStub != nil {
-		return fake.NextStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.nextReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

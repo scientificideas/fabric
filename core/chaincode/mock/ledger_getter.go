@@ -29,15 +29,16 @@ func (fake *LedgerGetter) GetLedger(arg1 string) ledger.PeerLedger {
 	fake.getLedgerArgsForCall = append(fake.getLedgerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetLedgerStub
+	fakeReturns := fake.getLedgerReturns
 	fake.recordInvocation("GetLedger", []interface{}{arg1})
 	fake.getLedgerMutex.Unlock()
-	if fake.GetLedgerStub != nil {
-		return fake.GetLedgerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getLedgerReturns
 	return fakeReturns.result1
 }
 

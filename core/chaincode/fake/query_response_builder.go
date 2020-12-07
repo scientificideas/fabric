@@ -41,15 +41,16 @@ func (fake *QueryResponseBuilder) BuildQueryResponse(arg1 *chaincode.Transaction
 		arg4 bool
 		arg5 int32
 	}{arg1, arg2, arg3, arg4, arg5})
+	stub := fake.BuildQueryResponseStub
+	fakeReturns := fake.buildQueryResponseReturns
 	fake.recordInvocation("BuildQueryResponse", []interface{}{arg1, arg2, arg3, arg4, arg5})
 	fake.buildQueryResponseMutex.Unlock()
-	if fake.BuildQueryResponseStub != nil {
-		return fake.BuildQueryResponseStub(arg1, arg2, arg3, arg4, arg5)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.buildQueryResponseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

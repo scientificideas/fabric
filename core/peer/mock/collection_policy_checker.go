@@ -43,15 +43,16 @@ func (fake *CollectionPolicyChecker) CheckCollectionPolicy(arg1 uint64, arg2 str
 		arg5 msp.IdentityDeserializer
 		arg6 *protoutil.SignedData
 	}{arg1, arg2, arg3, arg4, arg5, arg6})
+	stub := fake.CheckCollectionPolicyStub
+	fakeReturns := fake.checkCollectionPolicyReturns
 	fake.recordInvocation("CheckCollectionPolicy", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6})
 	fake.checkCollectionPolicyMutex.Unlock()
-	if fake.CheckCollectionPolicyStub != nil {
-		return fake.CheckCollectionPolicyStub(arg1, arg2, arg3, arg4, arg5, arg6)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.checkCollectionPolicyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -33,9 +33,10 @@ func (fake *StoreProvider) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
+	if stub != nil {
 		fake.CloseStub()
 	}
 }
@@ -58,15 +59,16 @@ func (fake *StoreProvider) OpenStore(arg1 string) (*transientstore.Store, error)
 	fake.openStoreArgsForCall = append(fake.openStoreArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.OpenStoreStub
+	fakeReturns := fake.openStoreReturns
 	fake.recordInvocation("OpenStore", []interface{}{arg1})
 	fake.openStoreMutex.Unlock()
-	if fake.OpenStoreStub != nil {
-		return fake.OpenStoreStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.openStoreReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

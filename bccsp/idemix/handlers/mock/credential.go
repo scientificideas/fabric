@@ -60,15 +60,16 @@ func (fake *Credential) Sign(arg1 handlers.IssuerSecretKey, arg2 []byte, arg3 []
 		arg2 []byte
 		arg3 []bccsp.IdemixAttribute
 	}{arg1, arg2Copy, arg3Copy})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1, arg2Copy, arg3Copy})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -136,15 +137,16 @@ func (fake *Credential) Verify(arg1 handlers.Big, arg2 handlers.IssuerPublicKey,
 		arg3 []byte
 		arg4 []bccsp.IdemixAttribute
 	}{arg1, arg2, arg3Copy, arg4Copy})
+	stub := fake.VerifyStub
+	fakeReturns := fake.verifyReturns
 	fake.recordInvocation("Verify", []interface{}{arg1, arg2, arg3Copy, arg4Copy})
 	fake.verifyMutex.Unlock()
-	if fake.VerifyStub != nil {
-		return fake.VerifyStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyReturns
 	return fakeReturns.result1
 }
 

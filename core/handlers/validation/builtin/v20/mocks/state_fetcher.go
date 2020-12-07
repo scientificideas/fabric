@@ -29,15 +29,16 @@ func (fake *StateFetcher) FetchState() (validation.State, error) {
 	ret, specificReturn := fake.fetchStateReturnsOnCall[len(fake.fetchStateArgsForCall)]
 	fake.fetchStateArgsForCall = append(fake.fetchStateArgsForCall, struct {
 	}{})
+	stub := fake.FetchStateStub
+	fakeReturns := fake.fetchStateReturns
 	fake.recordInvocation("FetchState", []interface{}{})
 	fake.fetchStateMutex.Unlock()
-	if fake.FetchStateStub != nil {
-		return fake.FetchStateStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.fetchStateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

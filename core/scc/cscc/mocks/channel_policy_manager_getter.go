@@ -29,15 +29,16 @@ func (fake *ChannelPolicyManagerGetter) Manager(arg1 string) policies.Manager {
 	fake.managerArgsForCall = append(fake.managerArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ManagerStub
+	fakeReturns := fake.managerReturns
 	fake.recordInvocation("Manager", []interface{}{arg1})
 	fake.managerMutex.Unlock()
-	if fake.ManagerStub != nil {
-		return fake.ManagerStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.managerReturns
 	return fakeReturns.result1
 }
 

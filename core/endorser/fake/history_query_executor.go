@@ -33,15 +33,16 @@ func (fake *HistoryQueryExecutor) GetHistoryForKey(arg1 string, arg2 string) (le
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetHistoryForKeyStub
+	fakeReturns := fake.getHistoryForKeyReturns
 	fake.recordInvocation("GetHistoryForKey", []interface{}{arg1, arg2})
 	fake.getHistoryForKeyMutex.Unlock()
-	if fake.GetHistoryForKeyStub != nil {
-		return fake.GetHistoryForKeyStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getHistoryForKeyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -25,9 +25,10 @@ func (fake *InstallListener) HandleChaincodeInstalled(arg1 *persistence.Chaincod
 		arg1 *persistence.ChaincodePackageMetadata
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.HandleChaincodeInstalledStub
 	fake.recordInvocation("HandleChaincodeInstalled", []interface{}{arg1, arg2})
 	fake.handleChaincodeInstalledMutex.Unlock()
-	if fake.HandleChaincodeInstalledStub != nil {
+	if stub != nil {
 		fake.HandleChaincodeInstalledStub(arg1, arg2)
 	}
 }

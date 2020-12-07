@@ -33,15 +33,16 @@ func (fake *CollectionInfoProvider) CollectionInfo(arg1 string, arg2 string) (*p
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.CollectionInfoStub
+	fakeReturns := fake.collectionInfoReturns
 	fake.recordInvocation("CollectionInfo", []interface{}{arg1, arg2})
 	fake.collectionInfoMutex.Unlock()
-	if fake.CollectionInfoStub != nil {
-		return fake.CollectionInfoStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.collectionInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -33,15 +33,16 @@ func (fake *LegacyMetadataProvider) Metadata(arg1 string, arg2 string, arg3 ...s
 		arg2 string
 		arg3 []string
 	}{arg1, arg2, arg3})
+	stub := fake.MetadataStub
+	fakeReturns := fake.metadataReturns
 	fake.recordInvocation("Metadata", []interface{}{arg1, arg2, arg3})
 	fake.metadataMutex.Unlock()
-	if fake.MetadataStub != nil {
-		return fake.MetadataStub(arg1, arg2, arg3...)
+	if stub != nil {
+		return stub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.metadataReturns
 	return fakeReturns.result1
 }
 

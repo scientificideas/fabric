@@ -31,15 +31,16 @@ func (fake *Verifier) VerifyByChannel(arg1 string, arg2 *protoutil.SignedData) e
 		arg1 string
 		arg2 *protoutil.SignedData
 	}{arg1, arg2})
+	stub := fake.VerifyByChannelStub
+	fakeReturns := fake.verifyByChannelReturns
 	fake.recordInvocation("VerifyByChannel", []interface{}{arg1, arg2})
 	fake.verifyByChannelMutex.Unlock()
-	if fake.VerifyByChannelStub != nil {
-		return fake.VerifyByChannelStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyByChannelReturns
 	return fakeReturns.result1
 }
 

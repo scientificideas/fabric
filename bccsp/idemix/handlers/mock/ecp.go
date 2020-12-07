@@ -29,15 +29,16 @@ func (fake *Ecp) Bytes() ([]byte, error) {
 	ret, specificReturn := fake.bytesReturnsOnCall[len(fake.bytesArgsForCall)]
 	fake.bytesArgsForCall = append(fake.bytesArgsForCall, struct {
 	}{})
+	stub := fake.BytesStub
+	fakeReturns := fake.bytesReturns
 	fake.recordInvocation("Bytes", []interface{}{})
 	fake.bytesMutex.Unlock()
-	if fake.BytesStub != nil {
-		return fake.BytesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.bytesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

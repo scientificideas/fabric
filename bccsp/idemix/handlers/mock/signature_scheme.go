@@ -86,15 +86,16 @@ func (fake *SignatureScheme) Sign(arg1 []byte, arg2 handlers.Big, arg3 handlers.
 		arg8 int
 		arg9 []byte
 	}{arg1Copy, arg2, arg3, arg4, arg5, arg6Copy, arg7Copy, arg8, arg9Copy})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1Copy, arg2, arg3, arg4, arg5, arg6Copy, arg7Copy, arg8, arg9Copy})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -170,15 +171,16 @@ func (fake *SignatureScheme) Verify(arg1 handlers.IssuerPublicKey, arg2 []byte, 
 		arg6 *ecdsa.PublicKey
 		arg7 int
 	}{arg1, arg2Copy, arg3Copy, arg4Copy, arg5, arg6, arg7})
+	stub := fake.VerifyStub
+	fakeReturns := fake.verifyReturns
 	fake.recordInvocation("Verify", []interface{}{arg1, arg2Copy, arg3Copy, arg4Copy, arg5, arg6, arg7})
 	fake.verifyMutex.Unlock()
-	if fake.VerifyStub != nil {
-		return fake.VerifyStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyReturns
 	return fakeReturns.result1
 }
 

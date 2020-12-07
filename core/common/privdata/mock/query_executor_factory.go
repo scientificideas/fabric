@@ -29,15 +29,16 @@ func (fake *QueryExecutorFactory) NewQueryExecutor() (ledger.QueryExecutor, erro
 	ret, specificReturn := fake.newQueryExecutorReturnsOnCall[len(fake.newQueryExecutorArgsForCall)]
 	fake.newQueryExecutorArgsForCall = append(fake.newQueryExecutorArgsForCall, struct {
 	}{})
+	stub := fake.NewQueryExecutorStub
+	fakeReturns := fake.newQueryExecutorReturns
 	fake.recordInvocation("NewQueryExecutor", []interface{}{})
 	fake.newQueryExecutorMutex.Unlock()
-	if fake.NewQueryExecutorStub != nil {
-		return fake.NewQueryExecutorStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newQueryExecutorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

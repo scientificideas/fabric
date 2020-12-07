@@ -89,15 +89,16 @@ func (fake *FileSystemSupport) CheckInstantiationPolicy(arg1 *peer.SignedProposa
 		arg2 string
 		arg3 []byte
 	}{arg1, arg2, arg3Copy})
+	stub := fake.CheckInstantiationPolicyStub
+	fakeReturns := fake.checkInstantiationPolicyReturns
 	fake.recordInvocation("CheckInstantiationPolicy", []interface{}{arg1, arg2, arg3Copy})
 	fake.checkInstantiationPolicyMutex.Unlock()
-	if fake.CheckInstantiationPolicyStub != nil {
-		return fake.CheckInstantiationPolicyStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.checkInstantiationPolicyReturns
 	return fakeReturns.result1
 }
 
@@ -149,15 +150,16 @@ func (fake *FileSystemSupport) GetChaincodeFromLocalStorage(arg1 string) (ccprov
 	fake.getChaincodeFromLocalStorageArgsForCall = append(fake.getChaincodeFromLocalStorageArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetChaincodeFromLocalStorageStub
+	fakeReturns := fake.getChaincodeFromLocalStorageReturns
 	fake.recordInvocation("GetChaincodeFromLocalStorage", []interface{}{arg1})
 	fake.getChaincodeFromLocalStorageMutex.Unlock()
-	if fake.GetChaincodeFromLocalStorageStub != nil {
-		return fake.GetChaincodeFromLocalStorageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getChaincodeFromLocalStorageReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -211,15 +213,16 @@ func (fake *FileSystemSupport) GetChaincodesFromLocalStorage() (*peer.ChaincodeQ
 	ret, specificReturn := fake.getChaincodesFromLocalStorageReturnsOnCall[len(fake.getChaincodesFromLocalStorageArgsForCall)]
 	fake.getChaincodesFromLocalStorageArgsForCall = append(fake.getChaincodesFromLocalStorageArgsForCall, struct {
 	}{})
+	stub := fake.GetChaincodesFromLocalStorageStub
+	fakeReturns := fake.getChaincodesFromLocalStorageReturns
 	fake.recordInvocation("GetChaincodesFromLocalStorage", []interface{}{})
 	fake.getChaincodesFromLocalStorageMutex.Unlock()
-	if fake.GetChaincodesFromLocalStorageStub != nil {
-		return fake.GetChaincodesFromLocalStorageStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getChaincodesFromLocalStorageReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -268,15 +271,16 @@ func (fake *FileSystemSupport) GetInstantiationPolicy(arg1 string, arg2 ccprovid
 		arg1 string
 		arg2 ccprovider.CCPackage
 	}{arg1, arg2})
+	stub := fake.GetInstantiationPolicyStub
+	fakeReturns := fake.getInstantiationPolicyReturns
 	fake.recordInvocation("GetInstantiationPolicy", []interface{}{arg1, arg2})
 	fake.getInstantiationPolicyMutex.Unlock()
-	if fake.GetInstantiationPolicyStub != nil {
-		return fake.GetInstantiationPolicyStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getInstantiationPolicyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -331,15 +335,16 @@ func (fake *FileSystemSupport) PutChaincodeToLocalStorage(arg1 ccprovider.CCPack
 	fake.putChaincodeToLocalStorageArgsForCall = append(fake.putChaincodeToLocalStorageArgsForCall, struct {
 		arg1 ccprovider.CCPackage
 	}{arg1})
+	stub := fake.PutChaincodeToLocalStorageStub
+	fakeReturns := fake.putChaincodeToLocalStorageReturns
 	fake.recordInvocation("PutChaincodeToLocalStorage", []interface{}{arg1})
 	fake.putChaincodeToLocalStorageMutex.Unlock()
-	if fake.PutChaincodeToLocalStorageStub != nil {
-		return fake.PutChaincodeToLocalStorageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.putChaincodeToLocalStorageReturns
 	return fakeReturns.result1
 }
 

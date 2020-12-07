@@ -41,15 +41,16 @@ func (fake *BlockReader) Height() uint64 {
 	ret, specificReturn := fake.heightReturnsOnCall[len(fake.heightArgsForCall)]
 	fake.heightArgsForCall = append(fake.heightArgsForCall, struct {
 	}{})
+	stub := fake.HeightStub
+	fakeReturns := fake.heightReturns
 	fake.recordInvocation("Height", []interface{}{})
 	fake.heightMutex.Unlock()
-	if fake.HeightStub != nil {
-		return fake.HeightStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.heightReturns
 	return fakeReturns.result1
 }
 
@@ -94,15 +95,16 @@ func (fake *BlockReader) Iterator(arg1 *orderer.SeekPosition) (blockledger.Itera
 	fake.iteratorArgsForCall = append(fake.iteratorArgsForCall, struct {
 		arg1 *orderer.SeekPosition
 	}{arg1})
+	stub := fake.IteratorStub
+	fakeReturns := fake.iteratorReturns
 	fake.recordInvocation("Iterator", []interface{}{arg1})
 	fake.iteratorMutex.Unlock()
-	if fake.IteratorStub != nil {
-		return fake.IteratorStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.iteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

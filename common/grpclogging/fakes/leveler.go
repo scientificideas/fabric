@@ -33,15 +33,17 @@ func (fake *Leveler) Spy(arg1 context.Context, arg2 string) zapcore.Level {
 		arg1 context.Context
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.Stub
+	returns := fake.returns
 	fake.recordInvocation("LevelerFunc", []interface{}{arg1, arg2})
 	fake.mutex.Unlock()
-	if fake.Stub != nil {
-		return fake.Stub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.returns.result1
+	return returns.result1
 }
 
 func (fake *Leveler) CallCount() int {

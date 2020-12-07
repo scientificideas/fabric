@@ -34,9 +34,10 @@ func (fake *ChaincodeLifecycleEventListener) ChaincodeDeployDone(arg1 bool) {
 	fake.chaincodeDeployDoneArgsForCall = append(fake.chaincodeDeployDoneArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.ChaincodeDeployDoneStub
 	fake.recordInvocation("ChaincodeDeployDone", []interface{}{arg1})
 	fake.chaincodeDeployDoneMutex.Unlock()
-	if fake.ChaincodeDeployDoneStub != nil {
+	if stub != nil {
 		fake.ChaincodeDeployDoneStub(arg1)
 	}
 }
@@ -72,15 +73,16 @@ func (fake *ChaincodeLifecycleEventListener) HandleChaincodeDeploy(arg1 *ledger.
 		arg1 *ledger.ChaincodeDefinition
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.HandleChaincodeDeployStub
+	fakeReturns := fake.handleChaincodeDeployReturns
 	fake.recordInvocation("HandleChaincodeDeploy", []interface{}{arg1, arg2Copy})
 	fake.handleChaincodeDeployMutex.Unlock()
-	if fake.HandleChaincodeDeployStub != nil {
-		return fake.HandleChaincodeDeployStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.handleChaincodeDeployReturns
 	return fakeReturns.result1
 }
 

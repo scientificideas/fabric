@@ -61,15 +61,16 @@ func (fake *Revocation) NewKey() (*ecdsa.PrivateKey, error) {
 	ret, specificReturn := fake.newKeyReturnsOnCall[len(fake.newKeyArgsForCall)]
 	fake.newKeyArgsForCall = append(fake.newKeyArgsForCall, struct {
 	}{})
+	stub := fake.NewKeyStub
+	fakeReturns := fake.newKeyReturns
 	fake.recordInvocation("NewKey", []interface{}{})
 	fake.newKeyMutex.Unlock()
-	if fake.NewKeyStub != nil {
-		return fake.NewKeyStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newKeyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -125,15 +126,16 @@ func (fake *Revocation) Sign(arg1 *ecdsa.PrivateKey, arg2 [][]byte, arg3 int, ar
 		arg3 int
 		arg4 bccsp.RevocationAlgorithm
 	}{arg1, arg2Copy, arg3, arg4})
+	stub := fake.SignStub
+	fakeReturns := fake.signReturns
 	fake.recordInvocation("Sign", []interface{}{arg1, arg2Copy, arg3, arg4})
 	fake.signMutex.Unlock()
-	if fake.SignStub != nil {
-		return fake.SignStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.signReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -196,15 +198,16 @@ func (fake *Revocation) Verify(arg1 *ecdsa.PublicKey, arg2 []byte, arg3 int, arg
 		arg3 int
 		arg4 bccsp.RevocationAlgorithm
 	}{arg1, arg2Copy, arg3, arg4})
+	stub := fake.VerifyStub
+	fakeReturns := fake.verifyReturns
 	fake.recordInvocation("Verify", []interface{}{arg1, arg2Copy, arg3, arg4})
 	fake.verifyMutex.Unlock()
-	if fake.VerifyStub != nil {
-		return fake.VerifyStub(arg1, arg2, arg3, arg4)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.verifyReturns
 	return fakeReturns.result1
 }
 

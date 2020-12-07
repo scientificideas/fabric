@@ -39,15 +39,16 @@ func (fake *Logging) ActivateSpec(arg1 string) error {
 	fake.activateSpecArgsForCall = append(fake.activateSpecArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ActivateSpecStub
+	fakeReturns := fake.activateSpecReturns
 	fake.recordInvocation("ActivateSpec", []interface{}{arg1})
 	fake.activateSpecMutex.Unlock()
-	if fake.ActivateSpecStub != nil {
-		return fake.ActivateSpecStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.activateSpecReturns
 	return fakeReturns.result1
 }
 
@@ -98,15 +99,16 @@ func (fake *Logging) Spec() string {
 	ret, specificReturn := fake.specReturnsOnCall[len(fake.specArgsForCall)]
 	fake.specArgsForCall = append(fake.specArgsForCall, struct {
 	}{})
+	stub := fake.SpecStub
+	fakeReturns := fake.specReturns
 	fake.recordInvocation("Spec", []interface{}{})
 	fake.specMutex.Unlock()
-	if fake.SpecStub != nil {
-		return fake.SpecStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.specReturns
 	return fakeReturns.result1
 }
 

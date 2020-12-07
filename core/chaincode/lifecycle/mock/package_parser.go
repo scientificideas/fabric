@@ -36,15 +36,16 @@ func (fake *PackageParser) Parse(arg1 []byte) (*persistence.ChaincodePackage, er
 	fake.parseArgsForCall = append(fake.parseArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.ParseStub
+	fakeReturns := fake.parseReturns
 	fake.recordInvocation("Parse", []interface{}{arg1Copy})
 	fake.parseMutex.Unlock()
-	if fake.ParseStub != nil {
-		return fake.ParseStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.parseReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

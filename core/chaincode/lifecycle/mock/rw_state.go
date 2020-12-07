@@ -87,15 +87,16 @@ func (fake *ReadWritableState) CollectionName() string {
 	ret, specificReturn := fake.collectionNameReturnsOnCall[len(fake.collectionNameArgsForCall)]
 	fake.collectionNameArgsForCall = append(fake.collectionNameArgsForCall, struct {
 	}{})
+	stub := fake.CollectionNameStub
+	fakeReturns := fake.collectionNameReturns
 	fake.recordInvocation("CollectionName", []interface{}{})
 	fake.collectionNameMutex.Unlock()
-	if fake.CollectionNameStub != nil {
-		return fake.CollectionNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.collectionNameReturns
 	return fakeReturns.result1
 }
 
@@ -140,15 +141,16 @@ func (fake *ReadWritableState) DelState(arg1 string) error {
 	fake.delStateArgsForCall = append(fake.delStateArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DelStateStub
+	fakeReturns := fake.delStateReturns
 	fake.recordInvocation("DelState", []interface{}{arg1})
 	fake.delStateMutex.Unlock()
-	if fake.DelStateStub != nil {
-		return fake.DelStateStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.delStateReturns
 	return fakeReturns.result1
 }
 
@@ -200,15 +202,16 @@ func (fake *ReadWritableState) GetState(arg1 string) ([]byte, error) {
 	fake.getStateArgsForCall = append(fake.getStateArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetStateStub
+	fakeReturns := fake.getStateReturns
 	fake.recordInvocation("GetState", []interface{}{arg1})
 	fake.getStateMutex.Unlock()
-	if fake.GetStateStub != nil {
-		return fake.GetStateStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -263,15 +266,16 @@ func (fake *ReadWritableState) GetStateHash(arg1 string) ([]byte, error) {
 	fake.getStateHashArgsForCall = append(fake.getStateHashArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetStateHashStub
+	fakeReturns := fake.getStateHashReturns
 	fake.recordInvocation("GetStateHash", []interface{}{arg1})
 	fake.getStateHashMutex.Unlock()
-	if fake.GetStateHashStub != nil {
-		return fake.GetStateHashStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -326,15 +330,16 @@ func (fake *ReadWritableState) GetStateRange(arg1 string) (map[string][]byte, er
 	fake.getStateRangeArgsForCall = append(fake.getStateRangeArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetStateRangeStub
+	fakeReturns := fake.getStateRangeReturns
 	fake.recordInvocation("GetStateRange", []interface{}{arg1})
 	fake.getStateRangeMutex.Unlock()
-	if fake.GetStateRangeStub != nil {
-		return fake.GetStateRangeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -395,15 +400,16 @@ func (fake *ReadWritableState) PutState(arg1 string, arg2 []byte) error {
 		arg1 string
 		arg2 []byte
 	}{arg1, arg2Copy})
+	stub := fake.PutStateStub
+	fakeReturns := fake.putStateReturns
 	fake.recordInvocation("PutState", []interface{}{arg1, arg2Copy})
 	fake.putStateMutex.Unlock()
-	if fake.PutStateStub != nil {
-		return fake.PutStateStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.putStateReturns
 	return fakeReturns.result1
 }
 

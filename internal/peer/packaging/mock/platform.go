@@ -61,15 +61,16 @@ func (fake *Platform) GetDeploymentPayload(arg1 string) ([]byte, error) {
 	fake.getDeploymentPayloadArgsForCall = append(fake.getDeploymentPayloadArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetDeploymentPayloadStub
+	fakeReturns := fake.getDeploymentPayloadReturns
 	fake.recordInvocation("GetDeploymentPayload", []interface{}{arg1})
 	fake.getDeploymentPayloadMutex.Unlock()
-	if fake.GetDeploymentPayloadStub != nil {
-		return fake.GetDeploymentPayloadStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getDeploymentPayloadReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -123,15 +124,16 @@ func (fake *Platform) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -181,15 +183,16 @@ func (fake *Platform) ValidateCodePackage(arg1 []byte) error {
 	fake.validateCodePackageArgsForCall = append(fake.validateCodePackageArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.ValidateCodePackageStub
+	fakeReturns := fake.validateCodePackageReturns
 	fake.recordInvocation("ValidateCodePackage", []interface{}{arg1Copy})
 	fake.validateCodePackageMutex.Unlock()
-	if fake.ValidateCodePackageStub != nil {
-		return fake.ValidateCodePackageStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.validateCodePackageReturns
 	return fakeReturns.result1
 }
 
@@ -241,15 +244,16 @@ func (fake *Platform) ValidatePath(arg1 string) error {
 	fake.validatePathArgsForCall = append(fake.validatePathArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ValidatePathStub
+	fakeReturns := fake.validatePathReturns
 	fake.recordInvocation("ValidatePath", []interface{}{arg1})
 	fake.validatePathMutex.Unlock()
-	if fake.ValidatePathStub != nil {
-		return fake.ValidatePathStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.validatePathReturns
 	return fakeReturns.result1
 }
 

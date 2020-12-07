@@ -78,9 +78,10 @@ func (fake *State) Done() {
 	fake.doneMutex.Lock()
 	fake.doneArgsForCall = append(fake.doneArgsForCall, struct {
 	}{})
+	stub := fake.DoneStub
 	fake.recordInvocation("Done", []interface{}{})
 	fake.doneMutex.Unlock()
-	if fake.DoneStub != nil {
+	if stub != nil {
 		fake.DoneStub()
 	}
 }
@@ -110,15 +111,16 @@ func (fake *State) GetPrivateDataMetadataByHash(arg1 string, arg2 string, arg3 [
 		arg2 string
 		arg3 []byte
 	}{arg1, arg2, arg3Copy})
+	stub := fake.GetPrivateDataMetadataByHashStub
+	fakeReturns := fake.getPrivateDataMetadataByHashReturns
 	fake.recordInvocation("GetPrivateDataMetadataByHash", []interface{}{arg1, arg2, arg3Copy})
 	fake.getPrivateDataMetadataByHashMutex.Unlock()
-	if fake.GetPrivateDataMetadataByHashStub != nil {
-		return fake.GetPrivateDataMetadataByHashStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getPrivateDataMetadataByHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -174,15 +176,16 @@ func (fake *State) GetStateMetadata(arg1 string, arg2 string) (map[string][]byte
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStateMetadataStub
+	fakeReturns := fake.getStateMetadataReturns
 	fake.recordInvocation("GetStateMetadata", []interface{}{arg1, arg2})
 	fake.getStateMetadataMutex.Unlock()
-	if fake.GetStateMetadataStub != nil {
-		return fake.GetStateMetadataStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateMetadataReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -243,15 +246,16 @@ func (fake *State) GetStateMultipleKeys(arg1 string, arg2 []string) ([][]byte, e
 		arg1 string
 		arg2 []string
 	}{arg1, arg2Copy})
+	stub := fake.GetStateMultipleKeysStub
+	fakeReturns := fake.getStateMultipleKeysReturns
 	fake.recordInvocation("GetStateMultipleKeys", []interface{}{arg1, arg2Copy})
 	fake.getStateMultipleKeysMutex.Unlock()
-	if fake.GetStateMultipleKeysStub != nil {
-		return fake.GetStateMultipleKeysStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateMultipleKeysReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -308,15 +312,16 @@ func (fake *State) GetStateRangeScanIterator(arg1 string, arg2 string, arg3 stri
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
+	stub := fake.GetStateRangeScanIteratorStub
+	fakeReturns := fake.getStateRangeScanIteratorReturns
 	fake.recordInvocation("GetStateRangeScanIterator", []interface{}{arg1, arg2, arg3})
 	fake.getStateRangeScanIteratorMutex.Unlock()
-	if fake.GetStateRangeScanIteratorStub != nil {
-		return fake.GetStateRangeScanIteratorStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getStateRangeScanIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -31,15 +31,16 @@ func (fake *ChannelInfoProvider) NamespacesAndCollections(arg1 statedb.Versioned
 	fake.namespacesAndCollectionsArgsForCall = append(fake.namespacesAndCollectionsArgsForCall, struct {
 		arg1 statedb.VersionedDB
 	}{arg1})
+	stub := fake.NamespacesAndCollectionsStub
+	fakeReturns := fake.namespacesAndCollectionsReturns
 	fake.recordInvocation("NamespacesAndCollections", []interface{}{arg1})
 	fake.namespacesAndCollectionsMutex.Unlock()
-	if fake.NamespacesAndCollectionsStub != nil {
-		return fake.NamespacesAndCollectionsStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.namespacesAndCollectionsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

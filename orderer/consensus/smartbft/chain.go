@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"encoding/base64"
 	"fmt"
 	"sync/atomic"
 	"time"
@@ -45,6 +46,7 @@ type WALConfig struct {
 	EvictionSuspicion string // Duration threshold that the node samples in order to suspect its eviction from the channel.
 }
 
+// ConfigValidator interface
 type ConfigValidator interface {
 	ValidateConfig(env *cb.Envelope) error
 }
@@ -74,7 +76,6 @@ type BFTChain struct {
 	verifier         *Verifier
 	assembler        *Assembler
 	Metrics          *Metrics
-	bccsp            bccsp.BCCSP
 }
 
 // NewChain creates new BFT Smart chain
@@ -208,17 +209,16 @@ func bftSmartConsensusBuild(
 		Logger:   logger,
 		Verifier: c.verifier,
 		Signer: &Signer{
-			// TODO: implement the fields in the structure
-			// ID:               c.Config.SelfID,
-			// Logger:           flogging.MustGetLogger("orderer.consensus.smartbft.signer").With(channelDecorator),
-			// SignerSerializer: c.SignerSerializer,
-			// LastConfigBlockNum: func(block *common.Block) uint64 {
-			// 	if isConfigBlock(block) {
-			// 		return block.Header.Number
-			// 	}
+			ID:               c.Config.SelfID,
+			Logger:           flogging.MustGetLogger("orderer.consensus.smartbft.signer").With(channelDecorator),
+			SignerSerializer: c.SignerSerializer,
+			LastConfigBlockNum: func(block *cb.Block) uint64 {
+				if isConfigBlock(block) {
+					return block.Header.Number
+				}
 
-			// 	return c.RuntimeConfig.Load().(RuntimeConfig).LastConfigBlock.Header.Number
-			// },
+				return c.RuntimeConfig.Load().(RuntimeConfig).LastConfigBlock.Header.Number
+			},
 		},
 		Metadata:          *latestMetadata,
 		WAL:               consensusWAL,
@@ -254,103 +254,230 @@ func bftSmartConsensusBuild(
 	return consensus
 }
 
-func (B BFTChain) Order(env *cb.Envelope, configSeq uint64) error {
-	panic("implement me")
+func (c *BFTChain) submit(env *cb.Envelope, configSeq uint64) error {
+	reqBytes, err := proto.Marshal(env)
+	if err != nil {
+		return errors.Wrapf(err, "failed to marshal request envelope")
+	}
+
+	c.Logger.Debugf("Consensus.SubmitRequest, node id %d", c.Config.SelfID)
+	c.consensus.SubmitRequest(reqBytes)
+	return nil
 }
 
-func (B BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
-	panic("implement me")
+// Order accepts a message which has been processed at a given configSeq.
+// If the configSeq advances, it is the responsibility of the consenter
+// to revalidate and potentially discard the message
+// The consenter may return an error, indicating the message was not accepted
+func (c *BFTChain) Order(env *cb.Envelope, configSeq uint64) error {
+	seq := c.support.Sequence()
+	if configSeq < seq {
+		c.Logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
+		if _, err := c.support.ProcessNormalMsg(env); err != nil {
+			return errors.Errorf("bad normal message: %s", err)
+		}
+	}
+
+	return c.submit(env, configSeq)
 }
 
+// Configure accepts a message which reconfigures the channel and will
+// trigger an update to the configSeq if committed.  The configuration must have
+// been triggered by a ConfigUpdate message. If the config sequence advances,
+// it is the responsibility of the consenter to recompute the resulting config,
+// discarding the message if the reconfiguration is no longer valid.
+// The consenter may return an error, indicating the message was not accepted
+func (c *BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
+	// TODO: check configuration update validity
+	seq := c.support.Sequence()
+	if configSeq < seq {
+		c.Logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
+		if configEnv, _, err := c.support.ProcessConfigMsg(config); err != nil {
+			return errors.Errorf("bad normal message: %s", err)
+		} else {
+			return c.submit(configEnv, configSeq)
+		}
+	}
+
+	return c.submit(config, configSeq)
+}
+
+// Deliver delivers proposal, writes block with transactions and metadata
 func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature) types.Reconfig {
 	block, err := ProposalToBlock(proposal)
 	if err != nil {
 		c.Logger.Panicf("failed to read proposal, err: %s", err)
 	}
 
-	// var sigs []*common.MetadataSignature
-	// var ordererBlockMetadata []byte
+	var sigs []*cb.MetadataSignature
+	var ordererBlockMetadata []byte
 
-	// var signers []uint64
+	var signers []uint64
 
-	// for _, s := range signatures {
-	// 	sig := &Signature{}
-	// 	if err := sig.Unmarshal(s.Msg); err != nil {
-	// 		c.Logger.Errorf("Failed unmarshaling signature from %d: %v", s.ID, err)
-	// 		c.Logger.Errorf("Offending signature Msg: %s", base64.StdEncoding.EncodeToString(s.Msg))
-	// 		c.Logger.Errorf("Offending signature Value: %s", base64.StdEncoding.EncodeToString(s.Value))
-	// 		c.Logger.Errorf("Halting chain.")
-	// 		c.Halt()
-	// 		return types.Reconfig{}
-	// 	}
+	for _, s := range signatures {
+		sig := &Signature{}
+		if err := sig.Unmarshal(s.Msg); err != nil {
+			c.Logger.Errorf("Failed unmarshaling signature from %d: %v", s.ID, err)
+			c.Logger.Errorf("Offending signature Msg: %s", base64.StdEncoding.EncodeToString(s.Msg))
+			c.Logger.Errorf("Offending signature Value: %s", base64.StdEncoding.EncodeToString(s.Value))
+			c.Logger.Errorf("Halting chain.")
+			c.Halt()
+			return types.Reconfig{}
+		}
 
-	// 	if ordererBlockMetadata == nil {
-	// 		ordererBlockMetadata = sig.OrdererBlockMetadata
-	// 	}
+		if ordererBlockMetadata == nil {
+			ordererBlockMetadata = sig.OrdererBlockMetadata
+		}
 
-	// 	sigs = append(sigs, &common.MetadataSignature{
-	// 		AuxiliaryInput: sig.AuxiliaryInput,
-	// 		Signature:      s.Value,
-	// 		// We do not put a signature header when we commit the block.
-	// 		// Instead, we put the nonce and the identifier and at validation
-	// 		// we reconstruct the signature header at runtime.
-	// 		// SignatureHeader: sig.SignatureHeader,
-	// 		Nonce:    sig.Nonce,
-	// 		SignerId: s.ID,
-	// 	})
+		sigs = append(sigs, &cb.MetadataSignature{
+			AuxiliaryInput: sig.AuxiliaryInput,
+			Signature:      s.Value,
+			// We do not put a signature header when we commit the block.
+			// Instead, we put the nonce and the identifier and at validation
+			// we reconstruct the signature header at runtime.
+			// SignatureHeader: sig.SignatureHeader,
+			Nonce:    sig.Nonce,
+			SignerId: s.ID,
+		})
 
-	// 	signers = append(signers, s.ID)
-	// }
+		signers = append(signers, s.ID)
+	}
 
-	// block.Metadata.Metadata[common.BlockMetadataIndex_SIGNATURES] = utils.MarshalOrPanic(&common.Metadata{
-	// 	Value:      ordererBlockMetadata,
-	// 	Signatures: sigs,
-	// })
+	block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&cb.Metadata{
+		Value:      ordererBlockMetadata,
+		Signatures: sigs,
+	})
 
-	// var mdTotalSize int
-	// for _, md := range block.Metadata.Metadata {
-	// 	mdTotalSize += len(md)
-	// }
+	var mdTotalSize int
+	for _, md := range block.Metadata.Metadata {
+		mdTotalSize += len(md)
+	}
 
-	// c.Logger.Infof("Delivering proposal, writing block %d with %d transactions and metadata of total size %d with signatures from %v to the ledger, node id %d",
-	// 	block.Header.Number,
-	// 	len(block.Data.Data),
-	// 	mdTotalSize,
-	// 	signers,
-	// 	c.Config.SelfID)
+	c.Logger.Infof("Delivering proposal, writing block %d with %d transactions and metadata of total size %d with signatures from %v to the ledger, node id %d",
+		block.Header.Number,
+		len(block.Data.Data),
+		mdTotalSize,
+		signers,
+		c.Config.SelfID)
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
 	c.reportIsLeader(&proposal)                                      // report the leader
-	// if utils.IsConfigBlock(block) {
+	if isConfigBlock(block) {
 
-	// 	c.support.WriteConfigBlock(block, nil)
-	// } else {
-	// 	c.support.WriteBlock(block, nil)
-	// }
+		c.support.WriteConfigBlock(block, nil)
+	} else {
+		c.support.WriteBlock(block, nil)
+	}
 
-	// reconfig := c.updateRuntimeConfig(block)
-	// return reconfig
+	reconfig := c.updateRuntimeConfig(block)
+	return reconfig
 	panic("implement me")
 }
 
-func (B BFTChain) WaitReady() error {
-	panic("implement me")
+// WaitReady blocks waiting for consenter to be ready for accepting new messages.
+// This is useful when consenter needs to temporarily block ingress messages so
+// that in-flight messages can be consumed. It could return error if consenter is
+// in erroneous states. If this blocking behavior is not desired, consenter could
+// simply return nil.
+func (c *BFTChain) WaitReady() error {
+	return nil
 }
 
-func (B BFTChain) Errored() <-chan struct{} {
+// Errored returns a channel which will close when an error has occurred.
+// This is especially useful for the Deliver client, who must terminate waiting
+// clients when the consenter is not up to date.
+func (c *BFTChain) Errored() <-chan struct{} {
 	// TODO: Implement Errored
 	return nil
 }
 
-func (B BFTChain) Start() {
-	panic("implement me")
+// Start should allocate whatever resources are needed for staying up to date with the chain.
+// Typically, this involves creating a thread which reads from the ordering source, passes those
+// messages to a block cutter, and writes the resulting blocks to the ledger.
+func (c *BFTChain) Start() {
+	if err := c.consensus.Start(); err != nil {
+		c.Logger.Panicf("Failed to start chain, aborting: +%v", err)
+		// todo: close done channel instead of panic
+		return
+	}
 }
 
-func (B BFTChain) Halt() {
-	panic("implement me")
+// Halt frees the resources which were allocated for this Chain.
+func (c *BFTChain) Halt() {
+	c.Logger.Infof("Shutting down chain")
+	c.consensus.Stop()
+}
+
+func (c *BFTChain) blockToProposalWithoutSignaturesInMetadata(block *cb.Block) types.Proposal {
+	blockClone := proto.Clone(block).(*cb.Block)
+	if len(blockClone.Metadata.Metadata) > int(cb.BlockMetadataIndex_SIGNATURES) {
+		signatureMetadata := &cb.Metadata{}
+		// Nil out signatures because we carry them around separately in the library format.
+		proto.Unmarshal(blockClone.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], signatureMetadata)
+		signatureMetadata.Signatures = nil
+		blockClone.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(signatureMetadata)
+	}
+	prop := types.Proposal{
+		Header: protoutil.BlockHeaderBytes(blockClone.Header),
+		Payload: (&ByteBufferTuple{
+			A: protoutil.MarshalOrPanic(blockClone.Data),
+			B: protoutil.MarshalOrPanic(blockClone.Metadata),
+		}).ToBytes(),
+		VerificationSequence: int64(c.verifier.VerificationSequence()),
+	}
+
+	if isConfigBlock(block) {
+		prop.VerificationSequence--
+	}
+
+	return prop
 }
 
 func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
-	panic("implement me")
+	proposal := c.blockToProposalWithoutSignaturesInMetadata(block)
+	if block.Header.Number == 0 {
+		return &types.Decision{
+			Proposal: proposal,
+		}
+	}
+
+	signatureMetadata := &cb.Metadata{}
+	if err := proto.Unmarshal(block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], signatureMetadata); err != nil {
+		c.Logger.Panicf("Failed unmarshaling signatures from block metadata: %v", err)
+	}
+
+	ordererMDFromBlock := &cb.OrdererBlockMetadata{}
+	if err := proto.Unmarshal(signatureMetadata.Value, ordererMDFromBlock); err != nil {
+		c.Logger.Panicf("Failed unmarshaling OrdererBlockMetadata from block signature metadata: %v", err)
+	}
+
+	proposal.Metadata = ordererMDFromBlock.ConsenterMetadata
+
+	var signatures []types.Signature
+	for _, sigMD := range signatureMetadata.Signatures {
+		id := sigMD.SignerId
+		sig := &Signature{
+			Nonce:                sigMD.Nonce,
+			BlockHeader:          protoutil.BlockHeaderBytes(block.Header),
+			OrdererBlockMetadata: signatureMetadata.Value,
+			AuxiliaryInput:       sigMD.AuxiliaryInput,
+		}
+		prpf := &smartbftprotos.PreparesFrom{}
+		if err := proto.Unmarshal(sigMD.AuxiliaryInput, prpf); err != nil {
+			c.Logger.Errorf("Failed unmarshaling auxiliary data")
+			continue
+		}
+		c.Logger.Infof("AuxiliaryInput[%d]: %v", id, prpf)
+		signatures = append(signatures, types.Signature{
+			Msg:   sig.Marshal(),
+			Value: sigMD.Signature,
+			ID:    id,
+		})
+	}
+
+	return &types.Decision{
+		Signatures: signatures,
+		Proposal:   proposal,
+	}
 }
 
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
@@ -424,6 +551,7 @@ type chainACL struct {
 	Logger        *flogging.FabricLogger
 }
 
+// Evaluate evaluates signed data
 func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
 	if !ok {

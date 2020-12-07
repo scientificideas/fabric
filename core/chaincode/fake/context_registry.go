@@ -52,9 +52,10 @@ func (fake *ContextRegistry) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
+	if stub != nil {
 		fake.CloseStub()
 	}
 }
@@ -77,15 +78,16 @@ func (fake *ContextRegistry) Create(arg1 *ccprovider.TransactionParams) (*chainc
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 *ccprovider.TransactionParams
 	}{arg1})
+	stub := fake.CreateStub
+	fakeReturns := fake.createReturns
 	fake.recordInvocation("Create", []interface{}{arg1})
 	fake.createMutex.Unlock()
-	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.createReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -140,9 +142,10 @@ func (fake *ContextRegistry) Delete(arg1 string, arg2 string) {
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.DeleteStub
 	fake.recordInvocation("Delete", []interface{}{arg1, arg2})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
+	if stub != nil {
 		fake.DeleteStub(arg1, arg2)
 	}
 }
@@ -173,15 +176,16 @@ func (fake *ContextRegistry) Get(arg1 string, arg2 string) *chaincode.Transactio
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.GetStub
+	fakeReturns := fake.getReturns
 	fake.recordInvocation("Get", []interface{}{arg1, arg2})
 	fake.getMutex.Unlock()
-	if fake.GetStub != nil {
-		return fake.GetStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getReturns
 	return fakeReturns.result1
 }
 

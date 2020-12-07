@@ -34,15 +34,16 @@ func (fake *ChannelPolicyReferenceProvider) NewPolicy(arg1 string, arg2 string) 
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.NewPolicyStub
+	fakeReturns := fake.newPolicyReturns
 	fake.recordInvocation("NewPolicy", []interface{}{arg1, arg2})
 	fake.newPolicyMutex.Unlock()
-	if fake.NewPolicyStub != nil {
-		return fake.NewPolicyStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.newPolicyReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

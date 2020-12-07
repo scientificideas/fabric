@@ -63,15 +63,16 @@ func (fake *Instance) ChaincodeServerInfo() (*ccintf.ChaincodeServerInfo, error)
 	ret, specificReturn := fake.chaincodeServerInfoReturnsOnCall[len(fake.chaincodeServerInfoArgsForCall)]
 	fake.chaincodeServerInfoArgsForCall = append(fake.chaincodeServerInfoArgsForCall, struct {
 	}{})
+	stub := fake.ChaincodeServerInfoStub
+	fakeReturns := fake.chaincodeServerInfoReturns
 	fake.recordInvocation("ChaincodeServerInfo", []interface{}{})
 	fake.chaincodeServerInfoMutex.Unlock()
-	if fake.ChaincodeServerInfoStub != nil {
-		return fake.ChaincodeServerInfoStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.chaincodeServerInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -119,15 +120,16 @@ func (fake *Instance) Start(arg1 *ccintf.PeerConnection) error {
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
 		arg1 *ccintf.PeerConnection
 	}{arg1})
+	stub := fake.StartStub
+	fakeReturns := fake.startReturns
 	fake.recordInvocation("Start", []interface{}{arg1})
 	fake.startMutex.Unlock()
-	if fake.StartStub != nil {
-		return fake.StartStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.startReturns
 	return fakeReturns.result1
 }
 
@@ -178,15 +180,16 @@ func (fake *Instance) Stop() error {
 	ret, specificReturn := fake.stopReturnsOnCall[len(fake.stopArgsForCall)]
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
 	}{})
+	stub := fake.StopStub
+	fakeReturns := fake.stopReturns
 	fake.recordInvocation("Stop", []interface{}{})
 	fake.stopMutex.Unlock()
-	if fake.StopStub != nil {
-		return fake.StopStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.stopReturns
 	return fakeReturns.result1
 }
 
@@ -230,15 +233,16 @@ func (fake *Instance) Wait() (int, error) {
 	ret, specificReturn := fake.waitReturnsOnCall[len(fake.waitArgsForCall)]
 	fake.waitArgsForCall = append(fake.waitArgsForCall, struct {
 	}{})
+	stub := fake.WaitStub
+	fakeReturns := fake.waitReturns
 	fake.recordInvocation("Wait", []interface{}{})
 	fake.waitMutex.Unlock()
-	if fake.WaitStub != nil {
-		return fake.WaitStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.waitReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

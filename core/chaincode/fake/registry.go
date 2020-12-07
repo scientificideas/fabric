@@ -51,15 +51,16 @@ func (fake *Registry) Deregister(arg1 string) error {
 	fake.deregisterArgsForCall = append(fake.deregisterArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.DeregisterStub
+	fakeReturns := fake.deregisterReturns
 	fake.recordInvocation("Deregister", []interface{}{arg1})
 	fake.deregisterMutex.Unlock()
-	if fake.DeregisterStub != nil {
-		return fake.DeregisterStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deregisterReturns
 	return fakeReturns.result1
 }
 
@@ -111,9 +112,10 @@ func (fake *Registry) Failed(arg1 string, arg2 error) {
 		arg1 string
 		arg2 error
 	}{arg1, arg2})
+	stub := fake.FailedStub
 	fake.recordInvocation("Failed", []interface{}{arg1, arg2})
 	fake.failedMutex.Unlock()
-	if fake.FailedStub != nil {
+	if stub != nil {
 		fake.FailedStub(arg1, arg2)
 	}
 }
@@ -142,9 +144,10 @@ func (fake *Registry) Ready(arg1 string) {
 	fake.readyArgsForCall = append(fake.readyArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.ReadyStub
 	fake.recordInvocation("Ready", []interface{}{arg1})
 	fake.readyMutex.Unlock()
-	if fake.ReadyStub != nil {
+	if stub != nil {
 		fake.ReadyStub(arg1)
 	}
 }
@@ -174,15 +177,16 @@ func (fake *Registry) Register(arg1 *chaincode.Handler) error {
 	fake.registerArgsForCall = append(fake.registerArgsForCall, struct {
 		arg1 *chaincode.Handler
 	}{arg1})
+	stub := fake.RegisterStub
+	fakeReturns := fake.registerReturns
 	fake.recordInvocation("Register", []interface{}{arg1})
 	fake.registerMutex.Unlock()
-	if fake.RegisterStub != nil {
-		return fake.RegisterStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.registerReturns
 	return fakeReturns.result1
 }
 

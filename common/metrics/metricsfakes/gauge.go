@@ -38,9 +38,10 @@ func (fake *Gauge) Add(arg1 float64) {
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
 		arg1 float64
 	}{arg1})
+	stub := fake.AddStub
 	fake.recordInvocation("Add", []interface{}{arg1})
 	fake.addMutex.Unlock()
-	if fake.AddStub != nil {
+	if stub != nil {
 		fake.AddStub(arg1)
 	}
 }
@@ -69,9 +70,10 @@ func (fake *Gauge) Set(arg1 float64) {
 	fake.setArgsForCall = append(fake.setArgsForCall, struct {
 		arg1 float64
 	}{arg1})
+	stub := fake.SetStub
 	fake.recordInvocation("Set", []interface{}{arg1})
 	fake.setMutex.Unlock()
-	if fake.SetStub != nil {
+	if stub != nil {
 		fake.SetStub(arg1)
 	}
 }
@@ -101,15 +103,16 @@ func (fake *Gauge) With(arg1 ...string) metrics.Gauge {
 	fake.withArgsForCall = append(fake.withArgsForCall, struct {
 		arg1 []string
 	}{arg1})
+	stub := fake.WithStub
+	fakeReturns := fake.withReturns
 	fake.recordInvocation("With", []interface{}{arg1})
 	fake.withMutex.Unlock()
-	if fake.WithStub != nil {
-		return fake.WithStub(arg1...)
+	if stub != nil {
+		return stub(arg1...)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.withReturns
 	return fakeReturns.result1
 }
 

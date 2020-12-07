@@ -38,15 +38,16 @@ func (fake *BroadcastClient) Close() error {
 	ret, specificReturn := fake.closeReturnsOnCall[len(fake.closeArgsForCall)]
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
+	fakeReturns := fake.closeReturns
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
-		return fake.CloseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.closeReturns
 	return fakeReturns.result1
 }
 
@@ -91,15 +92,16 @@ func (fake *BroadcastClient) Send(arg1 *common.Envelope) error {
 	fake.sendArgsForCall = append(fake.sendArgsForCall, struct {
 		arg1 *common.Envelope
 	}{arg1})
+	stub := fake.SendStub
+	fakeReturns := fake.sendReturns
 	fake.recordInvocation("Send", []interface{}{arg1})
 	fake.sendMutex.Unlock()
-	if fake.SendStub != nil {
-		return fake.SendStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.sendReturns
 	return fakeReturns.result1
 }
 

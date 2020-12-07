@@ -35,15 +35,16 @@ func (fake *Dialer) Dial(arg1 string, arg2 *x509.CertPool) (*grpc.ClientConn, er
 		arg1 string
 		arg2 *x509.CertPool
 	}{arg1, arg2})
+	stub := fake.DialStub
+	fakeReturns := fake.dialReturns
 	fake.recordInvocation("Dial", []interface{}{arg1, arg2})
 	fake.dialMutex.Unlock()
-	if fake.DialStub != nil {
-		return fake.DialStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.dialReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

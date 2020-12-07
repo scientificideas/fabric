@@ -29,15 +29,16 @@ func (fake *ConfigGetter) GetCurrConfig(arg1 string) *common.Config {
 	fake.getCurrConfigArgsForCall = append(fake.getCurrConfigArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetCurrConfigStub
+	fakeReturns := fake.getCurrConfigReturns
 	fake.recordInvocation("GetCurrConfig", []interface{}{arg1})
 	fake.getCurrConfigMutex.Unlock()
-	if fake.GetCurrConfigStub != nil {
-		return fake.GetCurrConfigStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.getCurrConfigReturns
 	return fakeReturns.result1
 }
 

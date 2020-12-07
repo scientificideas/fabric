@@ -31,9 +31,10 @@ func (fake *Observer) Check(arg1 zapcore.Entry, arg2 *zapcore.CheckedEntry) {
 		arg1 zapcore.Entry
 		arg2 *zapcore.CheckedEntry
 	}{arg1, arg2})
+	stub := fake.CheckStub
 	fake.recordInvocation("Check", []interface{}{arg1, arg2})
 	fake.checkMutex.Unlock()
-	if fake.CheckStub != nil {
+	if stub != nil {
 		fake.CheckStub(arg1, arg2)
 	}
 }
@@ -68,9 +69,10 @@ func (fake *Observer) WriteEntry(arg1 zapcore.Entry, arg2 []zapcore.Field) {
 		arg1 zapcore.Entry
 		arg2 []zapcore.Field
 	}{arg1, arg2Copy})
+	stub := fake.WriteEntryStub
 	fake.recordInvocation("WriteEntry", []interface{}{arg1, arg2Copy})
 	fake.writeEntryMutex.Unlock()
-	if fake.WriteEntryStub != nil {
+	if stub != nil {
 		fake.WriteEntryStub(arg1, arg2)
 	}
 }

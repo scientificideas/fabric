@@ -66,15 +66,16 @@ func (fake *StateListener) HandleStateUpdates(arg1 *ledger.StateUpdateTrigger) e
 	fake.handleStateUpdatesArgsForCall = append(fake.handleStateUpdatesArgsForCall, struct {
 		arg1 *ledger.StateUpdateTrigger
 	}{arg1})
+	stub := fake.HandleStateUpdatesStub
+	fakeReturns := fake.handleStateUpdatesReturns
 	fake.recordInvocation("HandleStateUpdates", []interface{}{arg1})
 	fake.handleStateUpdatesMutex.Unlock()
-	if fake.HandleStateUpdatesStub != nil {
-		return fake.HandleStateUpdatesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.handleStateUpdatesReturns
 	return fakeReturns.result1
 }
 
@@ -127,15 +128,16 @@ func (fake *StateListener) Initialize(arg1 string, arg2 ledger.SimpleQueryExecut
 		arg1 string
 		arg2 ledger.SimpleQueryExecutor
 	}{arg1, arg2})
+	stub := fake.InitializeStub
+	fakeReturns := fake.initializeReturns
 	fake.recordInvocation("Initialize", []interface{}{arg1, arg2})
 	fake.initializeMutex.Unlock()
-	if fake.InitializeStub != nil {
-		return fake.InitializeStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.initializeReturns
 	return fakeReturns.result1
 }
 
@@ -186,15 +188,16 @@ func (fake *StateListener) InterestedInNamespaces() []string {
 	ret, specificReturn := fake.interestedInNamespacesReturnsOnCall[len(fake.interestedInNamespacesArgsForCall)]
 	fake.interestedInNamespacesArgsForCall = append(fake.interestedInNamespacesArgsForCall, struct {
 	}{})
+	stub := fake.InterestedInNamespacesStub
+	fakeReturns := fake.interestedInNamespacesReturns
 	fake.recordInvocation("InterestedInNamespaces", []interface{}{})
 	fake.interestedInNamespacesMutex.Unlock()
-	if fake.InterestedInNamespacesStub != nil {
-		return fake.InterestedInNamespacesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.interestedInNamespacesReturns
 	return fakeReturns.result1
 }
 
@@ -238,15 +241,16 @@ func (fake *StateListener) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -290,9 +294,10 @@ func (fake *StateListener) StateCommitDone(arg1 string) {
 	fake.stateCommitDoneArgsForCall = append(fake.stateCommitDoneArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.StateCommitDoneStub
 	fake.recordInvocation("StateCommitDone", []interface{}{arg1})
 	fake.stateCommitDoneMutex.Unlock()
-	if fake.StateCommitDoneStub != nil {
+	if stub != nil {
 		fake.StateCommitDoneStub(arg1)
 	}
 }

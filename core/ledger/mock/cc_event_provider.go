@@ -33,15 +33,16 @@ func (fake *ChaincodeLifecycleEventProvider) RegisterListener(arg1 string, arg2 
 		arg2 ledger.ChaincodeLifecycleEventListener
 		arg3 bool
 	}{arg1, arg2, arg3})
+	stub := fake.RegisterListenerStub
+	fakeReturns := fake.registerListenerReturns
 	fake.recordInvocation("RegisterListener", []interface{}{arg1, arg2, arg3})
 	fake.registerListenerMutex.Unlock()
-	if fake.RegisterListenerStub != nil {
-		return fake.RegisterListenerStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.registerListenerReturns
 	return fakeReturns.result1
 }
 

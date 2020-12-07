@@ -58,15 +58,16 @@ func (fake *ApplicationOrgConfig) AnchorPeers() []*peer.AnchorPeer {
 	ret, specificReturn := fake.anchorPeersReturnsOnCall[len(fake.anchorPeersArgsForCall)]
 	fake.anchorPeersArgsForCall = append(fake.anchorPeersArgsForCall, struct {
 	}{})
+	stub := fake.AnchorPeersStub
+	fakeReturns := fake.anchorPeersReturns
 	fake.recordInvocation("AnchorPeers", []interface{}{})
 	fake.anchorPeersMutex.Unlock()
-	if fake.AnchorPeersStub != nil {
-		return fake.AnchorPeersStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.anchorPeersReturns
 	return fakeReturns.result1
 }
 
@@ -110,15 +111,16 @@ func (fake *ApplicationOrgConfig) MSP() msp.MSP {
 	ret, specificReturn := fake.mSPReturnsOnCall[len(fake.mSPArgsForCall)]
 	fake.mSPArgsForCall = append(fake.mSPArgsForCall, struct {
 	}{})
+	stub := fake.MSPStub
+	fakeReturns := fake.mSPReturns
 	fake.recordInvocation("MSP", []interface{}{})
 	fake.mSPMutex.Unlock()
-	if fake.MSPStub != nil {
-		return fake.MSPStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.mSPReturns
 	return fakeReturns.result1
 }
 
@@ -162,15 +164,16 @@ func (fake *ApplicationOrgConfig) MSPID() string {
 	ret, specificReturn := fake.mSPIDReturnsOnCall[len(fake.mSPIDArgsForCall)]
 	fake.mSPIDArgsForCall = append(fake.mSPIDArgsForCall, struct {
 	}{})
+	stub := fake.MSPIDStub
+	fakeReturns := fake.mSPIDReturns
 	fake.recordInvocation("MSPID", []interface{}{})
 	fake.mSPIDMutex.Unlock()
-	if fake.MSPIDStub != nil {
-		return fake.MSPIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.mSPIDReturns
 	return fakeReturns.result1
 }
 
@@ -214,15 +217,16 @@ func (fake *ApplicationOrgConfig) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
