@@ -14,6 +14,8 @@ import (
 	smartbft "github.com/SmartBFT-Go/consensus/pkg/consensus"
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/pkg/wal"
+	"github.com/SmartBFT-Go/consensus/smartbftprotos"
+	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/bccsp"
@@ -109,13 +111,12 @@ func NewChain(
 		PolicyManager:    policyManager,
 		BlockPuller:      blockPuller,
 		Logger:           logger,
-		// todo: BFT metrics
-		//Metrics: &Metrics{
-		//	ClusterSize:          metrics.ClusterSize.With("channel", support.ChannelID()),
-		//	CommittedBlockNumber: metrics.CommittedBlockNumber.With("channel", support.ChannelID()),
-		//	IsLeader:             metrics.IsLeader.With("channel", support.ChannelID()),
-		//	LeaderID:             metrics.LeaderID.With("channel", support.ChannelID()),
-		//},
+		Metrics: &Metrics{
+			ClusterSize:          metrics.ClusterSize.With("channel", support.ChannelID()),
+			CommittedBlockNumber: metrics.CommittedBlockNumber.With("channel", support.ChannelID()),
+			IsLeader:             metrics.IsLeader.With("channel", support.ChannelID()),
+			LeaderID:             metrics.LeaderID.With("channel", support.ChannelID()),
+		},
 	}
 
 	lastBlock := LastBlockFromLedgerOrPanic(support, c.Logger)
@@ -176,8 +177,7 @@ func bftSmartConsensusBuild(
 	clusterSize := uint64(len(rtc.Nodes))
 
 	// report cluster size
-	// TODO: implement ClusterSize for Metrics and uncomment the line below
-	// c.Metrics.ClusterSize.Set(float64(clusterSize))
+	c.Metrics.ClusterSize.Set(float64(clusterSize))
 
 	sync := &Synchronizer{
 		selfID:          rtc.id,
@@ -262,6 +262,72 @@ func (c *BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
 }
 
 func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature) types.Reconfig {
+	block, err := ProposalToBlock(proposal)
+	if err != nil {
+		c.Logger.Panicf("failed to read proposal, err: %s", err)
+	}
+
+	// var sigs []*common.MetadataSignature
+	// var ordererBlockMetadata []byte
+
+	// var signers []uint64
+
+	// for _, s := range signatures {
+	// 	sig := &Signature{}
+	// 	if err := sig.Unmarshal(s.Msg); err != nil {
+	// 		c.Logger.Errorf("Failed unmarshaling signature from %d: %v", s.ID, err)
+	// 		c.Logger.Errorf("Offending signature Msg: %s", base64.StdEncoding.EncodeToString(s.Msg))
+	// 		c.Logger.Errorf("Offending signature Value: %s", base64.StdEncoding.EncodeToString(s.Value))
+	// 		c.Logger.Errorf("Halting chain.")
+	// 		c.Halt()
+	// 		return types.Reconfig{}
+	// 	}
+
+	// 	if ordererBlockMetadata == nil {
+	// 		ordererBlockMetadata = sig.OrdererBlockMetadata
+	// 	}
+
+	// 	sigs = append(sigs, &common.MetadataSignature{
+	// 		AuxiliaryInput: sig.AuxiliaryInput,
+	// 		Signature:      s.Value,
+	// 		// We do not put a signature header when we commit the block.
+	// 		// Instead, we put the nonce and the identifier and at validation
+	// 		// we reconstruct the signature header at runtime.
+	// 		// SignatureHeader: sig.SignatureHeader,
+	// 		Nonce:    sig.Nonce,
+	// 		SignerId: s.ID,
+	// 	})
+
+	// 	signers = append(signers, s.ID)
+	// }
+
+	// block.Metadata.Metadata[common.BlockMetadataIndex_SIGNATURES] = utils.MarshalOrPanic(&common.Metadata{
+	// 	Value:      ordererBlockMetadata,
+	// 	Signatures: sigs,
+	// })
+
+	// var mdTotalSize int
+	// for _, md := range block.Metadata.Metadata {
+	// 	mdTotalSize += len(md)
+	// }
+
+	// c.Logger.Infof("Delivering proposal, writing block %d with %d transactions and metadata of total size %d with signatures from %v to the ledger, node id %d",
+	// 	block.Header.Number,
+	// 	len(block.Data.Data),
+	// 	mdTotalSize,
+	// 	signers,
+	// 	c.Config.SelfID)
+	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
+	c.reportIsLeader(&proposal)                                      // report the leader
+	// if utils.IsConfigBlock(block) {
+
+	// 	c.support.WriteConfigBlock(block, nil)
+	// } else {
+	// 	c.support.WriteBlock(block, nil)
+	// }
+
+	// reconfig := c.updateRuntimeConfig(block)
+	// return reconfig
 	panic("implement me")
 }
 
@@ -270,7 +336,8 @@ func (c *BFTChain) WaitReady() error {
 }
 
 func (c *BFTChain) Errored() <-chan struct{} {
-	panic("implement me")
+	// TODO: Implement Errored
+	return nil
 }
 
 func (c *BFTChain) Start() {
@@ -290,11 +357,36 @@ func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
 }
 
 func (c *BFTChain) lastPersistedProposalAndSignatures() (*types.Proposal, []types.Signature) {
-	panic("implement me")
+	lastBlock := LastBlockFromLedgerOrPanic(c.support, c.Logger)
+	// initial report of the last committed block number
+	c.Metrics.CommittedBlockNumber.Set(float64(lastBlock.Header.Number))
+	decision := c.blockToDecision(lastBlock)
+	return &decision.Proposal, decision.Signatures
 }
 
 func (c *BFTChain) reportIsLeader(proposal *types.Proposal) {
-	panic("implement me")
+	var viewNum uint64
+	if proposal.Metadata == nil { // genesis block
+		viewNum = 0
+	} else {
+		proposalMD := &smartbftprotos.ViewMetadata{}
+		if err := proto.Unmarshal(proposal.Metadata, proposalMD); err != nil {
+			c.Logger.Panicf("Failed unmarshaling smartbft metadata from proposal: %v", err)
+		}
+		viewNum = proposalMD.ViewId
+	}
+
+	nodes := c.RuntimeConfig.Load().(RuntimeConfig).Nodes
+	n := uint64(len(nodes))
+	leaderID := nodes[viewNum%n] // same calculation as done in the library
+
+	c.Metrics.LeaderID.Set(float64(leaderID))
+
+	if leaderID == c.Config.SelfID {
+		c.Metrics.IsLeader.Set(1)
+	} else {
+		c.Metrics.IsLeader.Set(0)
+	}
 }
 
 func buildVerifier(

@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/hyperledger/fabric-protos-go/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/flogging"
@@ -201,8 +202,22 @@ var genesisDefaults = TopLevel{
 			},
 		},
 		SmartBFT: &smartbft.ConfigMetadata{
-			Consenters: []*smartbft.Consenter{
-				{},
+			Options: &smartbft.Options{
+				RequestBatchMaxCount:      uint64(types.DefaultConfig.RequestBatchMaxCount),
+				RequestBatchMaxBytes:      uint64(types.DefaultConfig.RequestBatchMaxBytes),
+				RequestBatchMaxInterval:   types.DefaultConfig.RequestBatchMaxInterval.String(),
+				IncomingMessageBufferSize: uint64(types.DefaultConfig.IncomingMessageBufferSize),
+				RequestPoolSize:           uint64(types.DefaultConfig.RequestPoolSize),
+				RequestForwardTimeout:     types.DefaultConfig.RequestForwardTimeout.String(),
+				RequestComplainTimeout:    types.DefaultConfig.RequestComplainTimeout.String(),
+				RequestAutoRemoveTimeout:  types.DefaultConfig.RequestAutoRemoveTimeout.String(),
+				ViewChangeResendInterval:  types.DefaultConfig.ViewChangeResendInterval.String(),
+				ViewChangeTimeout:         types.DefaultConfig.ViewChangeTimeout.String(),
+				LeaderHeartbeatTimeout:    types.DefaultConfig.LeaderHeartbeatTimeout.String(),
+				LeaderHeartbeatCount:      uint64(types.DefaultConfig.LeaderHeartbeatCount),
+				CollectTimeout:            types.DefaultConfig.CollectTimeout.String(),
+				SyncOnStart:               types.DefaultConfig.SyncOnStart,
+				SpeedUpViewChange:         types.DefaultConfig.SpeedUpViewChange,
 			},
 		},
 	},
