@@ -162,7 +162,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 			id2Identity:        map[uint64][]byte{3: {0, 2, 4, 6}},
 			signatureMutator: func(signature types.Signature) types.Signature {
 				sig := smartbft.Signature{}
-				sig.Unmarshal(signature.Msg)
+				_ = sig.Unmarshal(signature.Msg)
 				sig.OrdererBlockMetadata = nil
 				return types.Signature{
 					ID:    signature.ID,
@@ -179,7 +179,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 			id2Identity:        map[uint64][]byte{3: {0, 2, 4, 6}},
 			signatureMutator: func(signature types.Signature) types.Signature {
 				sig := smartbft.Signature{}
-				sig.Unmarshal(signature.Msg)
+				_ = sig.Unmarshal(signature.Msg)
 				sig.BlockHeader = nil
 				return types.Signature{
 					ID:    signature.ID,
@@ -196,7 +196,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 			id2Identity:        map[uint64][]byte{3: {0, 2, 4, 6}},
 			signatureMutator: func(signature types.Signature) types.Signature {
 				sig := smartbft.Signature{}
-				sig.Unmarshal(signature.Msg)
+				_ = sig.Unmarshal(signature.Msg)
 				sig.Nonce = nil
 				return types.Signature{
 					ID:    signature.ID,
@@ -213,7 +213,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 			id2Identity:        map[uint64][]byte{3: {0, 2, 4, 6}},
 			signatureMutator: func(signature types.Signature) types.Signature {
 				sig := smartbft.Signature{}
-				sig.Unmarshal(signature.Msg)
+				_ = sig.Unmarshal(signature.Msg)
 				sig.OrdererBlockMetadata = []byte{1, 2, 3}
 				return types.Signature{
 					ID:    signature.ID,
@@ -265,7 +265,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 				block, _ := smartbft.ProposalToBlock(proposal)
 				block.Metadata.Metadata = make([][]byte, len(cb.BlockMetadataIndex_name)-1)
 				bbt := &smartbft.ByteBufferTuple{}
-				bbt.FromBytes(proposal.Payload)
+				_ = bbt.FromBytes(proposal.Payload)
 				bbt.B = protoutil.MarshalOrPanic(block.Metadata)
 				proposal.Payload = bbt.ToBytes()
 				return proposal
@@ -281,7 +281,7 @@ func TestVerifyConsenterSig(t *testing.T) {
 				block, _ := smartbft.ProposalToBlock(proposal)
 				block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = []byte{1, 2, 3}
 				bbt := &smartbft.ByteBufferTuple{}
-				bbt.FromBytes(proposal.Payload)
+				_ = bbt.FromBytes(proposal.Payload)
 				bbt.B = protoutil.MarshalOrPanic(block.Metadata)
 				proposal.Payload = bbt.ToBytes()
 				return proposal
@@ -296,11 +296,11 @@ func TestVerifyConsenterSig(t *testing.T) {
 			proposalMutator: func(proposal types.Proposal) types.Proposal {
 				block, _ := smartbft.ProposalToBlock(proposal)
 				md := &cb.Metadata{}
-				proto.Unmarshal(block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], md)
+				_ = proto.Unmarshal(block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], md)
 				md.Value = []byte{1, 2, 3}
 				block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(md)
 				bbt := &smartbft.ByteBufferTuple{}
-				bbt.FromBytes(proposal.Payload)
+				_ = bbt.FromBytes(proposal.Payload)
 				bbt.B = protoutil.MarshalOrPanic(block.Metadata)
 				proposal.Payload = bbt.ToBytes()
 				return proposal
@@ -315,14 +315,14 @@ func TestVerifyConsenterSig(t *testing.T) {
 			proposalMutator: func(proposal types.Proposal) types.Proposal {
 				block, _ := smartbft.ProposalToBlock(proposal)
 				md := &cb.Metadata{}
-				proto.Unmarshal(block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], md)
+				_ = proto.Unmarshal(block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], md)
 				obm := &cb.OrdererBlockMetadata{}
-				proto.Unmarshal(md.Value, obm)
+				_ = proto.Unmarshal(md.Value, obm)
 				obm.LastConfig.Index++
 				md.Value = protoutil.MarshalOrPanic(obm)
 				block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(md)
 				bbt := &smartbft.ByteBufferTuple{}
-				bbt.FromBytes(proposal.Payload)
+				_ = bbt.FromBytes(proposal.Payload)
 				bbt.B = protoutil.MarshalOrPanic(block.Metadata)
 				proposal.Payload = bbt.ToBytes()
 				return proposal
@@ -567,7 +567,7 @@ func TestVerifyProposal(t *testing.T) {
 
 			// Unwrap the OrdererBlockMetadata
 			tuple := &smartbft.ByteBufferTuple{}
-			tuple.FromBytes(proposal.Payload)
+			_ = tuple.FromBytes(proposal.Payload)
 			blockMD := &cb.BlockMetadata{}
 			assert.NoError(t, proto.Unmarshal(tuple.B, blockMD))
 
