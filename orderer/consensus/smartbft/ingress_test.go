@@ -41,7 +41,7 @@ func TestDispatchConsensus(t *testing.T) {
 		rg := &mocks.ReceiverGetter{}
 		rg.On("ReceiverByChain", "mychannel").Return(mr).Twice()
 
-		ingress := &smartbft.Ingreess{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
+		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		// Good message
 		err := ingress.OnConsensus("mychannel", 1, &ab.ConsensusRequest{
@@ -66,7 +66,7 @@ func TestDispatchConsensus(t *testing.T) {
 		rg := &mocks.ReceiverGetter{}
 		rg.On("ReceiverByChain", "notmychannel").Return(nil).Once()
 
-		ingress := &smartbft.Ingreess{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
+		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnConsensus("notmychannel", 1, nil)
 		assert.EqualError(t, err, "channel notmychannel doesn't exist")
@@ -93,7 +93,7 @@ func TestDispatchSubmit(t *testing.T) {
 		rg := &mocks.ReceiverGetter{}
 		rg.On("ReceiverByChain", "mychannel").Return(mr).Once()
 
-		ingress := &smartbft.Ingreess{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
+		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnSubmit("mychannel", 1, expectedRequest)
 		assert.NoError(t, err)
@@ -105,7 +105,7 @@ func TestDispatchSubmit(t *testing.T) {
 		rg := &mocks.ReceiverGetter{}
 		rg.On("ReceiverByChain", "notmychannel").Return(nil).Once()
 
-		ingress := &smartbft.Ingreess{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
+		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnSubmit("notmychannel", 1, expectedRequest)
 		assert.EqualError(t, err, "channel notmychannel doesn't exist")

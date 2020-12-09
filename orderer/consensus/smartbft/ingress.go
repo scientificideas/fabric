@@ -34,14 +34,14 @@ type WarningLogger interface {
 	Warningf(template string, args ...interface{})
 }
 
-// Ingreess dispatches Submit and Step requests to the designated per chain instances
-type Ingreess struct {
+// Ingress dispatches Submit and Step requests to the designated per chain instances
+type Ingress struct {
 	Logger        WarningLogger
 	ChainSelector ReceiverGetter
 }
 
-// OnConsensus notifies the Ingreess for a reception of a StepRequest from a given sender on a given channel
-func (in *Ingreess) OnConsensus(channel string, sender uint64, request *ab.ConsensusRequest) error {
+// OnConsensus notifies the Ingress for a reception of a StepRequest from a given sender on a given channel
+func (in *Ingress) OnConsensus(channel string, sender uint64, request *ab.ConsensusRequest) error {
 	receiver := in.ChainSelector.ReceiverByChain(channel)
 	if receiver == nil {
 		in.Logger.Warningf("An attempt to send a consensus request to a non existing channel (%s) was made by %d", channel, sender)
@@ -56,8 +56,8 @@ func (in *Ingreess) OnConsensus(channel string, sender uint64, request *ab.Conse
 	return nil
 }
 
-// OnSubmit notifies the Ingreess for a reception of a SubmitRequest from a given sender on a given channel
-func (in *Ingreess) OnSubmit(channel string, sender uint64, request *ab.SubmitRequest) error {
+// OnSubmit notifies the Ingress for a reception of a SubmitRequest from a given sender on a given channel
+func (in *Ingress) OnSubmit(channel string, sender uint64, request *ab.SubmitRequest) error {
 	receiver := in.ChainSelector.ReceiverByChain(channel)
 	if receiver == nil {
 		in.Logger.Warningf("An attempt to submit a transaction to a non existing channel (%s) was made by %d", channel, sender)

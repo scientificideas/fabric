@@ -123,7 +123,7 @@ func New(
 		Connections:                      cluster.NewConnectionStore(clusterDialer, metrics.EgressTLSConnectionCount),
 		Metrics:                          metrics,
 		ChanExt:                          consenter,
-		H: &Ingreess{
+		H: &Ingress{
 			Logger:        logger,
 			ChainSelector: consenter,
 		},
