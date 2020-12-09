@@ -5,7 +5,7 @@ go 1.14
 // develop
 replace github.com/hyperledger/fabric => ./
 
-replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201207144633-9abfba6dd094
+replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201209100050-a2e6d918029b
 
 replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2
 
@@ -46,7 +46,8 @@ require (
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed
 	github.com/hyperledger/fabric-config v0.0.7
 	github.com/hyperledger/fabric-lib-go v1.0.0
-	github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354
+	github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e
+	//	github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
@@ -73,6 +74,7 @@ require (
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc
 	github.com/willf/bitset v1.1.10
 	gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8 // indirect
+	gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201209100050-a2e6d918029b // indirect
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
