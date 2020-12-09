@@ -58,4 +58,3 @@ func NewMetrics(p metrics.Provider) *Metrics {
 		LeaderID:             p.NewGauge(leaderIDOpts),
 	}
 }
-
