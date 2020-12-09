@@ -86,4 +86,3 @@ func randomNonceOrPanic() []byte {
 	}
 	return nonce
 }
-

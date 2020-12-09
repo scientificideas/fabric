@@ -261,7 +261,9 @@ func (c *BFTChain) submit(env *cb.Envelope, configSeq uint64) error {
 	}
 
 	c.Logger.Debugf("Consensus.SubmitRequest, node id %d", c.Config.SelfID)
-	c.consensus.SubmitRequest(reqBytes)
+	if err := c.consensus.SubmitRequest(reqBytes); err != nil {
+		return errors.Wrapf(err, "failed to submit request")
+	}
 	return nil
 }
 
@@ -370,7 +372,6 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 
 	reconfig := c.updateRuntimeConfig(block)
 	return reconfig
-	panic("implement me")
 }
 
 // WaitReady blocks waiting for consenter to be ready for accepting new messages.
@@ -412,7 +413,10 @@ func (c *BFTChain) blockToProposalWithoutSignaturesInMetadata(block *cb.Block) t
 	if len(blockClone.Metadata.Metadata) > int(cb.BlockMetadataIndex_SIGNATURES) {
 		signatureMetadata := &cb.Metadata{}
 		// Nil out signatures because we carry them around separately in the library format.
-		proto.Unmarshal(blockClone.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], signatureMetadata)
+		if err := proto.Unmarshal(blockClone.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES], signatureMetadata); err != nil {
+			// nothing to do
+			c.Logger.Errorf("Error unmarshalling signature metadata from block: %s", err)
+		}
 		signatureMetadata.Signatures = nil
 		blockClone.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(signatureMetadata)
 	}

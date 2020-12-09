@@ -110,6 +110,16 @@ The following orderer metrics are exported for consumption by Prometheus.
 +----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
 | consensus_kafka_response_size                | gauge     | The mean response size in bytes from brokers.              | broker_id |                                                                    |
 +----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
+| consensus_smartbft_cluster_size              | gauge     | Number of nodes in this channel.                           | channel   |                                                                    |
++----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
+| consensus_smartbft_committed_block_number    | gauge     | The number of the latest committed block.                  | channel   |                                                                    |
++----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
+| consensus_smartbft_is_leader                 | gauge     | The leadership status of the current node according to the | channel   |                                                                    |
+|                                              |           | latest committed block: 1 if it is the leader else 0.      |           |                                                                    |
++----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
+| consensus_smartbft_leader_id                 | gauge     | The id of the current leader according to the latest       | channel   |                                                                    |
+|                                              |           | committed block.                                           |           |                                                                    |
++----------------------------------------------+-----------+------------------------------------------------------------+-----------+--------------------------------------------------------------------+
 | deliver_blocks_sent                          | counter   | The number of blocks sent by the deliver service.          | channel   |                                                                    |
 |                                              |           |                                                            +-----------+--------------------------------------------------------------------+
 |                                              |           |                                                            | filtered  |                                                                    |
@@ -287,6 +297,16 @@ associated with the metric.
 | consensus.kafka.response_rate.%{broker_id}                                | gauge     | Requests/second sent to brokers.                           |
 +---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
 | consensus.kafka.response_size.%{broker_id}                                | gauge     | The mean response size in bytes from brokers.              |
++---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
+| consensus.smartbft.cluster_size.%{channel}                                | gauge     | Number of nodes in this channel.                           |
++---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
+| consensus.smartbft.committed_block_number.%{channel}                      | gauge     | The number of the latest committed block.                  |
++---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
+| consensus.smartbft.is_leader.%{channel}                                   | gauge     | The leadership status of the current node according to the |
+|                                                                           |           | latest committed block: 1 if it is the leader else 0.      |
++---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
+| consensus.smartbft.leader_id.%{channel}                                   | gauge     | The id of the current leader according to the latest       |
+|                                                                           |           | committed block.                                           |
 +---------------------------------------------------------------------------+-----------+------------------------------------------------------------+
 | deliver.blocks_sent.%{channel}.%{filtered}.%{data_type}                   | counter   | The number of blocks sent by the deliver service.          |
 +---------------------------------------------------------------------------+-----------+------------------------------------------------------------+

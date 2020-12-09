@@ -111,7 +111,7 @@ func New(
 		SignerSerializer:      signerSerializer,
 		WALBaseDir:            walConfig.WALDir,
 		Metrics:               NewMetrics(metricsProvider),
-		CreateChain: r.CreateChain,
+		CreateChain:           r.CreateChain,
 	}
 
 	consenter.Comm = &cluster.Comm{
