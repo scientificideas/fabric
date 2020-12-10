@@ -199,6 +199,13 @@ func NewBundle(channelID string, config *cb.Config, bccsp bccsp.BCCSP) (*Bundle,
 			policyProviderMap[pType] = cauthdsl.NewPolicyProvider(channelConfig.MSPManager())
 		case cb.Policy_MSP:
 			// Add hook for MSP Handler here
+		// TODO: implement in dynamic reconfiguration BFT-12
+		// case cb.Policy_IMPLICIT_ORDERER:
+		// 	policyProviderMap[pType] = orderer.NewPolicyProvider(
+		// 		channelConfig.MSPManager(),
+		// 		channelConfig.OrdererConfig().ConsensusType(),
+		// 		channelConfig.OrdererConfig().ConsensusMetadata(),
+		// 	)
 		}
 	}
 
