@@ -48,6 +48,7 @@ func Envelope(policy *cb.SignaturePolicy, identities [][]byte) *cb.SignaturePoli
 	}
 }
 
+
 // SignedBy creates a SignaturePolicy requiring a given signer's signature
 func SignedBy(index int32) *cb.SignaturePolicy {
 	return &cb.SignaturePolicy{
@@ -134,6 +135,28 @@ func SignedByNOutOfGivenRole(n int32, role mb.MSPRole_MSPRoleType, ids []string)
 	p := &cb.SignaturePolicyEnvelope{
 		Version:    0,
 		Rule:       NOutOf(n, sigspolicy),
+		Identities: principals,
+	}
+
+	return p
+}
+
+// SignedByNOutOfGivenIdentities returns a policy that requires N valid signatures from the given identities.
+func SignedByNOutOfGivenIdentities(n int32, identities [][]byte) *cb.SignaturePolicyEnvelope {
+	principals := make([]*mb.MSPPrincipal, len(identities))
+	signedBySigPolicies := make([]*cb.SignaturePolicy, len(identities))
+	for i, identity := range identities {
+		principals[i] = &mb.MSPPrincipal{
+			PrincipalClassification: mb.MSPPrincipal_IDENTITY,
+			Principal:               identity,
+		}
+		signedBySigPolicies[i] = SignedBy(int32(i))
+	}
+
+	// create the policy: it requires exactly n signature out of the principals (identities).
+	p := &cb.SignaturePolicyEnvelope{
+		Version:    0,
+		Rule:       NOutOf(n, signedBySigPolicies),
 		Identities: principals,
 	}
 
