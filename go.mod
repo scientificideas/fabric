@@ -5,7 +5,7 @@ go 1.14
 // develop
 replace github.com/hyperledger/fabric => ./
 
-replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201209100050-a2e6d918029b
+replace github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201215092930-2292463a9d1e
 
 replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2
 
@@ -47,7 +47,6 @@ require (
 	github.com/hyperledger/fabric-config v0.0.7
 	github.com/hyperledger/fabric-lib-go v1.0.0
 	github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e
-	//	github.com/hyperledger/fabric-protos-go v0.0.0-20201028172056-a3136dde2354
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.0
 	github.com/magiconair/properties v1.8.1 // indirect
