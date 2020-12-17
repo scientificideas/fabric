@@ -13,6 +13,7 @@ import (
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
+	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
@@ -42,7 +43,7 @@ type DeliverClient struct {
 	BestEffort  bool
 }
 
-func (d *DeliverClient) seekSpecified(blockNumber uint64) error {
+func (d *DeliverClient) seekSpecified(blockNumber uint64, contentType ab.SeekInfo_SeekContentType) error {
 	seekPosition := &ab.SeekPosition{
 		Type: &ab.SeekPosition_Specified{
 			Specified: &ab.SeekSpecified{
@@ -50,17 +51,17 @@ func (d *DeliverClient) seekSpecified(blockNumber uint64) error {
 			},
 		},
 	}
-	env := seekHelper(d.ChannelID, seekPosition, d.TLSCertHash, d.Signer, d.BestEffort)
+	env := seekHelper(d.ChannelID, seekPosition, d.TLSCertHash, d.Signer, d.BestEffort, contentType)
 	return d.Service.Send(env)
 }
 
-func (d *DeliverClient) seekOldest() error {
-	env := seekHelper(d.ChannelID, seekOldest, d.TLSCertHash, d.Signer, d.BestEffort)
+func (d *DeliverClient) seekOldest(contentType ab.SeekInfo_SeekContentType) error {
+	env := seekHelper(d.ChannelID, seekOldest, d.TLSCertHash, d.Signer, d.BestEffort, contentType)
 	return d.Service.Send(env)
 }
 
-func (d *DeliverClient) seekNewest() error {
-	env := seekHelper(d.ChannelID, seekNewest, d.TLSCertHash, d.Signer, d.BestEffort)
+func (d *DeliverClient) seekNewest(contentType ab.SeekInfo_SeekContentType) error {
+	env := seekHelper(d.ChannelID, seekNewest, d.TLSCertHash, d.Signer, d.BestEffort, contentType)
 	return d.Service.Send(env)
 }
 
@@ -90,7 +91,7 @@ func (d *DeliverClient) readBlock() (*cb.Block, error) {
 // GetSpecifiedBlock gets the specified block from a peer/orderer's deliver
 // service
 func (d *DeliverClient) GetSpecifiedBlock(num uint64) (*cb.Block, error) {
-	err := d.seekSpecified(num)
+	err := d.seekSpecified(num, ab.SeekInfo_BLOCK)
 	if err != nil {
 		return nil, errors.WithMessage(err, "error getting specified block")
 	}
@@ -100,7 +101,7 @@ func (d *DeliverClient) GetSpecifiedBlock(num uint64) (*cb.Block, error) {
 
 // GetOldestBlock gets the oldest block from a peer/orderer's deliver service
 func (d *DeliverClient) GetOldestBlock() (*cb.Block, error) {
-	err := d.seekOldest()
+	err := d.seekOldest(ab.SeekInfo_BLOCK)
 	if err != nil {
 		return nil, errors.WithMessage(err, "error getting oldest block")
 	}
@@ -110,7 +111,7 @@ func (d *DeliverClient) GetOldestBlock() (*cb.Block, error) {
 
 // GetNewestBlock gets the newest block from a peer/orderer's deliver service
 func (d *DeliverClient) GetNewestBlock() (*cb.Block, error) {
-	err := d.seekNewest()
+	err := d.seekNewest(ab.SeekInfo_BLOCK)
 	if err != nil {
 		return nil, errors.WithMessage(err, "error getting newest block")
 	}
@@ -118,10 +119,33 @@ func (d *DeliverClient) GetNewestBlock() (*cb.Block, error) {
 	return d.readBlock()
 }
 
+func (d *DeliverClient) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) error {
+	height, err := ledgerInfoProvider.LedgerHeight()
+	if err != nil {
+		logger.Errorf("Can't get ledger height for channel %s from committer [%s]", d.ChannelID, err)
+		return err
+	}
+
+	if height > 0 {
+		logger.Infof("Starting deliver with block [%d] for channel %s", height, d.ChannelID)
+		if err := d.seekSpecified(height, ab.SeekInfo_HEADER_WITH_SIG); err != nil {
+			return err
+		}
+	} else {
+		logger.Infof("Starting deliver with oldest block for channel %s", d.ChannelID)
+		if err := d.seekOldest(ab.SeekInfo_HEADER_WITH_SIG); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Close closes a deliver client's connection
 func (d *DeliverClient) Close() error {
 	return d.Service.CloseSend()
 }
+
 
 func seekHelper(
 	channelID string,
@@ -129,11 +153,13 @@ func seekHelper(
 	tlsCertHash []byte,
 	signer identity.SignerSerializer,
 	bestEffort bool,
+	contentType ab.SeekInfo_SeekContentType,
 ) *cb.Envelope {
 	seekInfo := &ab.SeekInfo{
 		Start:    position,
 		Stop:     position,
 		Behavior: ab.SeekInfo_BLOCK_UNTIL_READY,
+		ContentType: contentType,
 	}
 
 	if bestEffort {
