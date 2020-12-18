@@ -114,7 +114,7 @@ func TestInitGossipService(t *testing.T) {
 	require.NoError(t, err)
 	signer := mgmt.GetLocalSigningIdentityOrPanic(cryptoProvider)
 
-	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
+	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, &mocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
 	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
 	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
 	require.NoError(t, err)
@@ -843,6 +843,10 @@ func (*naiveCryptoService) GetPKIidOfCert(peerIdentity api.PeerIdentityType) gos
 // VerifyBlock returns nil if the block is properly signed,
 // else returns error
 func (*naiveCryptoService) VerifyBlock(chainID gossipcommon.ChannelID, seqNum uint64, signedBlock *common.Block) error {
+	return nil
+}
+
+func (*naiveCryptoService) VerifyHeader(channelID string, signedBlock *common.Block) error {
 	return nil
 }
 
