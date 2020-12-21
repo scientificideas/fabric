@@ -412,6 +412,10 @@ func (*NoopBlockVerifier) VerifyBlockSignature(sd []*protoutil.SignedData, confi
 	return nil
 }
 
+func (*NoopBlockVerifier) Id2Identity(envelope *common.ConfigEnvelope) map[uint64][]byte {
+       return nil
+}
+
 //go:generate mockery -dir . -name ChainPuller -case underscore -output mocks/
 
 // ChainPuller pulls blocks from a chain

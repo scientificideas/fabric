@@ -177,3 +177,8 @@ func (mcs *ConsenterSupport) Append(block *cb.Block) error {
 	mcs.Blocks <- block
 	return nil
 }
+
+// Id2Identity is a placeholder satisfies interface for SmartBFT signature referencing.
+func (mcs *ConsenterSupport) Id2Identity(envelope *cb.ConfigEnvelope) map[uint64][]byte {
+	return nil
+}
