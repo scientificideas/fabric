@@ -137,6 +137,9 @@ type ConsenterSupport interface {
 	// Append appends a new block to the ledger in its raw form,
 	// unlike WriteBlock that also mutates its metadata.
 	Append(block *cb.Block) error
+
+	// Id2Identity extracts identities of consenters against their identifiers from the envelope.
+	Id2Identity(envelope *cb.ConfigEnvelope) map[uint64][]byte
 }
 
 // NoOpMetadataValidator implements a MetadataValidator that always returns nil error irrespecttive of the inputs.

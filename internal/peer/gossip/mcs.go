@@ -60,6 +60,7 @@ type Id2IdentitiesFetcher interface {
 // 2. an instance of identity.SignerSerializer
 // 3. an identity deserializer manager
 func NewMCS(
+	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	channelPolicyManagerGetter policies.ChannelPolicyManagerGetter,
 	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	localSigner identity.SignerSerializer,
@@ -67,6 +68,7 @@ func NewMCS(
 	hasher Hasher,
 ) *MSPMessageCryptoService {
 	return &MSPMessageCryptoService{
+		id2IdentitiesFetcher:       id2IdentitiesFetcher,
 		channelPolicyManagerGetter: channelPolicyManagerGetter,
 		id2IdentitiesFetcher:       id2IdentitiesFetcher,
 		localSigner:                localSigner,
@@ -178,9 +180,21 @@ func (s *MSPMessageCryptoService) VerifyBlock(chainID common.ChannelID, seqNum u
 	// ok is true if it was the policy requested, or false if it is the default policy
 	mcsLogger.Debugf("Got block validation policy for channel [%s] with flag [%t]", channelID, ok)
 
+	id2identities := s.id2IdentitiesFetcher.Id2Identities(channelID)
+
 	// - Prepare SignedData
 	signatureSet := []*protoutil.SignedData{}
 	for _, metadataSignature := range metadata.Signatures {
+		identity, ok := id2identities[metadataSignature.SignerId]
+		if !ok {
+			return fmt.Errorf("identity for id %d was not found", metadataSignature.SignerId)
+		}
+		// TODO: investigate the reason of the marshalling and immidiate unmarshalling.
+		// TODO: investigate the possible side effects of the replament the SignatureHeader field.
+		metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&pcommon.SignatureHeader{
+			Nonce:   metadataSignature.Nonce,
+			Creator: identity,
+		})
 		shdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
 		if err != nil {
 			return fmt.Errorf("Failed unmarshalling signature header for block with id [%d] on channel [%s]: [%s]", block.Header.Number, chainID, err)

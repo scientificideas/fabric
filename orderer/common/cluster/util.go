@@ -19,8 +19,11 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/configtx"
@@ -207,6 +210,9 @@ type BlockVerifier interface {
 	// If the config envelope passed is nil, then the validation rules used
 	// are the ones that were applied at commit of previous blocks.
 	VerifyBlockSignature(sd []*protoutil.SignedData, config *common.ConfigEnvelope) error
+
+	// Id2Identity extracts identities of consenters against their identifiers from the envelope.
+	Id2Identity(envelope *common.ConfigEnvelope) map[uint64][]byte
 }
 
 // BlockSequenceVerifier verifies that the given consecutive sequence
@@ -348,7 +354,7 @@ func VerifyBlockHash(indexInBuffer int, blockBuff []*common.Block) error {
 }
 
 // SignatureSetFromBlock creates a signature set out of a block.
-func SignatureSetFromBlock(block *common.Block) ([]*protoutil.SignedData, error) {
+func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte) ([]*protoutil.SignedData, error) {
 	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
 		return nil, errors.New("no metadata in block")
 	}
@@ -359,14 +365,24 @@ func SignatureSetFromBlock(block *common.Block) ([]*protoutil.SignedData, error)
 
 	var signatureSet []*protoutil.SignedData
 	for _, metadataSignature := range metadata.Signatures {
-		sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
-		if err != nil {
-			return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
+		identity := id2identities[metadataSignature.SignerId]
+		if len(metadataSignature.SignatureHeader) > 0 {
+			sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
+			if err != nil {
+				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
 				block.Header.Number, err)
+			}
+			identity = sigHdr.Creator
+		} else {
+			metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&common.SignatureHeader{
+				Creator: identity,
+				Nonce:   metadataSignature.Nonce,
+			})
 		}
+
 		signatureSet = append(signatureSet,
 			&protoutil.SignedData{
-				Identity: sigHdr.Creator,
+				Identity: identity,
 				Data: util.ConcatenateBytes(metadata.Value,
 					metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(block.Header)),
 				Signature: metadataSignature.Signature,
@@ -378,7 +394,8 @@ func SignatureSetFromBlock(block *common.Block) ([]*protoutil.SignedData, error)
 
 // VerifyBlockSignature verifies the signature on the block with the given BlockVerifier and the given config.
 func VerifyBlockSignature(block *common.Block, verifier BlockVerifier, config *common.ConfigEnvelope) error {
-	signatureSet, err := SignatureSetFromBlock(block)
+	id2identities := verifier.Id2Identity(config)
+	signatureSet, err := SignatureSetFromBlock(block, id2identities)
 	if err != nil {
 		return err
 	}
@@ -623,6 +640,7 @@ func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *common.Conf
 		PolicyMgr: policyMgr,
 		Channel:   channel,
 		BCCSP:     bva.BCCSP,
+		envelope: configuration,
 	}, nil
 }
 
@@ -632,6 +650,33 @@ type BlockValidationPolicyVerifier struct {
 	Channel   string
 	PolicyMgr policies.Manager
 	BCCSP     bccsp.BCCSP
+	envelope *common.ConfigEnvelope
+}
+
+// Id2Identity extracts identities of consenters against their identifiers from the envelope.
+func (bv *BlockValidationPolicyVerifier) Id2Identity(envelope *common.ConfigEnvelope) map[uint64][]byte {
+	if envelope == nil {
+		envelope = bv.envelope
+	}
+
+	consensusType := envelope.Config.ChannelGroup.Groups[channelconfig.OrdererGroupKey].Values[channelconfig.ConsensusTypeKey].Value
+	ct := &orderer.ConsensusType{}
+	err := proto.Unmarshal(consensusType, ct)
+	if err != nil {
+		bv.Logger.Panicf("Failed unmarshaling ConsensusType from consensusType: %v", err)
+	}
+
+	m := &smartbft.ConfigMetadata{}
+	err = proto.Unmarshal(ct.Metadata, m)
+	if err != nil {
+		bv.Logger.Panicf("Failed unmarshaling ConfigMetadata from metadata: %v", err)
+	}
+
+	res := make(map[uint64][]byte)
+	for _, consenter := range m.Consenters {
+		res[consenter.ConsenterId] = consenter.Identity
+	}
+	return res
 }
 
 // VerifyBlockSignature verifies the signed data associated to a block, optionally with the given config envelope.
