@@ -1188,8 +1188,8 @@ func initGossipService(
 	}
 
 	messageCryptoService := peergossip.NewMCS(
-		id2IdentitiesFetcher,
 		policyMgr,
+		id2IdentitiesFetcher,
 		signer,
 		mgmt.NewDeserializersManager(factory.GetDefault()),
 		factory.GetDefault(),

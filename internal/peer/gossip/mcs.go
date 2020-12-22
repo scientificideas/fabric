@@ -60,7 +60,6 @@ type Id2IdentitiesFetcher interface {
 // 2. an instance of identity.SignerSerializer
 // 3. an identity deserializer manager
 func NewMCS(
-	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	channelPolicyManagerGetter policies.ChannelPolicyManagerGetter,
 	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	localSigner identity.SignerSerializer,
@@ -68,7 +67,6 @@ func NewMCS(
 	hasher Hasher,
 ) *MSPMessageCryptoService {
 	return &MSPMessageCryptoService{
-		id2IdentitiesFetcher:       id2IdentitiesFetcher,
 		channelPolicyManagerGetter: channelPolicyManagerGetter,
 		id2IdentitiesFetcher:       id2IdentitiesFetcher,
 		localSigner:                localSigner,
