@@ -53,6 +53,7 @@ func TestPKIidOfCert(t *testing.T) {
 	require.NoError(t, err)
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetterWithManager{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		deserializersManager,
 		cryptoProvider,
@@ -89,7 +90,7 @@ func TestPKIidOfNil(t *testing.T) {
 	signer := &mocks.SignerSerializer{}
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
-	msgCryptoService := NewMCS(&mocks.ChannelPolicyManagerGetter{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
+	msgCryptoService := NewMCS(&mocks.ChannelPolicyManagerGetter{}, &mocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
 
 	pkid := msgCryptoService.GetPKIidOfCert(nil)
 	// Check pkid is not nil
@@ -109,6 +110,7 @@ func TestValidateIdentity(t *testing.T) {
 	require.NoError(t, err)
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetterWithManager{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		deserializersManager,
 		cryptoProvider,
@@ -146,6 +148,7 @@ func TestSign(t *testing.T) {
 
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetter{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		mgmt.NewDeserializersManager(cryptoProvider),
 		cryptoProvider,
@@ -175,6 +178,7 @@ func TestVerify(t *testing.T) {
 				"C": nil,
 			},
 		},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		&mocks.DeserializersManager{
 			LocalDeserializer: &mocks.IdentityDeserializer{Identity: []byte("Alice"), Msg: []byte("msg1"), Mock: mock.Mock{}},
@@ -234,6 +238,7 @@ func TestVerifyBlock(t *testing.T) {
 	require.NoError(t, err)
 	msgCryptoService := NewMCS(
 		policyManagerGetter,
+		&mocks.Id2IdentitiesFetcherMock{},
 		aliceSigner,
 		&mocks.DeserializersManager{
 			LocalDeserializer: &mocks.IdentityDeserializer{Identity: []byte("Alice"), Msg: []byte("msg1"), Mock: mock.Mock{}},
@@ -297,6 +302,7 @@ func mockBlock(t *testing.T, channel string, seqNum uint64, localSigner *mocks.S
 
 	blockSignature := &common.MetadataSignature{
 		SignatureHeader: protoutil.MarshalOrPanic(shdr),
+		Nonce: shdr.Nonce,
 	}
 
 	// Note, this value is intentionally nil, as this metadata is only about the signature, there is no additional metadata
@@ -357,6 +363,7 @@ func TestExpiration(t *testing.T) {
 	require.NoError(t, err)
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetterWithManager{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		&mocks.SignerSerializer{},
 		deserializersManager,
 		cryptoProvider,

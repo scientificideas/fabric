@@ -60,8 +60,8 @@ type Id2IdentitiesFetcher interface {
 // 2. an instance of identity.SignerSerializer
 // 3. an identity deserializer manager
 func NewMCS(
-	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	channelPolicyManagerGetter policies.ChannelPolicyManagerGetter,
+	id2IdentitiesFetcher Id2IdentitiesFetcher,
 	localSigner identity.SignerSerializer,
 	deserializer mgmt.DeserializersManager,
 	hasher Hasher,

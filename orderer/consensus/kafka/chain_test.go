@@ -3691,6 +3691,10 @@ type mockConsenterSupport struct {
 	mock.Mock
 }
 
+func (c *mockConsenterSupport) Id2Identity(envelope *cb.ConfigEnvelope) map[uint64][]byte {
+	return nil
+}
+
 func (c *mockConsenterSupport) Block(seq uint64) *cb.Block {
 	return nil
 }

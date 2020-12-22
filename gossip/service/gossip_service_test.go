@@ -89,6 +89,13 @@ func newTransientStore(t *testing.T) *testTransientStore {
 	return s
 }
 
+type id2IdentitiesFetcherMock struct {
+}
+
+func (*id2IdentitiesFetcherMock) Id2Identities(cid string) map[uint64][]byte {
+       return nil
+}
+
 func (s *testTransientStore) tearDown() {
 	s.storeProvider.Close()
 	os.RemoveAll(s.tempdir)
@@ -114,7 +121,7 @@ func TestInitGossipService(t *testing.T) {
 	require.NoError(t, err)
 	signer := mgmt.GetLocalSigningIdentityOrPanic(cryptoProvider)
 
-	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
+	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, &id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
 	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
 	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
 	require.NoError(t, err)
