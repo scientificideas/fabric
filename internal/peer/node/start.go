@@ -462,6 +462,7 @@ func serve(args []string) error {
 		deliverGRPCClient,
 		deliverServiceConfig,
 		privdataConfig,
+		&peer.IdentityFethcer{ Adaptee: peerInstance },
 	)
 	if err != nil {
 		return errors.WithMessage(err, "failed to initialize gossip service")
@@ -1171,6 +1172,7 @@ func initGossipService(
 	deliverGRPCClient *comm.GRPCClient,
 	deliverServiceConfig *deliverservice.DeliverServiceConfig,
 	privdataConfig *gossipprivdata.PrivdataConfig,
+	id2IdentitiesFetcher peergossip.Id2IdentitiesFetcher,
 ) (*gossipservice.GossipService, error) {
 
 	var certs *gossipcommon.TLSCertificates
@@ -1186,6 +1188,7 @@ func initGossipService(
 	}
 
 	messageCryptoService := peergossip.NewMCS(
+		id2IdentitiesFetcher,
 		policyMgr,
 		signer,
 		mgmt.NewDeserializersManager(factory.GetDefault()),

@@ -8,7 +8,9 @@ package multichannel
 
 import (
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/bccsp"
+	"github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/ledger/blockledger"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/hyperledger/fabric/orderer/common/blockcutter"
@@ -17,8 +19,10 @@ import (
 	"github.com/hyperledger/fabric/orderer/common/types"
 	"github.com/hyperledger/fabric/orderer/consensus"
 	"github.com/hyperledger/fabric/orderer/consensus/inactive"
+	"github.com/hyperledger/fabric/protos/orderer/smartbft"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/proto"
 )
 
 // ChainSupport holds the resources for a particular channel.
@@ -182,6 +186,33 @@ func (cs *ChainSupport) Sequence() uint64 {
 // unlike WriteBlock that also mutates its metadata.
 func (cs *ChainSupport) Append(block *cb.Block) error {
 	return cs.ledgerResources.ReadWriter.Append(block)
+}
+
+// Id2Identity extracts identities of consenters against their identifiers from the envelope.
+func (cs *ChainSupport) Id2Identity(envelope *cb.ConfigEnvelope) map[uint64][]byte {
+	consensusMD := cs.SharedConfig().ConsensusMetadata()
+	if envelope != nil {
+		consensusMD = envelope.Config.ChannelGroup.Groups[channelconfig.OrdererGroupKey].Values[channelconfig.ConsensusTypeKey].Value
+		ct := &orderer.ConsensusType{}
+		err := proto.Unmarshal(consensusMD, ct)
+		if err != nil {
+			logger.Panicf("Failed unmarshaling ConsensusType from consensusType: %v", err)
+		}
+		consensusMD = ct.Metadata
+	}
+
+	m := &smartbft.ConfigMetadata{}
+	err := proto.Unmarshal(consensusMD, m)
+	if err != nil {
+		logger.Panicf("Failed unmarshaling ConfigMetadata from metadata: %v", err)
+	}
+
+	res := make(map[uint64][]byte)
+	for _, consenter := range m.Consenters {
+		res[consenter.ConsenterId] = consenter.Identity
+	}
+
+	return res
 }
 
 func newOnBoardingChainSupport(
