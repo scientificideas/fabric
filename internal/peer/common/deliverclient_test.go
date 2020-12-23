@@ -9,9 +9,6 @@ package common
 import (
 	"errors"
 	"fmt"
-	"sync"
-	"testing"
-
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/core/config/configtest"
@@ -21,6 +18,8 @@ import (
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"sync"
+	"testing"
 )
 
 //go:generate counterfeiter -o mock/signer_serializer.go --fake-name SignerSerializer . signerSerializer
@@ -103,24 +102,31 @@ func TestDeliverClientErrors(t *testing.T) {
 }
 
 func TestSeekHelper(t *testing.T) {
-	t.Run("Standard", func(t *testing.T) {
-		env := seekHelper("channel-id", &ab.SeekPosition{}, nil, nil, false)
-		require.NotNil(t, env)
-		seekInfo := &ab.SeekInfo{}
-		_, err := protoutil.UnmarshalEnvelopeOfType(env, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo)
-		require.NoError(t, err)
-		require.Equal(t, seekInfo.Behavior, ab.SeekInfo_BLOCK_UNTIL_READY)
-		require.Equal(t, seekInfo.ErrorResponse, ab.SeekInfo_STRICT)
-	})
+	seekInfoContentTypes := []ab.SeekInfo_SeekContentType{
+		ab.SeekInfo_BLOCK,
+		ab.SeekInfo_HEADER_WITH_SIG,
+	}
 
-	t.Run("BestEffort", func(t *testing.T) {
-		env := seekHelper("channel-id", &ab.SeekPosition{}, nil, nil, true)
-		require.NotNil(t, env)
-		seekInfo := &ab.SeekInfo{}
-		_, err := protoutil.UnmarshalEnvelopeOfType(env, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo)
-		require.NoError(t, err)
-		require.Equal(t, seekInfo.ErrorResponse, ab.SeekInfo_BEST_EFFORT)
-	})
+	for _, contentType := range seekInfoContentTypes {
+		t.Run(fmt.Sprintf("Standard type: %v", contentType), func(t *testing.T) {
+			env := seekHelper("channel-id", &ab.SeekPosition{}, nil, nil, false, contentType)
+			require.NotNil(t, env)
+			seekInfo := &ab.SeekInfo{}
+			_, err := protoutil.UnmarshalEnvelopeOfType(env, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo)
+			require.NoError(t, err)
+			require.Equal(t, seekInfo.Behavior, ab.SeekInfo_BLOCK_UNTIL_READY)
+			require.Equal(t, seekInfo.ErrorResponse, ab.SeekInfo_STRICT)
+		})
+
+		t.Run(fmt.Sprintf("BestEffort type: %v", contentType), func(t *testing.T) {
+			env := seekHelper("channel-id", &ab.SeekPosition{}, nil, nil, true, contentType)
+			require.NotNil(t, env)
+			seekInfo := &ab.SeekInfo{}
+			_, err := protoutil.UnmarshalEnvelopeOfType(env, cb.HeaderType_DELIVER_SEEK_INFO, seekInfo)
+			require.NoError(t, err)
+			require.Equal(t, seekInfo.ErrorResponse, ab.SeekInfo_BEST_EFFORT)
+		})
+	}
 }
 
 func TestNewOrdererDeliverClient(t *testing.T) {

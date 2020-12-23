@@ -362,7 +362,10 @@ peer:
         #    to:
         #    caCertsFile:
 
-    # Type for the local MSP - by default it's of type bccsp
+        # Whether to use a Byzantine Fault Tolerant (BFT) client implementation
+        bft: false
+
+  # Type for the local MSP - by default it's of type bccsp
     localMspType: bccsp
 
     # Used with Go profiling tools only in none production environment. In

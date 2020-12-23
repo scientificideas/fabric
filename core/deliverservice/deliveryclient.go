@@ -21,6 +21,7 @@ import (
 	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
+	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"google.golang.org/grpc"
 )
 
@@ -131,12 +132,18 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		Orderers:          d.conf.OrdererSource,
 		DoneC:             make(chan struct{}),
 		Signer:            d.conf.Signer,
-		DeliverStreamer:   DeliverAdapter{},
 		Logger:            flogging.MustGetLogger("peer.blocksprovider").With("channel", chainID),
 		MaxRetryDelay:     d.conf.DeliverServiceConfig.ReConnectBackoffThreshold,
 		MaxRetryDuration:  d.conf.DeliverServiceConfig.ReconnectTotalTimeThreshold,
 		InitialRetryDelay: 100 * time.Millisecond,
 		YieldLeadership:   !d.conf.IsStaticLeader,
+	}
+
+	if !d.conf.DeliverServiceConfig.IsBFT {
+		// default value
+		dc.DeliverStreamer = DeliverAdapter{}
+	} else {
+		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource.GetAllEndpoints())
 	}
 
 	if d.conf.DeliverGRPCClient.MutualTLSRequired() {

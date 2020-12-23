@@ -40,6 +40,8 @@ type DeliverServiceConfig struct {
 	KeepaliveOptions comm.KeepaliveOptions
 	// SecOpts provides the TLS info for connections
 	SecOpts comm.SecureOptions
+	// Is BFT client flag
+	IsBFT bool
 
 	// OrdererEndpointOverrides is a map of orderer addresses which should be
 	// re-mapped to a different orderer endpoint.
@@ -147,6 +149,8 @@ func (c *DeliverServiceConfig) loadDeliverServiceConfig() {
 		}
 		c.SecOpts.Certificate = certPEM
 	}
+
+	c.IsBFT = viper.GetBool("peer.deliveryclient.bft")
 
 	overridesMap, err := LoadOverridesMap()
 	if err != nil {
