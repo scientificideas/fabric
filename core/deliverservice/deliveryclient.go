@@ -43,10 +43,6 @@ type DeliverService interface {
 	Stop()
 }
 
-type endpointUpdater interface {
-	UpdateEndpoints(endpoints []cluster.EndpointCriteria)
-}
-
 // deliverServiceImpl the implementation of the delivery service
 // maintains connection to the ordering service and maps of
 // blocks providers
