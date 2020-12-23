@@ -82,6 +82,10 @@ func (*naiveCryptoService) VerifyBlock(channelID common.ChannelID, seqNum uint64
 	return nil
 }
 
+func (*naiveCryptoService) VerifyHeader(channelID string, signedBlock *cb.Block) error {
+	return nil
+}
+
 // VerifyByChannel verifies a peer's signature on a message in the context
 // of a specific channel
 func (*naiveCryptoService) VerifyByChannel(_ common.ChannelID, _ api.PeerIdentityType, _, _ []byte) error {

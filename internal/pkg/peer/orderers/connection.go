@@ -213,3 +213,9 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 
 	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
 }
+
+func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
+	return cs.allEndpoints
+}

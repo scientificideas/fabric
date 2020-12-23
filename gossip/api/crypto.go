@@ -37,6 +37,10 @@ type MessageCryptoService interface {
 	// else returns error
 	VerifyBlock(channelID common.ChannelID, seqNum uint64, block *cb.Block) error
 
+	// VerifyHeader does the same as VerifyBlock, except it does not compute the block.Data.Hash() and compare it to
+	// the block.Header.DataHash. This is used when the orderer delivers a block with header & metadata only.
+	VerifyHeader(channelID string, signedBlock *cb.Block) error
+
 	// Sign signs msg with this peer's signing key and outputs
 	// the signature if no error occurred.
 	Sign(msg []byte) ([]byte, error)
