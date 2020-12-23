@@ -65,11 +65,25 @@ type GossipServiceAdapter interface {
 //go:generate counterfeiter -o fake/block_verifier.go --fake-name BlockVerifier . BlockVerifier
 type BlockVerifier interface {
 	VerifyBlock(channelID gossipcommon.ChannelID, blockNum uint64, block *common.Block) error
+
+	// VerifyHeader returns nil when the header matches the metadata signature, but it does not compute the
+	// block.Data.Hash() and compare it to the block.Header.DataHash, or otherwise inspect the block.Data.
+	// This is used when the orderer delivers a block with header & metadata only (i.e. block.Data==nil).
+	// See: gossip/api/MessageCryptoService
+	VerifyHeader(chainID string, signedBlock *common.Block) error
 }
 
 //go:generate counterfeiter -o fake/orderer_connection_source.go --fake-name OrdererConnectionSource . OrdererConnectionSource
 type OrdererConnectionSource interface {
 	RandomEndpoint() (*orderers.Endpoint, error)
+	OrdererConnectionUpdater
+}
+
+type OrdererConnectionUpdater interface {
+	// Update updates the endpoint of the underlying client
+	Update(globalAddrs []string, orgs map[string]orderers.OrdererOrg)
+	// GetEndpoint retrieves the orderer endpoint from which the client is receiving blocks (as opposed to headers)
+	GetAllEndpoints() []*orderers.Endpoint
 }
 
 //go:generate counterfeiter -o fake/dialer.go --fake-name Dialer . Dialer
@@ -84,17 +98,17 @@ type DeliverStreamer interface {
 
 // Deliverer the actual implementation for BlocksProvider interface
 type Deliverer struct {
-	ChannelID       string
-	Gossip          GossipServiceAdapter
-	Ledger          LedgerInfo
-	BlockVerifier   BlockVerifier
-	Dialer          Dialer
-	Orderers        OrdererConnectionSource
-	DoneC           chan struct{}
-	Signer          identity.SignerSerializer
-	DeliverStreamer DeliverStreamer
-	Logger          *flogging.FabricLogger
-	YieldLeadership bool
+	ChannelID             string
+	Gossip                GossipServiceAdapter
+	Ledger                LedgerInfo
+	BlockVerifier         BlockVerifier
+	Dialer                Dialer
+	Orderers              OrdererConnectionSource
+	DoneC                 chan struct{}
+	Signer                identity.SignerSerializer
+	DeliverStreamer       DeliverStreamer
+	Logger                *flogging.FabricLogger
+	YieldLeadership       bool
 
 	MaxRetryDelay     time.Duration
 	InitialRetryDelay time.Duration
@@ -279,6 +293,7 @@ func (d *Deliverer) Stop() {
 }
 
 func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
+	//todo: bft next endpoint
 	endpoint, err := d.Orderers.RandomEndpoint()
 	if err != nil {
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")

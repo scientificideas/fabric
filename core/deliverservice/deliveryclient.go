@@ -147,7 +147,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		// default value
 		dc.DeliverStreamer = DeliverAdapter{}
 	} else {
-		dc.DeliverStreamer = bftDeliverAdapter{}
+		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource.GetAllEndpoints())
 	}
 
 	if d.conf.DeliverGRPCClient.MutualTLSRequired() {
