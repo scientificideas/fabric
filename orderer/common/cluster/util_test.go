@@ -185,6 +185,7 @@ func TestVerifyBlockSignature(t *testing.T) {
 	verifier := &mocks.BlockVerifier{}
 	var nilConfigEnvelope *common.ConfigEnvelope
 	verifier.On("VerifyBlockSignature", mock.Anything, nilConfigEnvelope).Return(nil)
+	verifier.On("Id2Identity", mock.Anything).Return(nil)
 
 	block := createBlockChain(3, 3)[0]
 
@@ -417,9 +418,9 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4])
+				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
 				require.NoError(t, err)
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/2])
+				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/2], nil)
 				require.NoError(t, err)
 
 				return blockSequence
@@ -448,10 +449,10 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4])
+				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
 				require.NoError(t, err)
 
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1])
+				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
 				require.NoError(t, err)
 
 				return blockSequence
@@ -484,10 +485,10 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-2])
+				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-2], nil)
 				require.NoError(t, err)
 
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1])
+				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
 				require.NoError(t, err)
 
 				return blockSequence
@@ -497,6 +498,7 @@ func TestVerifyBlocks(t *testing.T) {
 				confEnv1 := &common.ConfigEnvelope{}
 				proto.Unmarshal(protoutil.MarshalOrPanic(configEnvelope1), confEnv1)
 				verifier.On("VerifyBlockSignature", sigSet1, nilEnvelope).Return(nil).Once()
+				verifier.On("Id2Identity", mock.Anything).Return(nil)
 				// We ensure that the signature set of the last block is verified using the config envelope of the block
 				// before it.
 				verifier.On("VerifyBlockSignature", sigSet2, confEnv1).Return(nil).Once()
@@ -512,6 +514,7 @@ func TestVerifyBlocks(t *testing.T) {
 			blockchain := createBlockChain(50, 100)
 			blockchain = testCase.mutateBlockSequence(blockchain)
 			verifier := &mocks.BlockVerifier{}
+			verifier.On("Id2Identity", mock.Anything).Return(nil)
 			if testCase.configureVerifier != nil {
 				testCase.configureVerifier(verifier)
 			}
