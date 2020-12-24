@@ -9,6 +9,7 @@ package smartbft
 import (
 	"encoding/base64"
 	"fmt"
+	"reflect"
 	"sync/atomic"
 	"time"
 
@@ -76,6 +77,7 @@ type BFTChain struct {
 	verifier         *Verifier
 	assembler        *Assembler
 	Metrics          *Metrics
+	bccsp            bccsp.BCCSP
 }
 
 // NewChain creates new BFT Smart chain
@@ -119,6 +121,7 @@ func NewChain(
 			IsLeader:             metrics.IsLeader.With("channel", support.ChannelID()),
 			LeaderID:             metrics.LeaderID.With("channel", support.ChannelID()),
 		},
+		bccsp: bccsp,
 	}
 
 	lastBlock := LastBlockFromLedgerOrPanic(support, c.Logger)
@@ -485,7 +488,26 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 }
 
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
-	panic("implement me")
+	prevRTC := c.RuntimeConfig.Load().(RuntimeConfig)
+	newRTC, err := prevRTC.BlockCommitted(block, c.bccsp)
+	if err != nil {
+		c.Logger.Errorf("Failed constructing RuntimeConfig from block %d, halting chain", block.Header.Number)
+		c.Halt()
+		return types.Reconfig{}
+	}
+	c.RuntimeConfig.Store(newRTC)
+	if protoutil.IsConfigBlock(block) {
+		c.Comm.Configure(c.Channel, newRTC.RemoteNodes)
+	}
+
+	membershipDidNotChange := reflect.DeepEqual(newRTC.Nodes, prevRTC.Nodes)
+	configDidNotChange := reflect.DeepEqual(newRTC.BFTConfig, prevRTC.BFTConfig)
+	noChangeDetected := membershipDidNotChange && configDidNotChange
+	return types.Reconfig{
+		InLatestDecision: !noChangeDetected,
+		CurrentNodes:     newRTC.Nodes,
+		CurrentConfig:    newRTC.BFTConfig,
+	}
 }
 
 func (c *BFTChain) lastPersistedProposalAndSignatures() (*types.Proposal, []types.Signature) {
