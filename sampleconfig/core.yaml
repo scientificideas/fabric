@@ -363,7 +363,26 @@ peer:
         #    caCertsFile:
 
         # Whether to use a Byzantine Fault Tolerant (BFT) client implementation
-        bft: false
+        # Config parameters for the Byzantine Fault Tolerant (BFT) client implementation
+        bft:
+            # Whether to use a BFT client implementation
+            enabled: false
+
+            # The minimal back-off delay. The minimal time between connection retries. This interval grows
+            # exponentially until maxBackoffDelay, below.
+            minBackoffDelay: 10ms
+
+            # The maximal back-off delay. The maximal time between connection retries.
+            maxBackoffDelay: 10s
+
+            # The total time a block receiver tries to connect before giving up and letting the client to try another
+            # endpoint as a block receiver.
+            blockRcvTotalBackoffDelay: 10s
+
+            # The block censorship timeout. A block censorship suspicion is declared if more than f header receivers
+            # are ahead of the block receiver for a period larger than this timeout.
+            # (f is the number of failures tolerated in the BFT cluster.)
+            blockCensorshipTimeout: 10s
 
   # Type for the local MSP - by default it's of type bccsp
     localMspType: bccsp

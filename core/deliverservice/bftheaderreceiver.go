@@ -22,13 +22,6 @@ const bftHeaderWrongStatusThreshold = 10
 
 type HeaderStreamClient interface {
 	orderer.AtomicBroadcast_DeliverClient
-	//fixme:	EndpointUpdater
-
-	// Close closes the stream and its underlying connection
-	Close()
-
-	// Disconnect disconnects from the remote node.
-	Disconnect()
 }
 
 type bftHeaderReceiver struct {
@@ -107,7 +100,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 			backOffSleep(dur, hr.stopChan)
 			statusCounter++
 
-			hr.client.Disconnect()
+			hr.client.CloseSend()
 			continue
 
 		case *orderer.DeliverResponse_Block:
@@ -160,7 +153,7 @@ func (hr *bftHeaderReceiver) Close() {
 	}
 
 	hr.stop = true
-	hr.client.Close()
+	hr.client.CloseSend()
 	close(hr.stopChan)
 }
 

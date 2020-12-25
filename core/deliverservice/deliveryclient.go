@@ -21,7 +21,6 @@ import (
 	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
-	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"google.golang.org/grpc"
 )
 
@@ -143,7 +142,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		// default value
 		dc.DeliverStreamer = DeliverAdapter{}
 	} else {
-		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource.GetAllEndpoints())
+		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource, d.conf.Signer, d.conf.DeliverGRPCClient)
 	}
 
 	if d.conf.DeliverGRPCClient.MutualTLSRequired() {
