@@ -76,13 +76,8 @@ type BlockVerifier interface {
 //go:generate counterfeiter -o fake/orderer_connection_source.go --fake-name OrdererConnectionSource . OrdererConnectionSource
 type OrdererConnectionSource interface {
 	RandomEndpoint() (*orderers.Endpoint, error)
-	OrdererConnectionUpdater
-}
 
-type OrdererConnectionUpdater interface {
-	// Update updates the endpoint of the underlying client
-	Update(globalAddrs []string, orgs map[string]orderers.OrdererOrg)
-	// GetEndpoint retrieves the orderer endpoint from which the client is receiving blocks (as opposed to headers)
+	// GetAllEndpoints retrieves all endpoints
 	GetAllEndpoints() []*orderers.Endpoint
 }
 
@@ -98,17 +93,17 @@ type DeliverStreamer interface {
 
 // Deliverer the actual implementation for BlocksProvider interface
 type Deliverer struct {
-	ChannelID             string
-	Gossip                GossipServiceAdapter
-	Ledger                LedgerInfo
-	BlockVerifier         BlockVerifier
-	Dialer                Dialer
-	Orderers              OrdererConnectionSource
-	DoneC                 chan struct{}
-	Signer                identity.SignerSerializer
-	DeliverStreamer       DeliverStreamer
-	Logger                *flogging.FabricLogger
-	YieldLeadership       bool
+	ChannelID       string
+	Gossip          GossipServiceAdapter
+	Ledger          LedgerInfo
+	BlockVerifier   BlockVerifier
+	Dialer          Dialer
+	Orderers        OrdererConnectionSource
+	DoneC           chan struct{}
+	Signer          identity.SignerSerializer
+	DeliverStreamer DeliverStreamer
+	Logger          *flogging.FabricLogger
+	YieldLeadership bool
 
 	MaxRetryDelay     time.Duration
 	InitialRetryDelay time.Duration
@@ -292,21 +287,15 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
-	//todo: bft next endpoint
-	endpoint, err := d.Orderers.RandomEndpoint()
-	if err != nil {
-		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
-	}
-
-	conn, err := d.Dialer.Dial(endpoint.Address, endpoint.CertPool)
+func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
+	conn, err := dialer.Dial(endpoint.Address, endpoint.CertPool)
 	if err != nil {
 		return nil, nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", endpoint.Address)
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	deliverClient, err := d.DeliverStreamer.Deliver(ctx, conn)
+	deliverClient, err := deliverStreamer.Deliver(ctx, conn)
 	if err != nil {
 		conn.Close()
 		ctxCancel()
@@ -326,6 +315,15 @@ func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadca
 		ctxCancel()
 		conn.Close()
 	}, nil
+}
+
+func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
+	endpoint, err := d.Orderers.RandomEndpoint()
+	if err != nil {
+		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
+	}
+
+	return Connect(endpoint, d.Dialer, d.DeliverStreamer, seekInfoEnv)
 }
 
 func (d *Deliverer) createSeekInfo(ledgerHeight uint64) (*common.Envelope, error) {
@@ -355,3 +353,4 @@ func (d *Deliverer) createSeekInfo(ledgerHeight uint64) (*common.Envelope, error
 		d.TLSCertHash,
 	)
 }
+
