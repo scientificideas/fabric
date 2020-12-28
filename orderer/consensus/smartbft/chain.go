@@ -487,6 +487,16 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 	}
 }
 
+func (c *BFTChain) HandleMessage(sender uint64, m *smartbftprotos.Message) {
+	c.Logger.Debugf("Message from %d", sender)
+	c.consensus.HandleMessage(sender, m)
+}
+
+func (c *BFTChain) HandleRequest(sender uint64, req []byte) {
+	c.Logger.Debugf("HandleRequest from %d", sender)
+	c.consensus.SubmitRequest(req)
+}
+
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
 	prevRTC := c.RuntimeConfig.Load().(RuntimeConfig)
 	newRTC, err := prevRTC.BlockCommitted(block, c.bccsp)

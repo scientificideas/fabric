@@ -375,6 +375,7 @@ func (c *Comm) getOrCreateMapping(channel string) MemberMapping {
 	// Lazily create a mapping if it doesn't already exist
 	mapping, exists := c.Chan2Members[channel]
 	if !exists {
+
 		mapping = MemberMapping{
 			id2stub:       make(map[uint64]*Stub),
 			SamePublicKey: c.CompareCertificate,

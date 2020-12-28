@@ -13,12 +13,14 @@ import (
 	"bytes"
 	"encoding/pem"
 	"path"
+	"reflect"
 
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/bccsp"
+	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/metrics"
 	"github.com/hyperledger/fabric/common/policies"
@@ -86,6 +88,7 @@ func New(
 	srv *comm.GRPCServer,
 	r *multichannel.Registrar,
 	metricsProvider metrics.Provider,
+	BCCSP                 bccsp.BCCSP,
 ) *Consenter {
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft")
 
@@ -112,7 +115,17 @@ func New(
 		WALBaseDir:            walConfig.WALDir,
 		Metrics:               NewMetrics(metricsProvider),
 		CreateChain:           r.CreateChain,
+		BCCSP: BCCSP,
 	}
+
+	compareCert := cluster.CachePublicKeyComparisons(func(a, b []byte) bool {
+		err := crypto.CertificatesWithSamePublicKey(a, b)
+		if err != nil && err != crypto.ErrPubKeyMismatch {
+			crypto.LogNonPubKeyMismatchErr(logger.Errorf, err, a, b)
+		}
+		return err == nil
+	})
+
 
 	consenter.Comm = &cluster.Comm{
 		MinimumExpirationWarningInterval: cluster.MinimumExpirationWarningInterval,
@@ -127,6 +140,9 @@ func New(
 			Logger:        logger,
 			ChainSelector: consenter,
 		},
+
+		// FIXME: investige purpose of the field
+		CompareCertificate               :compareCert,
 	}
 
 	svc := &cluster.Service{
@@ -147,6 +163,17 @@ func New(
 
 // ReceiverByChain returns the MessageReceiver for the given channelID or nil if not found.
 func (c *Consenter) ReceiverByChain(channelID string) MessageReceiver {
+	cs := c.Chains.GetChain(channelID)
+	if cs == nil {
+		return nil
+	}
+	if cs.Chain == nil {
+		c.Logger.Panicf("Programming error - Chain %s is nil although it exists in the mapping", channelID)
+	}
+	if smartBFTChain, isBFTSmart := cs.Chain.(*BFTChain); isBFTSmart {
+		return smartBFTChain
+	}
+	c.Logger.Warningf("Chain %s is of type %v and not smartbft.Chain", channelID, reflect.TypeOf(cs.Chain))
 	return nil
 }
 
