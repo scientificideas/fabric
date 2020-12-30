@@ -591,7 +591,7 @@ type chainACL struct {
 func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
 	if !ok {
-		return fmt.Errorf("could not find policy %s", policies.ChannelWriters)
+		return fmt.Errorf("could not find policy 123 %s", policies.ChannelWriters)
 	}
 
 	err := policy.EvaluateSignedData(signatureSet)

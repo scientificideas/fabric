@@ -88,7 +88,7 @@ func New(
 	srv *comm.GRPCServer,
 	r *multichannel.Registrar,
 	metricsProvider metrics.Provider,
-	BCCSP                 bccsp.BCCSP,
+	BCCSP bccsp.BCCSP,
 ) *Consenter {
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft")
 
@@ -115,7 +115,7 @@ func New(
 		WALBaseDir:            walConfig.WALDir,
 		Metrics:               NewMetrics(metricsProvider),
 		CreateChain:           r.CreateChain,
-		BCCSP: BCCSP,
+		BCCSP:                 BCCSP,
 	}
 
 	compareCert := cluster.CachePublicKeyComparisons(func(a, b []byte) bool {
@@ -125,7 +125,6 @@ func New(
 		}
 		return err == nil
 	})
-
 
 	consenter.Comm = &cluster.Comm{
 		MinimumExpirationWarningInterval: cluster.MinimumExpirationWarningInterval,
@@ -142,7 +141,7 @@ func New(
 		},
 
 		// FIXME: investige purpose of the field
-		CompareCertificate               :compareCert,
+		CompareCertificate: compareCert,
 	}
 
 	svc := &cluster.Service{
@@ -212,13 +211,12 @@ func (c *Consenter) HandleChain(support consensus.ConsenterSupport, metadata *cb
 	}
 	c.Logger.Debugf("SmartBFT-Go config: %+v", config)
 
-	// todo: BFT config validator
 	configValidator := &ConfigBlockValidator{
-		//ChannelConfigTemplator: c.Registrar,
-		//ValidatingChannel:      support.ChannelID(),
-		//Filters:                c.Registrar,
-		//ConfigUpdateProposer:   c.Registrar,
-		//Logger:                 c.Logger,
+		ChannelConfigTemplator: c.Registrar,
+		ValidatingChannel:      support.ChannelID(),
+		Filters:                c.Registrar,
+		ConfigUpdateProposer:   c.Registrar,
+		Logger:                 c.Logger,
 	}
 
 	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics, c.BCCSP)
