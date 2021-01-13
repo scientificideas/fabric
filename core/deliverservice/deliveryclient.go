@@ -47,7 +47,7 @@ type DeliverService interface {
 // blocks providers
 type deliverServiceImpl struct {
 	conf           *Config
-	blockProviders map[string]*blocksprovider.Deliverer
+	blockProviders map[string]blocksprovider.BlocksProvider
 	lock           sync.RWMutex
 	stopping       bool
 }
@@ -82,7 +82,7 @@ type Config struct {
 func NewDeliverService(conf *Config) DeliverService {
 	ds := &deliverServiceImpl{
 		conf:           conf,
-		blockProviders: make(map[string]*blocksprovider.Deliverer),
+		blockProviders: make(map[string]blocksprovider.BlocksProvider),
 	}
 	return ds
 }
@@ -97,7 +97,7 @@ func (da DialerAdapter) Dial(address string, certPool *x509.CertPool) (*grpc.Cli
 
 type DeliverAdapter struct{}
 
-func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
+func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
 	return orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
 }
 
@@ -142,7 +142,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		// default value
 		dc.DeliverStreamer = DeliverAdapter{}
 	} else {
-		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource, d.conf.Signer, d.conf.DeliverGRPCClient)
+		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf.CryptoSvc, d.conf.OrdererSource, d.conf.Signer, dc.Dialer, d.conf.DeliverGRPCClient)
 	}
 
 	if d.conf.DeliverGRPCClient.MutualTLSRequired() {
