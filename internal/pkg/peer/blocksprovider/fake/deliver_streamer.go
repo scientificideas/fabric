@@ -5,31 +5,30 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"google.golang.org/grpc"
 )
 
 type DeliverStreamer struct {
-	DeliverStub        func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error)
+	DeliverStub        func(context.Context, *grpc.ClientConn) (blocksprovider.DeliverClient, error)
 	deliverMutex       sync.RWMutex
 	deliverArgsForCall []struct {
 		arg1 context.Context
 		arg2 *grpc.ClientConn
 	}
 	deliverReturns struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 blocksprovider.DeliverClient
 		result2 error
 	}
 	deliverReturnsOnCall map[int]struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 blocksprovider.DeliverClient
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *DeliverStreamer) Deliver(arg1 context.Context, arg2 *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
+func (fake *DeliverStreamer) Deliver(arg1 context.Context, arg2 *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
 	fake.deliverMutex.Lock()
 	ret, specificReturn := fake.deliverReturnsOnCall[len(fake.deliverArgsForCall)]
 	fake.deliverArgsForCall = append(fake.deliverArgsForCall, struct {
@@ -55,7 +54,7 @@ func (fake *DeliverStreamer) DeliverCallCount() int {
 	return len(fake.deliverArgsForCall)
 }
 
-func (fake *DeliverStreamer) DeliverCalls(stub func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error)) {
+func (fake *DeliverStreamer) DeliverCalls(stub func(context.Context, *grpc.ClientConn) (blocksprovider.DeliverClient, error)) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = stub
@@ -68,28 +67,28 @@ func (fake *DeliverStreamer) DeliverArgsForCall(i int) (context.Context, *grpc.C
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *DeliverStreamer) DeliverReturns(result1 orderer.AtomicBroadcast_DeliverClient, result2 error) {
+func (fake *DeliverStreamer) DeliverReturns(result1 blocksprovider.DeliverClient, result2 error) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = nil
 	fake.deliverReturns = struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 blocksprovider.DeliverClient
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *DeliverStreamer) DeliverReturnsOnCall(i int, result1 orderer.AtomicBroadcast_DeliverClient, result2 error) {
+func (fake *DeliverStreamer) DeliverReturnsOnCall(i int, result1 blocksprovider.DeliverClient, result2 error) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = nil
 	if fake.deliverReturnsOnCall == nil {
 		fake.deliverReturnsOnCall = make(map[int]struct {
-			result1 orderer.AtomicBroadcast_DeliverClient
+			result1 blocksprovider.DeliverClient
 			result2 error
 		})
 	}
 	fake.deliverReturnsOnCall[i] = struct {
-		result1 orderer.AtomicBroadcast_DeliverClient
+		result1 blocksprovider.DeliverClient
 		result2 error
 	}{result1, result2}
 }
