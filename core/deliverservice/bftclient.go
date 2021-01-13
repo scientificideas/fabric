@@ -406,8 +406,6 @@ func (c *bftDeliveryClient) receiveBlock() (*orderer.DeliverResponse, error) {
 	nextBlockNumber := c.nextBlockNumber
 	c.mutex.Unlock()
 
-	c.deliverClient.Recv()
-
 	// call Recv() without a lock
 	if receiver == nil {
 		return nil, errNoBlockReceiver

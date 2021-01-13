@@ -10,7 +10,6 @@ import (
 	"context"
 	"crypto/x509"
 	"math/rand"
-	"runtime"
 	"testing"
 	"time"
 
@@ -116,8 +115,6 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 func Test_bftDeliveryClient_Recv(t *testing.T) {
 	flogging.ActivateSpec("bftDeliveryClient=DEBUG")
 
-	defer ensureNoGoroutineLeak(t)()
-
 	osArray := make([]*mocks.Orderer, 0)
 	for port := range endpointMap {
 		osArray = append(osArray, mocks.NewOrderer(port, t))
@@ -140,7 +137,7 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	fakeOrdererConnectionSource.RandomEndpointReturns(endpoints[rand.Intn(len(endpoints))], nil)
 	fakeOrdererConnectionSource.GetAllEndpointsReturns(endpoints)
 	mockSignerSerializer := &mocks2.SignerSerializer{}
-	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil).Once()
+	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
@@ -149,8 +146,6 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
 		return cc, nil
 	})
-
-	//ordererConnectionSource := orderers.NewConnectionSource(logger, endpoints)
 
 	conn, err := fakeDialer.Dial("", x509.NewCertPool())
 	require.Nil(t, err)
@@ -204,27 +199,6 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 
 	for _, os := range osArray {
 		os.Shutdown()
-	}
-}
-
-func getStackTrace() string {
-	buf := make([]byte, 1<<16)
-	runtime.Stack(buf, true)
-	return string(buf)
-}
-
-func ensureNoGoroutineLeak(t *testing.T) func() {
-	goroutineCountAtStart := runtime.NumGoroutine()
-	return func() {
-		start := time.Now()
-		timeLimit := start.Add(goRoutineTestWaitTimeout)
-		for time.Now().Before(timeLimit) {
-			time.Sleep(time.Millisecond * 500)
-			if goroutineCountAtStart >= runtime.NumGoroutine() {
-				return
-			}
-		}
-		assert.Fail(t, "Some goroutine(s) didn't finish: %s", getStackTrace())
 	}
 }
 
