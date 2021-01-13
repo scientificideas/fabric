@@ -139,8 +139,6 @@ func New(
 			Logger:        logger,
 			ChainSelector: consenter,
 		},
-
-		// FIXME: investige purpose of the field
 		CompareCertificate: compareCert,
 	}
 
