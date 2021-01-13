@@ -191,7 +191,7 @@ func newBlockPuller(
 func getViewMetadataFromBlock(block *cb.Block) (*smartbftprotos.ViewMetadata, error) {
 	if block.Header.Number == 0 {
 		// Genesis block has no prior metadata so we just return an un-initialized metadata
-		return nil, nil
+		return new(smartbftprotos.ViewMetadata), nil
 	}
 
 	signatureMetadata := protoutil.GetMetadataFromBlockOrPanic(block, cb.BlockMetadataIndex_SIGNATURES)

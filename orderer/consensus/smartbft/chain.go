@@ -487,6 +487,16 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 	}
 }
 
+func (c *BFTChain) HandleMessage(sender uint64, m *smartbftprotos.Message) {
+	c.Logger.Debugf("Message from %d", sender)
+	c.consensus.HandleMessage(sender, m)
+}
+
+func (c *BFTChain) HandleRequest(sender uint64, req []byte) {
+	c.Logger.Debugf("HandleRequest from %d", sender)
+	c.consensus.SubmitRequest(req)
+}
+
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
 	prevRTC := c.RuntimeConfig.Load().(RuntimeConfig)
 	newRTC, err := prevRTC.BlockCommitted(block, c.bccsp)
@@ -581,7 +591,7 @@ type chainACL struct {
 func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
 	if !ok {
-		return fmt.Errorf("could not find policy %s", policies.ChannelWriters)
+		return fmt.Errorf("could not find policy 123 %s", policies.ChannelWriters)
 	}
 
 	err := policy.EvaluateSignedData(signatureSet)

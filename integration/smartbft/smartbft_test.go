@@ -307,12 +307,22 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				ordererRunners = append(ordererRunners, runner)
 				proc := ifrit.Invoke(runner)
 				ordererProcesses = append(ordererProcesses, proc)
+				select {
+				case err := <-proc.Wait():
+					Fail(err.Error())
+				case <-proc.Ready():
+				}
 				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
 			}
 
 			peerRunner := network.PeerGroupRunner()
 			peerProcesses = ifrit.Invoke(peerRunner)
 
+			select {
+			case err := <-peerProcesses.Wait():
+				Fail(err.Error())
+			case <-peerProcesses.Ready():
+			}
 			Eventually(peerProcesses.Ready(), network.EventuallyTimeout).Should(BeClosed())
 
 			peer := network.Peer("Org1", "peer0")
