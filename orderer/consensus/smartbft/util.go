@@ -138,7 +138,7 @@ func isConfigBlock(block *cb.Block) bool {
 	if err != nil {
 		return false
 	}
-	return cb.HeaderType(hdr.Type) == cb.HeaderType_CONFIG
+	return cb.HeaderType(hdr.Type) == cb.HeaderType_CONFIG || cb.HeaderType(hdr.Type) == cb.HeaderType_ORDERER_TRANSACTION
 }
 
 //go:generate counterfeiter -o mocks/mock_blockpuller.go . BlockPuller
