@@ -80,7 +80,7 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 
 		bp, ok := ds.blockProviders["channel-id"]
 		require.True(t, ok, "map entry must exist")
-		require.Equal(t, "76f7a03f8dfdb0ef7c4b28b3901fe163c730e906c70e4cdf887054ad5f608bed", fmt.Sprintf("%x", bp.TLSCertHash))
+		require.Equal(t, "76f7a03f8dfdb0ef7c4b28b3901fe163c730e906c70e4cdf887054ad5f608bed", fmt.Sprintf("%x", bp.(*blocksprovider.Deliverer).TLSCertHash))
 	})
 
 	t.Run("Green Path without mutual TLS", func(t *testing.T) {
@@ -110,7 +110,7 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 
 		bp, ok := ds.blockProviders["channel-id"]
 		require.True(t, ok, "map entry must exist")
-		require.Nil(t, bp.TLSCertHash)
+		require.Nil(t, bp.(*blocksprovider.Deliverer).TLSCertHash)
 	})
 
 	t.Run("Exists", func(t *testing.T) {
@@ -143,11 +143,11 @@ func TestStopDeliverForChannel(t *testing.T) {
 	t.Run("Green path", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
 		doneA := make(chan struct{})
-		ds.blockProviders = map[string]*blocksprovider.Deliverer{
-			"a": {
+		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+			"a": &blocksprovider.Deliverer{
 				DoneC: doneA,
 			},
-			"b": {
+			"b": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
 		}
@@ -165,11 +165,11 @@ func TestStopDeliverForChannel(t *testing.T) {
 
 	t.Run("Already stopping", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-		ds.blockProviders = map[string]*blocksprovider.Deliverer{
-			"a": {
+		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+			"a": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
-			"b": {
+			"b": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
 		}
@@ -181,11 +181,11 @@ func TestStopDeliverForChannel(t *testing.T) {
 
 	t.Run("Non-existent", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-		ds.blockProviders = map[string]*blocksprovider.Deliverer{
-			"a": {
+		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+			"a": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
-			"b": {
+			"b": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
 		}
@@ -197,18 +197,18 @@ func TestStopDeliverForChannel(t *testing.T) {
 
 func TestStop(t *testing.T) {
 	ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-	ds.blockProviders = map[string]*blocksprovider.Deliverer{
-		"a": {
+	ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+		"a": &blocksprovider.Deliverer{
 			DoneC: make(chan struct{}),
 		},
-		"b": {
+		"b": &blocksprovider.Deliverer{
 			DoneC: make(chan struct{}),
 		},
 	}
 	require.False(t, ds.stopping)
 	for _, bp := range ds.blockProviders {
 		select {
-		case <-bp.DoneC:
+		case <-bp.(*blocksprovider.Deliverer).DoneC:
 			require.Fail(t, "block providers should not be closed")
 		default:
 		}
@@ -219,7 +219,7 @@ func TestStop(t *testing.T) {
 	require.Len(t, ds.blockProviders, 2)
 	for _, bp := range ds.blockProviders {
 		select {
-		case <-bp.DoneC:
+		case <-bp.(*blocksprovider.Deliverer).DoneC:
 		default:
 			require.Fail(t, "block providers should te closed")
 		}

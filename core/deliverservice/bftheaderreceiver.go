@@ -21,7 +21,7 @@ const bftHeaderWrongStatusThreshold = 10
 //go:generate mockery -dir . -name HeaderStreamClient -case underscore -output mocks/
 
 type HeaderStreamClient interface {
-	orderer.AtomicBroadcast_DeliverClient
+	blocksprovider.DeliverClient
 }
 
 type bftHeaderReceiver struct {

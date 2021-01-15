@@ -54,7 +54,7 @@ func (b *blocksRequester) RequestHeaders(height uint64) (*common.Envelope, error
 }
 
 func (b *blocksRequester) getTLSCertHash() []byte {
-	if b.deliverGPRCClient.MutualTLSRequired() {
+	if b.deliverGPRCClient != nil && b.deliverGPRCClient.MutualTLSRequired() {
 		return util.ComputeSHA256(b.deliverGPRCClient.Certificate().Certificate[0])
 	}
 	return nil

@@ -26,6 +26,30 @@ import (
 	"google.golang.org/grpc"
 )
 
+// BlocksProvider used to read blocks from the ordering service
+// for specified chain it subscribed to
+type BlocksProvider interface {
+	// DeliverBlocks starts delivering and disseminating blocks
+	DeliverBlocks()
+
+	// Stop shutdowns blocks provider and stops delivering new blocks
+	Stop()
+}
+
+// DeliverClient used to receive blocks from the ordering service
+type DeliverClient interface {
+	// Send sends the request and returns a error on failure
+	Send(*common.Envelope) error
+
+	// Recv receives a chaincode message
+	Recv() (*orderer.DeliverResponse, error)
+
+	// CloseSend closes the send direction of the stream. It closes the stream
+	// when non-nil error is met. It is also not safe to call CloseSend
+	// concurrently with SendMsg.
+	CloseSend() error
+}
+
 type sleeper struct {
 	sleep func(time.Duration)
 }
@@ -88,7 +112,7 @@ type Dialer interface {
 
 //go:generate counterfeiter -o fake/deliver_streamer.go --fake-name DeliverStreamer . DeliverStreamer
 type DeliverStreamer interface {
-	Deliver(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error)
+	Deliver(context.Context, *grpc.ClientConn) (DeliverClient, error)
 }
 
 // Deliverer the actual implementation for BlocksProvider interface
@@ -287,7 +311,7 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
+func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
 	conn, err := dialer.Dial(endpoint.Address, endpoint.CertPool)
 	if err != nil {
 		return nil, nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", endpoint.Address)
@@ -317,7 +341,7 @@ func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer Deliver
 	}, nil
 }
 
-func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
+func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
 	endpoint, err := d.Orderers.RandomEndpoint()
 	if err != nil {
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
