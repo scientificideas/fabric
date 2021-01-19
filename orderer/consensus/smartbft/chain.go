@@ -348,6 +348,8 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		signers = append(signers, s.ID)
 	}
 
+	fmt.Println("signers are", signers)
+
 	block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&cb.Metadata{
 		Value:      ordererBlockMetadata,
 		Signatures: sigs,

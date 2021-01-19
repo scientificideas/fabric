@@ -1426,6 +1426,9 @@ func (n *Network) PeerUserSession(p *Peer, user string, command Command) (*gexec
 		fmt.Sprintf("FABRIC_CFG_PATH=%s", n.PeerDir(p)),
 		fmt.Sprintf("CORE_PEER_MSPCONFIGPATH=%s", n.PeerUserMSPDir(p, user)),
 	)
+	fd, _ := os.OpenFile("/tmp/peer-user-session", os.O_APPEND | os.O_CREATE | os.O_WRONLY, 0644)
+	fmt.Fprintf(fd, "path: %s, args: %s, env: %s\n", cmd.Path, cmd.Args, cmd.Env)
+	fd.Close()
 	return n.StartSession(cmd, command.SessionName())
 }
 

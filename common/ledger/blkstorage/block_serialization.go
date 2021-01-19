@@ -53,6 +53,7 @@ func deserializeBlock(serializedBlockBytes []byte) (*common.Block, error) {
 	if block.Data, _, err = extractData(b); err != nil {
 		return nil, err
 	}
+	// signer id can be lost here
 	if block.Metadata, err = extractMetadata(b); err != nil {
 		return nil, err
 	}

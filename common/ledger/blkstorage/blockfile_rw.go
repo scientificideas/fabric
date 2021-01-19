@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package blkstorage
 
 import (
+	// "fmt"
 	"os"
 
 	"github.com/hyperledger/fabric/internal/fileutil"

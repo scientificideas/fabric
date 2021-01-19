@@ -164,51 +164,7 @@ func (s *MSPMessageCryptoService) VerifyBlock(chainID common.ChannelID, seqNum u
 		return fmt.Errorf("Header.DataHash is different from Hash(block.Data) for block with id [%d] on channel [%s]", block.Header.Number, chainID)
 	}
 
-	// - Get Policy for block validation
-
-	// Get the policy manager for channelID
-	cpm := s.channelPolicyManagerGetter.Manager(channelID)
-	if cpm == nil {
-		return fmt.Errorf("Could not acquire policy manager for channel %s", channelID)
-	}
-	mcsLogger.Debugf("Got policy manager for channel [%s]", channelID)
-
-	// Get block validation policy
-	policy, ok := cpm.GetPolicy(policies.BlockValidation)
-	// ok is true if it was the policy requested, or false if it is the default policy
-	mcsLogger.Debugf("Got block validation policy for channel [%s] with flag [%t]", channelID, ok)
-
-	id2identities := s.id2IdentitiesFetcher.Id2Identities(channelID)
-
-	// - Prepare SignedData
-	signatureSet := []*protoutil.SignedData{}
-	for _, metadataSignature := range metadata.Signatures {
-		identity, ok := id2identities[metadataSignature.SignerId]
-		if !ok {
-			return fmt.Errorf("identity for id %d was not found", metadataSignature.SignerId)
-		}
-		// TODO: investigate the reason of the marshalling and immidiate unmarshalling.
-		// TODO: investigate the possible side effects of the replament the SignatureHeader field.
-		metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&pcommon.SignatureHeader{
-			Nonce:   metadataSignature.Nonce,
-			Creator: identity,
-		})
-		shdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
-		if err != nil {
-			return fmt.Errorf("Failed unmarshalling signature header for block with id [%d] on channel [%s]: [%s]", block.Header.Number, chainID, err)
-		}
-		signatureSet = append(
-			signatureSet,
-			&protoutil.SignedData{
-				Identity:  shdr.Creator,
-				Data:      util.ConcatenateBytes(metadata.Value, metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(block.Header)),
-				Signature: metadataSignature.Signature,
-			},
-		)
-	}
-
-	// - Evaluate policy
-	return policy.EvaluateSignedData(signatureSet)
+	return s.verifyHeaderWithMetadata(channelID, block.Header, metadata)
 }
 
 func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, header *pcommon.BlockHeader, metadata *pcommon.Metadata) error {

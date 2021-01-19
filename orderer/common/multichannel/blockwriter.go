@@ -178,8 +178,11 @@ func (bw *BlockWriter) WriteBlock(block *cb.Block, encodedMetadataValue []byte) 
 // commitBlock should only ever be invoked with the bw.committingBlock held
 // this ensures that the encoded config sequence numbers stay in sync
 func (bw *BlockWriter) commitBlock(encodedMetadataValue []byte) {
+	// Set the orderer-related metadata field
 	bw.addLastConfig(bw.lastBlock)
-	bw.addBlockSignature(bw.lastBlock, encodedMetadataValue)
+	if len(bw.lastBlock.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES]) == 0 {
+		bw.addBlockSignature(bw.lastBlock, encodedMetadataValue)
+	}
 
 	err := bw.support.Append(bw.lastBlock)
 	if err != nil {
@@ -191,6 +194,7 @@ func (bw *BlockWriter) commitBlock(encodedMetadataValue []byte) {
 func (bw *BlockWriter) addBlockSignature(block *cb.Block, consenterMetadata []byte) {
 	blockSignature := &cb.MetadataSignature{
 		SignatureHeader: protoutil.MarshalOrPanic(protoutil.NewSignatureHeaderOrPanic(bw.support)),
+		// SignerId: 999, here must be SignerId
 	}
 
 	blockSignatureValue := protoutil.MarshalOrPanic(&cb.OrdererBlockMetadata{

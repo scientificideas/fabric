@@ -111,6 +111,7 @@ func DeployChaincodeLegacy(n *Network, channel string, orderer *Orderer, chainco
 
 	// only create chaincode package if it doesn't already exist
 	if fi, err := os.Stat(chaincode.PackageFile); os.IsNotExist(err) || fi.Size() == 0 {
+		fmt.Println("PackageChaincodeLegacy run")
 		PackageChaincodeLegacy(n, chaincode, peers[0])
 	}
 
