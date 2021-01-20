@@ -475,7 +475,7 @@ func (c *bftDeliveryClient) disconnectAll() {
 	if c.blockReceiver != nil {
 		ep := c.GetEndpoint()
 		c.blockReceiver.CloseSend()
-		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep.Address)
+		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep)
 		c.blockReceiver = nil
 	}
 
