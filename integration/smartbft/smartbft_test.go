@@ -298,7 +298,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
 			network.GenerateConfigTree()
 			network.Bootstrap()
-			network.EventuallyTimeout = time.Second * 10
+			network.EventuallyTimeout = time.Minute * 2
 
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {

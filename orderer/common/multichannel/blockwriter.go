@@ -194,7 +194,6 @@ func (bw *BlockWriter) commitBlock(encodedMetadataValue []byte) {
 func (bw *BlockWriter) addBlockSignature(block *cb.Block, consenterMetadata []byte) {
 	blockSignature := &cb.MetadataSignature{
 		SignatureHeader: protoutil.MarshalOrPanic(protoutil.NewSignatureHeaderOrPanic(bw.support)),
-		// SignerId: 999, here must be SignerId
 	}
 
 	blockSignatureValue := protoutil.MarshalOrPanic(&cb.OrdererBlockMetadata{

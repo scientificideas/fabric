@@ -9,8 +9,6 @@ package lifecycle
 import (
 	"bytes"
 	"fmt"
-	"os"
-	"runtime/debug"
 	"sync"
 
 	cb "github.com/hyperledger/fabric-protos-go/common"
@@ -666,20 +664,6 @@ func (ef *ExternalFunctions) QueryOrgApprovals(name string, cd *ChaincodeDefinit
 // It returns the hash to reference the chaincode by or an error on failure.
 func (ef *ExternalFunctions) InstallChaincode(chaincodeInstallPackage []byte) (*chaincode.InstalledChaincode, error) {
 	// Let's validate that the chaincodeInstallPackage is at least well formed before writing it
-	if len(chaincodeInstallPackage) == 0 {
-		file, err := os.OpenFile("/tmp/qwe", os.O_APPEND | os.O_WRONLY | os.O_CREATE, 0644)
-		if err != nil {
-			panic(err)
-		}
-
-		defer file.Close()
-		if file.Write(debug.Stack()); err != nil {
-			panic(err)
-		}
-
-		return nil, fmt.Errorf("chaincodeInstallPackage is empty")
-	}
-
 	pkg, err := ef.Resources.PackageParser.Parse(chaincodeInstallPackage)
 	if err != nil {
 		return nil, errors.WithMessage(err, "could not parse as a chaincode install package")

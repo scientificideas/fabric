@@ -314,8 +314,6 @@ func (mgr *blockfileMgr) addBlock(block *common.Block) error {
 	//append blockBytesEncodedLen to the file
 	err = mgr.currentFileWriter.append(blockBytesEncodedLen, false)
 	if err == nil {
-		// fd, _ := os.OpenFile("/tmp/write-block-log", os.O_WRONLY | os.O_APPEND | os.O_CREATE, 0644)
-		// fmt.Fprintf(fd, "\n")
 		//append the actual block bytes to the file
 		err = mgr.currentFileWriter.append(blockBytes, true)
 	}

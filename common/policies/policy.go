@@ -366,7 +366,6 @@ func SignatureSetToValidIdentities(signedData []*protoutil.SignedData, identityD
 	idMap := map[string]struct{}{}
 	identities := make([]mspi.Identity, 0, len(signedData))
 
-	fmt.Println("validate identities")
 	for i, sd := range signedData {
 		identity, err := identityDeserializer.DeserializeIdentity(sd.Identity)
 		if err != nil {

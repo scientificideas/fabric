@@ -286,7 +286,7 @@ func (v *Verifier) verifyBlockDataAndMetadata(block *cb.Block, metadata []byte) 
 	rtc := v.RuntimeConfig.Load().(RuntimeConfig)
 	lastConfig := rtc.LastConfigBlock.Header.Number
 
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 		lastConfig = block.Header.Number
 	}
 

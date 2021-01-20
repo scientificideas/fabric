@@ -8,7 +8,6 @@ package deliver
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"math"
 	"strconv"
@@ -321,18 +320,6 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 
 		// increment block number to support FAIL_IF_NOT_READY deliver behavior
 		number++
-
-		md, err := protoutil.GetMetadataFromBlock(block, cb.BlockMetadataIndex_SIGNATURES)
-		if err == nil && len(md.Signatures) > 0 {
-			ids := make([]uint64, 0)
-			for _, s := range md.Signatures {
-				ids = append(ids, s.SignerId)
-			}
-
-			fmt.Printf("block is going to be sent with: %+v\n", ids)
-		} else {
-			fmt.Printf("fail getting block md %s\n", err)
-		}
 
 		if err := accessControl.Evaluate(); err != nil {
 			logger.Warningf("[channel: %s] Client authorization revoked for deliver request from %s: %s", chdr.ChannelId, addr, err)

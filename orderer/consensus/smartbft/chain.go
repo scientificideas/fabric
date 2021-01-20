@@ -216,7 +216,7 @@ func bftSmartConsensusBuild(
 			Logger:           flogging.MustGetLogger("orderer.consensus.smartbft.signer").With(channelDecorator),
 			SignerSerializer: c.SignerSerializer,
 			LastConfigBlockNum: func(block *cb.Block) uint64 {
-				if isConfigBlock(block) {
+				if protoutil.IsConfigBlock(block) {
 					return block.Header.Number
 				}
 
@@ -348,8 +348,6 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		signers = append(signers, s.ID)
 	}
 
-	fmt.Println("signers are", signers)
-
 	block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(&cb.Metadata{
 		Value:      ordererBlockMetadata,
 		Signatures: sigs,
@@ -368,7 +366,7 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		c.Config.SelfID)
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
 	c.reportIsLeader(&proposal)                                      // report the leader
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 
 		c.support.WriteConfigBlock(block, nil)
 	} else {
@@ -434,7 +432,7 @@ func (c *BFTChain) blockToProposalWithoutSignaturesInMetadata(block *cb.Block) t
 		VerificationSequence: int64(c.verifier.VerificationSequence()),
 	}
 
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 		prop.VerificationSequence--
 	}
 
