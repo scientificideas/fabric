@@ -50,7 +50,7 @@ func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextPr
 	block.Data = &cb.BlockData{Data: batchedRequests}
 	block.Header.DataHash = protoutil.BlockDataHash(block.Data)
 
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 		lastConfigBlockNum = block.Header.Number
 	}
 

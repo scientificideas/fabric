@@ -802,11 +802,11 @@ func initializeMultichannelRegistrar(
 	bccsp bccsp.BCCSP,
 	callbacks ...channelconfig.BundleActor,
 ) *multichannel.Registrar {
+	dpmr := &DynamicPolicyManagerRegistry{}
+	callbacks = append(callbacks, dpmr.Update)
 	registrar := multichannel.NewRegistrar(*conf, lf, signer, metricsProvider, bccsp, clusterDialer, callbacks...)
-
 	consenters := map[string]consensus.Consenter{}
 	var icr etcdraft.InactiveChainRegistry
-	dpmr := &DynamicPolicyManagerRegistry{}
 
 	if conf.General.BootstrapMethod == "file" || conf.General.BootstrapMethod == "none" {
 		if bootstrapBlock != nil && isClusterType(bootstrapBlock, bccsp) {
@@ -817,7 +817,7 @@ func initializeMultichannelRegistrar(
 				etcdConsenter := initializeEtcdraftConsenter(consenters, conf, lf, clusterDialer, bootstrapBlock, repInitiator, srvConf, srv, registrar, metricsProvider, bccsp)
 				icr = etcdConsenter.InactiveChainRegistry
 			case "smartbft":
-				smartBFTConsenter := initializeSmartBFTConsenter(signer, dpmr, consenters, conf, lf, clusterDialer, bootstrapBlock, repInitiator, srvConf, srv, registrar, metricsProvider)
+				smartBFTConsenter := initializeSmartBFTConsenter(signer, dpmr, consenters, conf, lf, clusterDialer, bootstrapBlock, repInitiator, srvConf, srv, registrar, metricsProvider, bccsp)
 				icr = smartBFTConsenter.InactiveChainRegistry
 			default:
 				logger.Panicf("Unknown cluster type consenter")
@@ -837,7 +837,7 @@ func initializeMultichannelRegistrar(
 			case "etcdraft":
 				consenters["etcdraft"] = etcdraft.New(clusterDialer, conf, srvConf, srv, registrar, nil, metricsProvider, bccsp)
 			case "smartbft":
-				consenters["smartbft"] = smartbft.New(nil, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider)
+				consenters["smartbft"] = smartbft.New(nil, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider, bccsp)
 			default:
 				logger.Panicf("Unknown cluster type consenter")
 			}
@@ -907,6 +907,7 @@ func initializeSmartBFTConsenter(
 	srv *comm.GRPCServer,
 	registrar *multichannel.Registrar,
 	metricsProvider metrics.Provider,
+	bccsp bccsp.BCCSP,
 ) *smartbft.Consenter {
 	systemChannelName, err := protoutil.GetChannelIDFromBlock(bootstrapBlock)
 	if err != nil {
@@ -928,7 +929,7 @@ func initializeSmartBFTConsenter(
 	ri.ChannelLister = icr
 
 	go icr.Run()
-	smartBFTConsenter := smartbft.New(icr, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider)
+	smartBFTConsenter := smartbft.New(icr, dpmr.Registry(), signer, clusterDialer, conf, srvConf, srv, registrar, metricsProvider, bccsp)
 	consenters["smartbft"] = smartBFTConsenter
 
 	return smartBFTConsenter

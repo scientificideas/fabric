@@ -117,30 +117,6 @@ func configBlockToBFTConfig(selfID uint64, block *cb.Block, bccsp bccsp.BCCSP) (
 	return configFromMetadataOptions(selfID, consensusMD.Options)
 }
 
-func isConfigBlock(block *cb.Block) bool {
-	if block.Data == nil || len(block.Data.Data) != 1 {
-		return false
-	}
-	env, err := protoutil.UnmarshalEnvelope(block.Data.Data[0])
-	if err != nil {
-		return false
-	}
-	payload, err := protoutil.GetPayload(env)
-	if err != nil {
-		return false
-	}
-
-	if payload.Header == nil {
-		return false
-	}
-
-	hdr, err := protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
-	if err != nil {
-		return false
-	}
-	return cb.HeaderType(hdr.Type) == cb.HeaderType_CONFIG
-}
-
 //go:generate counterfeiter -o mocks/mock_blockpuller.go . BlockPuller
 
 // newBlockPuller creates a new block puller
@@ -191,7 +167,7 @@ func newBlockPuller(
 func getViewMetadataFromBlock(block *cb.Block) (*smartbftprotos.ViewMetadata, error) {
 	if block.Header.Number == 0 {
 		// Genesis block has no prior metadata so we just return an un-initialized metadata
-		return nil, nil
+		return new(smartbftprotos.ViewMetadata), nil
 	}
 
 	signatureMetadata := protoutil.GetMetadataFromBlockOrPanic(block, cb.BlockMetadataIndex_SIGNATURES)

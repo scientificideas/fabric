@@ -216,7 +216,7 @@ func bftSmartConsensusBuild(
 			Logger:           flogging.MustGetLogger("orderer.consensus.smartbft.signer").With(channelDecorator),
 			SignerSerializer: c.SignerSerializer,
 			LastConfigBlockNum: func(block *cb.Block) uint64 {
-				if isConfigBlock(block) {
+				if protoutil.IsConfigBlock(block) {
 					return block.Header.Number
 				}
 
@@ -366,7 +366,7 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		c.Config.SelfID)
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
 	c.reportIsLeader(&proposal)                                      // report the leader
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 
 		c.support.WriteConfigBlock(block, nil)
 	} else {
@@ -432,7 +432,7 @@ func (c *BFTChain) blockToProposalWithoutSignaturesInMetadata(block *cb.Block) t
 		VerificationSequence: int64(c.verifier.VerificationSequence()),
 	}
 
-	if isConfigBlock(block) {
+	if protoutil.IsConfigBlock(block) {
 		prop.VerificationSequence--
 	}
 
@@ -485,6 +485,16 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 		Signatures: signatures,
 		Proposal:   proposal,
 	}
+}
+
+func (c *BFTChain) HandleMessage(sender uint64, m *smartbftprotos.Message) {
+	c.Logger.Debugf("Message from %d", sender)
+	c.consensus.HandleMessage(sender, m)
+}
+
+func (c *BFTChain) HandleRequest(sender uint64, req []byte) {
+	c.Logger.Debugf("HandleRequest from %d", sender)
+	c.consensus.SubmitRequest(req)
 }
 
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
@@ -581,7 +591,7 @@ type chainACL struct {
 func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
 	if !ok {
-		return fmt.Errorf("could not find policy %s", policies.ChannelWriters)
+		return fmt.Errorf("could not find policy 123 %s", policies.ChannelWriters)
 	}
 
 	err := policy.EvaluateSignedData(signatureSet)
