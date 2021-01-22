@@ -228,7 +228,7 @@ func (d *Deliverer) DeliverBlocks() {
 					failureCounter++
 					break RecvLoop
 				}
-				err = d.processMsg(response)
+				err = d.processMsg(response, deliverClient)
 				if err != nil {
 					connLogger.Warningf("Got error while attempting to receive blocks: %v", err)
 					failureCounter++
@@ -246,7 +246,7 @@ func (d *Deliverer) DeliverBlocks() {
 	}
 }
 
-func (d *Deliverer) processMsg(msg *orderer.DeliverResponse) error {
+func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient DeliverClient) error {
 	switch t := msg.Type.(type) {
 	case *orderer.DeliverResponse_Status:
 		if t.Status == common.Status_SUCCESS {
@@ -293,6 +293,12 @@ func (d *Deliverer) processMsg(msg *orderer.DeliverResponse) error {
 		// Gossip messages with other nodes
 		d.Logger.Debugf("Gossiping block [%d]", blockNum)
 		d.Gossip.Gossip(gossipMsg)
+
+		// Update received block
+		if bftClient, ok := deliverClient.(interface{UpdateReceived(blockNumber uint64)}); ok {
+			bftClient.UpdateReceived(blockNum)
+		}
+
 		return nil
 	default:
 		d.Logger.Warningf("Received unknown: %v", t)
@@ -311,7 +317,7 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
+func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (DeliverClient, *grpc.ClientConn, func(), error) {
 	conn, err := dialer.Dial(endpoint.Address, endpoint.CertPool)
 	if err != nil {
 		return nil, nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", endpoint.Address)
@@ -334,7 +340,7 @@ func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer Deliver
 		return nil, nil, nil, errors.WithMessagef(err, "could not send deliver seek info handshake to '%s'", endpoint.Address)
 	}
 
-	return deliverClient, endpoint, func() {
+	return deliverClient, conn, func() {
 		deliverClient.CloseSend()
 		ctxCancel()
 		conn.Close()
@@ -347,7 +353,8 @@ func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *order
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
 	}
 
-	return Connect(endpoint, d.Dialer, d.DeliverStreamer, seekInfoEnv)
+	dc, _, cancel, err := Connect(endpoint, d.Dialer, d.DeliverStreamer, seekInfoEnv)
+	return dc, endpoint, cancel, err
 }
 
 func (d *Deliverer) createSeekInfo(ledgerHeight uint64) (*common.Envelope, error) {
