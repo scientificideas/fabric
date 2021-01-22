@@ -67,11 +67,7 @@ type bftDeliverAdapter struct {
 
 // Deliver initialize deliver client
 func (a *bftDeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
-	deliverClient, err := orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return NewBFTDeliveryClient(ctx, deliverClient, a.chainID, a.ledgerInfoProvider, a.msgCryptoVerifier, a.orderers, a.signer, a.dialer, a.deliverGPRCClient)
+	return NewBFTDeliveryClient(ctx, a.chainID, a.ledgerInfoProvider, a.msgCryptoVerifier, a.orderers, a.signer, a.dialer, a.deliverGPRCClient)
 }
 
 func NewBftDeliverAdapter(
@@ -94,6 +90,11 @@ func NewBftDeliverAdapter(
 	}
 }
 
+type BlockReceiver interface {
+	blocksprovider.DeliverClient
+	GetEndpoint() *orderers.Endpoint
+}
+
 // bft delivery client
 type bftDeliveryClient struct {
 	mutex     sync.Mutex
@@ -103,14 +104,14 @@ type bftDeliveryClient struct {
 
 	ctx context.Context
 
-	chainID            string                                 // a.k.a. Channel ID
-	deliverClient      orderer.AtomicBroadcast_DeliverClient  // atomic broadcast deliver client
-	ledgerInfoProvider blocksprovider.LedgerInfo              // provides access to the ledger height
-	msgCryptoVerifier  blocksprovider.BlockVerifier           // verifies headers
-	orderers           blocksprovider.OrdererConnectionSource // orderers
-	signer             identity.SignerSerializer
-	dialer             blocksprovider.Dialer
-	deliverGPRCClient  *comm.GRPCClient // GPRC client
+	chainID            string                       // a.k.a. Channel ID
+	ledgerInfoProvider blocksprovider.LedgerInfo    // provides access to the ledger height
+	msgCryptoVerifier  blocksprovider.BlockVerifier // verifies headers
+
+	orderers          blocksprovider.OrdererConnectionSource // orderers
+	signer            identity.SignerSerializer
+	dialer            blocksprovider.Dialer
+	deliverGPRCClient *comm.GRPCClient // GPRC client
 
 	// The total time a bft client tries to connect (to all available endpoints) before giving up leadership
 	reconnectTotalTimeThreshold time.Duration
@@ -128,7 +129,7 @@ type bftDeliveryClient struct {
 
 	blockReceiverIndex int // index of the current block receiver endpoint
 
-	blockReceiver   blocksprovider.DeliverClient
+	blockReceiver   BlockReceiver
 	nextBlockNumber uint64
 	lastBlockTime   time.Time
 
@@ -137,7 +138,6 @@ type bftDeliveryClient struct {
 
 func NewBFTDeliveryClient(
 	ctx context.Context,
-	deliverClient orderer.AtomicBroadcast_DeliverClient,
 	chainID string,
 	ledgerInfoProvider blocksprovider.LedgerInfo,
 	msgVerifier blocksprovider.BlockVerifier,
@@ -149,9 +149,8 @@ func NewBFTDeliveryClient(
 	c := &bftDeliveryClient{
 		ctx: ctx,
 
-		deliverClient: deliverClient,
-		stopChan:      make(chan struct{}, 1),
-		chainID:       chainID,
+		stopChan: make(chan struct{}, 1),
+		chainID:  chainID,
 
 		ledgerInfoProvider:                  ledgerInfoProvider,
 		msgCryptoVerifier:                   msgVerifier,
@@ -236,7 +235,8 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 }
 
 func (c *bftDeliveryClient) CloseSend() error {
-	return c.deliverClient.CloseSend()
+	c.Close()
+	return nil
 }
 
 func backOffDuration(base float64, exponent uint, minDur, maxDur time.Duration) time.Duration {
@@ -518,8 +518,10 @@ func (c *bftDeliveryClient) shouldStop() bool {
 // GetEndpoint provides the endpoint of the ordering service server that delivers
 // blocks (as opposed to headers) to this delivery client.
 func (c *bftDeliveryClient) GetEndpoint() *orderers.Endpoint {
-	endpoints := c.orderers.GetAllEndpoints()
-	return endpoints[c.blockReceiverIndex]
+	if c.blockReceiver == nil {
+		return nil
+	}
+	return c.blockReceiver.GetEndpoint()
 }
 
 func (c *bftDeliveryClient) GetNextBlockNumTime() (uint64, time.Time) {
@@ -546,60 +548,63 @@ func (c *bftDeliveryClient) GetHeadersBlockNumTime() ([]uint64, []time.Time, []e
 }
 
 // create a deliver client that delivers blocks
-func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (blocksprovider.DeliverClient, error) {
+func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
 	//Update the nextBlockNumber from the ledger, and then make sure the client request the nextBlockNumber,
 	// because that is what we expect in the Recv() loop.
-	height, err := c.ledgerInfoProvider.LedgerHeight()
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
-	} else {
+	if height, err := c.ledgerInfoProvider.LedgerHeight(); err == nil {
 		c.nextBlockNumber = height
 	}
 
-	// todo: bft backoff policy
 	//Let block receivers give-up early so we can replace them with a header receiver
-
-	requester := &blocksRequester{
-		chainID:           c.chainID,
-		signer:            c.signer,
-		deliverGPRCClient: c.deliverGPRCClient,
-	}
-	seekInfo, err := requester.RequestBlocks(height)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not create signed envelope for endpoint '%s'", endpoint.Address)
+	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
+		if elapsedTime >= c.reconnectBlockRcvTotalTimeThreshold {
+			return 0, false
+		}
+		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	client, _, _, err := blocksprovider.Connect(endpoint, c.dialer, &DeliverAdapter{}, seekInfo)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not connect to block client endpoint '%s'", endpoint.Address)
+	seekInfo := func() (*common.Envelope, error) {
+		height, err := c.LedgerHeight()
+		if err != nil {
+			return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
+		}
+
+		requester := &blocksRequester{
+			chainID:           c.chainID,
+			signer:            c.signer,
+			deliverGPRCClient: c.deliverGPRCClient,
+		}
+		return requester.RequestBlocks(height)
 	}
 
-	return client, nil
+	blockClient := NewBroadcastClient(backoffPolicy, endpoint, c.dialer, seekInfo)
+	return blockClient, nil
 }
 
 // create a deliver client that delivers headers
 func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (blocksprovider.DeliverClient, error) {
-	height, err := c.ledgerInfoProvider.LedgerHeight()
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
-	}
-
-	// todo: bft backoff policy
 	//Let block receivers give-up early so we can replace them with a header receiver
-
-	requester := &blocksRequester{
-		chainID:           c.chainID,
-		signer:            c.signer,
-		deliverGPRCClient: c.deliverGPRCClient,
-	}
-	seekInfo, err := requester.RequestHeaders(height)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not create signed envelope for endpoint '%s'", endpoint.Address)
+	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
+		if elapsedTime >= c.reconnectTotalTimeThreshold { // Let header receivers continue to try until we close them
+			return 0, false
+		}
+		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	client, _, _, err := blocksprovider.Connect(endpoint, c.dialer, &DeliverAdapter{}, seekInfo)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "could not connect to header client endpoint '%s'", endpoint.Address)
+	seekInfo := func() (*common.Envelope, error) {
+		height, err := c.ledgerInfoProvider.LedgerHeight()
+		if err != nil {
+			return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
+		}
+
+		requester := &blocksRequester{
+			chainID:           c.chainID,
+			signer:            c.signer,
+			deliverGPRCClient: c.deliverGPRCClient,
+		}
+		return requester.RequestHeaders(height)
 	}
-	return client, nil
+
+	blockClient := NewBroadcastClient(backoffPolicy, endpoint, c.dialer, seekInfo)
+	return blockClient, nil
 }

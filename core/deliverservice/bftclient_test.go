@@ -36,29 +36,29 @@ import (
 )
 
 var endpoints = []*orderers.Endpoint{
-	{Address: "127.0.0.1:5611"},
-	{Address: "127.0.0.1:5612"},
-	{Address: "127.0.0.1:5613"},
-	{Address: "127.0.0.1:5614"},
+	{Address: "localhost:5611"},
+	{Address: "localhost:5612"},
+	{Address: "localhost:5613"},
+	{Address: "localhost:5614"},
 }
 
 var endpoints3 = []*orderers.Endpoint{
-	{Address: "127.0.0.1:5615"},
-	{Address: "127.0.0.1:5616"},
-	{Address: "127.0.0.1:5617"},
+	{Address: "localhost:5615"},
+	{Address: "localhost:5616"},
+	{Address: "localhost:5617"},
 }
 
 var endpointMap = map[int]*orderers.Endpoint{
-	5611: {Address: "127.0.0.1:5611"},
-	5612: {Address: "127.0.0.1:5612"},
-	5613: {Address: "127.0.0.1:5613"},
-	5614: {Address: "127.0.0.1:5614"},
+	5611: {Address: "localhost:5611"},
+	5612: {Address: "localhost:5612"},
+	5613: {Address: "localhost:5613"},
+	5614: {Address: "localhost:5614"},
 }
 
 var endpointMap3 = map[int]*orderers.Endpoint{
-	5615: {Address: "127.0.0.1:5615"},
-	5616: {Address: "127.0.0.1:5616"},
-	5617: {Address: "127.0.0.1:5617"},
+	5615: {Address: "localhost:5615"},
+	5616: {Address: "localhost:5616"},
+	5617: {Address: "localhost:5617"},
 }
 
 const goRoutineTestWaitTimeout = time.Second * 15
@@ -109,9 +109,8 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 	defer cancel()
-	deliverClient, err := orderer.NewAtomicBroadcastClient(conn).Deliver(ctx)
 
-	bc, err := NewBFTDeliveryClient(ctx, deliverClient, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
+	bc, err := NewBFTDeliveryClient(ctx, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 }
@@ -146,21 +145,16 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
-		cc, err := grpc.Dial(ep, grpc.WithInsecure())
+		cc, err := grpc.Dial(ep, grpc.WithInsecure(), grpc.WithBlock())
 		require.Nil(t, err)
 		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
 		return cc, nil
 	})
 
-	conn, err := fakeDialer.Dial("", x509.NewCertPool())
-	require.Nil(t, err)
-	require.NotNil(t, conn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 	defer cancel()
-	deliverClient, err := orderer.NewAtomicBroadcastClient(conn).Deliver(ctx)
 
-	bc, err := NewBFTDeliveryClient(ctx, deliverClient, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
+	bc, err := NewBFTDeliveryClient(ctx, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -235,7 +229,9 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	var ledgerHeight uint64 = 5
 
 	fakeLedgerInfo := &fake.LedgerInfo{}
-	fakeLedgerInfo.LedgerHeightReturns(atomic.LoadUint64(&ledgerHeight), nil)
+	fakeLedgerInfo.LedgerHeightStub = func() (uint64, error) {
+		return atomic.LoadUint64(&ledgerHeight), nil
+	}
 	fakeBlockVerifier := &fake.BlockVerifier{}
 	fakeBlockVerifier.VerifyHeaderReturns(nil)
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{}
@@ -246,27 +242,21 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
-		cc, err := grpc.Dial(ep, grpc.WithInsecure())
+		cc, err := grpc.Dial(ep, grpc.WithInsecure(), grpc.WithBlock())
 		require.Nil(t, err)
 		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
 		return cc, nil
 	})
 
-	conn, err := fakeDialer.Dial("", x509.NewCertPool())
-	require.Nil(t, err)
-	require.NotNil(t, conn)
-
 	ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 	defer cancel()
-	deliverClient, err := orderer.NewAtomicBroadcastClient(conn).Deliver(ctx)
 
-	bc, err := NewBFTDeliveryClient(ctx, deliverClient, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
+	bc, err := NewBFTDeliveryClient(ctx, "test-chain", fakeLedgerInfo, fakeBlockVerifier, fakeOrdererConnectionSource, mockSignerSerializer, fakeDialer, grpcClient)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
 	go func() {
 		for {
-			bftLogger.Debugf(">>>> Ready for receive <<<<")
 			resp, err := bc.Recv()
 			if err != nil {
 				assert.EqualError(t, err, "client is closing")
@@ -307,7 +297,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	beforeSend = time.Now()
 	for seq := uint64(6); seq < uint64(10); seq++ {
 		for _, os := range osArray {
-			if os.Addr().String() == blockEP.Address { //censorship
+			if strings.Split(blockEP.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] { // censorship
 				continue
 			}
 			os.SendBlock(seq)
@@ -320,11 +310,11 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	blockEP2, err := waitForBlockEP(bc)
 	assert.NoError(t, err)
 	require.NotNil(t, blockEP2)
-	assert.True(t, blockEP != blockEP2)
+	assert.True(t, blockEP.Address != blockEP2.Address)
 
 	for seq := uint64(6); seq < uint64(10); seq++ {
 		for _, os := range osArray {
-			if os.Addr().String() == blockEP2.Address {
+			if strings.Split(blockEP2.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
 				os.SendBlock(seq)
 			}
 		}
