@@ -9,6 +9,7 @@ package deliverservice
 import (
 	"context"
 	"math"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -57,36 +58,28 @@ var (
 
 type bftDeliverAdapter struct {
 	chainID            string
-	ledgerInfoProvider blocksprovider.LedgerInfo    // provides access to the ledger height
-	msgCryptoVerifier  blocksprovider.BlockVerifier // verifies headers
-	orderers           blocksprovider.OrdererConnectionSource
-	signer             identity.SignerSerializer
+	ledgerInfoProvider blocksprovider.LedgerInfo // provides access to the ledger height
+	conf               *Config
 	dialer             blocksprovider.Dialer
-	deliverGPRCClient  *comm.GRPCClient
 }
 
 // Deliver initialize deliver client
 func (a *bftDeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
-	return NewBFTDeliveryClient(ctx, a.chainID, a.ledgerInfoProvider, a.msgCryptoVerifier, a.orderers, a.signer, a.dialer, a.deliverGPRCClient)
+	endpoints := a.conf.OrdererSource.GetAllEndpoints()
+	return NewBFTDeliveryClient(a.chainID, endpoints, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
 }
 
 func NewBftDeliverAdapter(
 	chainID string,
 	ledgerInfoProvider blocksprovider.LedgerInfo,
-	msgVerifier blocksprovider.BlockVerifier,
-	orderers blocksprovider.OrdererConnectionSource,
-	signer identity.SignerSerializer,
+	conf *Config,
 	dialer blocksprovider.Dialer,
-	deliverGPRCClient *comm.GRPCClient,
 ) *bftDeliverAdapter {
 	return &bftDeliverAdapter{
 		chainID:            chainID,
 		ledgerInfoProvider: ledgerInfoProvider,
-		msgCryptoVerifier:  msgVerifier,
-		orderers:           orderers,
-		signer:             signer,
+		conf:               conf,
 		dialer:             dialer,
-		deliverGPRCClient:  deliverGPRCClient,
 	}
 }
 
@@ -102,16 +95,13 @@ type bftDeliveryClient struct {
 	stopFlag  bool
 	stopChan  chan struct{}
 
-	ctx context.Context
-
 	chainID            string                       // a.k.a. Channel ID
 	ledgerInfoProvider blocksprovider.LedgerInfo    // provides access to the ledger height
 	msgCryptoVerifier  blocksprovider.BlockVerifier // verifies headers
 
-	orderers          blocksprovider.OrdererConnectionSource // orderers
-	signer            identity.SignerSerializer
-	dialer            blocksprovider.Dialer
-	deliverGPRCClient *comm.GRPCClient // GPRC client
+	signer            identity.SignerSerializer // signer for blocks requester
+	deliverGPRCClient *comm.GRPCClient          // GPRC client for blocks requester
+	dialer            blocksprovider.Dialer     // broadcast client dialer
 
 	// The total time a bft client tries to connect (to all available endpoints) before giving up leadership
 	reconnectTotalTimeThreshold time.Duration
@@ -122,12 +112,12 @@ type bftDeliveryClient struct {
 	minBackoffDelay time.Duration
 	// The maximal time between connection retries.
 	maxBackoffDelay time.Duration
-
 	// The block censorship timeout. A block censorship suspicion is declared if more than f header receivers are
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
-	blockReceiverIndex int // index of the current block receiver endpoint
+	endpoints          []*orderers.Endpoint // a set of endpoints
+	blockReceiverIndex int                  // index of the current block receiver endpoint
 
 	blockReceiver   BlockReceiver
 	nextBlockNumber uint64
@@ -137,34 +127,30 @@ type bftDeliveryClient struct {
 }
 
 func NewBFTDeliveryClient(
-	ctx context.Context,
 	chainID string,
+	endpoints []*orderers.Endpoint,
 	ledgerInfoProvider blocksprovider.LedgerInfo,
 	msgVerifier blocksprovider.BlockVerifier,
-	orderers blocksprovider.OrdererConnectionSource,
 	signer identity.SignerSerializer,
-	dialer blocksprovider.Dialer,
 	deliverGPRCClient *comm.GRPCClient,
+	dialer blocksprovider.Dialer,
 ) (*bftDeliveryClient, error) {
 	c := &bftDeliveryClient{
-		ctx: ctx,
-
-		stopChan: make(chan struct{}, 1),
-		chainID:  chainID,
-
+		stopChan:                            make(chan struct{}, 1),
+		chainID:                             chainID,
 		ledgerInfoProvider:                  ledgerInfoProvider,
 		msgCryptoVerifier:                   msgVerifier,
-		orderers:                            orderers,
-		signer:                              signer,
-		dialer:                              dialer,
-		deliverGPRCClient:                   deliverGPRCClient,
 		reconnectTotalTimeThreshold:         getReConnectTotalTimeThreshold(),
 		reconnectBlockRcvTotalTimeThreshold: util.GetDurationOrDefault("peer.deliveryclient.bft.blockRcvTotalBackoffDelay", bftBlockRcvTotalBackoffDelay),
 		minBackoffDelay:                     util.GetDurationOrDefault("peer.deliveryclient.bft.minBackoffDelay", bftMinBackoffDelay),
 		maxBackoffDelay:                     util.GetDurationOrDefault("peer.deliveryclient.bft.maxBackoffDelay", bftMaxBackoffDelay),
 		blockCensorshipTimeout:              util.GetDurationOrDefault("peer.deliveryclient.bft.blockCensorshipTimeout", bftBlockCensorshipTimeout),
+		endpoints:                           shuffle(endpoints),
 		blockReceiverIndex:                  -1,
 		headerReceivers:                     make(map[string]*bftHeaderReceiver),
+		signer:                              signer,
+		deliverGPRCClient:                   deliverGPRCClient,
+		dialer:                              dialer,
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
@@ -309,7 +295,7 @@ func (c *bftDeliveryClient) detectBlockCensorship() bool {
 		}
 	}
 
-	numEP := uint64(len(c.orderers.GetAllEndpoints()))
+	numEP := uint64(len(c.endpoints))
 	_, f := computeQuorum(numEP)
 	if numAhead > f {
 		bftLogger.Warnf("[%s] suspected block censorship: %d header receivers are ahead of block receiver, out of %d endpoints",
@@ -331,15 +317,14 @@ func (c *bftDeliveryClient) assignReceivers() (int, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	endpoints := c.orderers.GetAllEndpoints()
-	numEP := len(endpoints)
+	numEP := len(c.endpoints)
 	if numEP <= 0 {
 		return numEP, errors.New("no endpoints")
 	}
 
 	if c.blockReceiver == nil {
 		c.blockReceiverIndex = (c.blockReceiverIndex + 1) % numEP
-		ep := endpoints[c.blockReceiverIndex]
+		ep := c.endpoints[c.blockReceiverIndex]
 		if headerReceiver, exists := c.headerReceivers[ep.Address]; exists {
 			headerReceiver.Close()
 			delete(c.headerReceivers, ep.Address)
@@ -354,7 +339,7 @@ func (c *bftDeliveryClient) assignReceivers() (int, error) {
 	}
 
 	hRcvToCreate := make([]*orderers.Endpoint, 0)
-	for i, ep := range endpoints {
+	for i, ep := range c.endpoints {
 		if i == c.blockReceiverIndex {
 			continue
 		}
@@ -418,16 +403,15 @@ func (c *bftDeliveryClient) receiveBlock() (*orderer.DeliverResponse, error) {
 	// ignore older blocks, filter out-of-order blocks
 	switch t := response.Type.(type) {
 	case *orderer.DeliverResponse_Block:
-		// todo: bft get endpoint
-		// endpoint := receiver.GetEndpoint()
+		endpoint := receiver.GetEndpoint()
 		if t.Block.Header.Number > nextBlockNumber {
 			bftLogger.Warnf("[%s] Ignoring out-of-order block from orderer: %s; received block number: %d, expected: %d",
-				c.chainID, c.GetEndpoint(), t.Block.Header.Number, nextBlockNumber)
+				c.chainID, endpoint.Address, t.Block.Header.Number, nextBlockNumber)
 			return nil, errOutOfOrderBlock
 		}
 		if t.Block.Header.Number < nextBlockNumber {
 			bftLogger.Warnf("[%s] Ignoring duplicate block from orderer: %s; received block number: %d, expected: %d",
-				c.chainID, c.GetEndpoint(), t.Block.Header.Number, nextBlockNumber)
+				c.chainID, endpoint.Address, t.Block.Header.Number, nextBlockNumber)
 			return nil, errDuplicateBlock
 		}
 	}
@@ -473,7 +457,7 @@ func (c *bftDeliveryClient) Close() {
 
 func (c *bftDeliveryClient) disconnectAll() {
 	if c.blockReceiver != nil {
-		ep := c.GetEndpoint()
+		ep := c.blockReceiver.GetEndpoint()
 		c.blockReceiver.CloseSend()
 		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep.Address)
 		c.blockReceiver = nil
@@ -518,6 +502,8 @@ func (c *bftDeliveryClient) shouldStop() bool {
 // GetEndpoint provides the endpoint of the ordering service server that delivers
 // blocks (as opposed to headers) to this delivery client.
 func (c *bftDeliveryClient) GetEndpoint() *orderers.Endpoint {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	if c.blockReceiver == nil {
 		return nil
 	}
@@ -582,7 +568,7 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 }
 
 // create a deliver client that delivers headers
-func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (blocksprovider.DeliverClient, error) {
+func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
 	//Let block receivers give-up early so we can replace them with a header receiver
 	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		if elapsedTime >= c.reconnectTotalTimeThreshold { // Let header receivers continue to try until we close them
@@ -607,4 +593,15 @@ func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (blocks
 
 	blockClient := NewBroadcastClient(backoffPolicy, endpoint, c.dialer, seekInfo)
 	return blockClient, nil
+}
+
+func shuffle(a []*orderers.Endpoint) []*orderers.Endpoint {
+	n := len(a)
+	returnedSlice := make([]*orderers.Endpoint, n)
+	rand.Seed(time.Now().UnixNano())
+	indices := rand.Perm(n)
+	for i, idx := range indices {
+		returnedSlice[i] = a[idx]
+	}
+	return returnedSlice
 }

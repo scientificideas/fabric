@@ -40,9 +40,9 @@ type broadcastClient struct {
 
 	mutex           sync.Mutex
 	blocksDeliverer blocksprovider.DeliverClient
-
 	conn            *connection
 	ep              *orderers.Endpoint
+
 	deliverStreamer blocksprovider.DeliverStreamer
 	dialer          blocksprovider.Dialer
 	seekInfo        seekInfo
