@@ -146,7 +146,6 @@ func (d *DeliverClient) Close() error {
 	return d.Service.CloseSend()
 }
 
-
 func seekHelper(
 	channelID string,
 	position *ab.SeekPosition,
@@ -156,9 +155,9 @@ func seekHelper(
 	contentType ab.SeekInfo_SeekContentType,
 ) *cb.Envelope {
 	seekInfo := &ab.SeekInfo{
-		Start:    position,
-		Stop:     position,
-		Behavior: ab.SeekInfo_BLOCK_UNTIL_READY,
+		Start:       position,
+		Stop:        position,
+		Behavior:    ab.SeekInfo_BLOCK_UNTIL_READY,
 		ContentType: contentType,
 	}
 

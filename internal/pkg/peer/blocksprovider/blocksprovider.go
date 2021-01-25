@@ -295,7 +295,7 @@ func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient Deliv
 		d.Gossip.Gossip(gossipMsg)
 
 		// Update received block
-		if bftClient, ok := deliverClient.(interface{UpdateReceived(blockNumber uint64)}); ok {
+		if bftClient, ok := deliverClient.(interface{ UpdateReceived(blockNumber uint64) }); ok {
 			bftClient.UpdateReceived(blockNum)
 		}
 
@@ -384,4 +384,3 @@ func (d *Deliverer) createSeekInfo(ledgerHeight uint64) (*common.Envelope, error
 		d.TLSCertHash,
 	)
 }
-
