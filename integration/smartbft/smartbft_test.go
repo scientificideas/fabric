@@ -120,7 +120,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			network.CreateAndJoinChannel(network.Orderers[0], channel)
 
 			By("Deploying chaincode")
-			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
+			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:    "mycc",
 				Version: "0.0",
 				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
@@ -341,7 +341,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			orderer := network.Orderers[0]
 			network.CreateAndJoinChannel(orderer, channel)
 
-			By("deploy chaincode")
 			assertBlockReception(map[string]int{"systemchannel": 1}, network.Orderers, peer, network)
 
 			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
@@ -378,12 +377,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
 			proc := ifrit.Invoke(runner)
 			ordererProcesses[3] = proc
-
-			select {
-			case err := <-proc.Wait():
-				Fail(err.Error())
-			case <-proc.Ready():
-			}
 			Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
 			Eventually(runner.Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Starting view with number 0, sequence 2"))
 
@@ -442,7 +435,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			assertBlockReception(map[string]int{"systemchannel": 1}, network.Orderers, peer, network)
 
-			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
+			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:    "mycc",
 				Version: "0.0",
 				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
