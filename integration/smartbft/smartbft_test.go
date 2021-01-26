@@ -238,7 +238,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
 			}
 
-			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
+			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:    "mycc",
 				Version: "0.0",
 				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
@@ -876,7 +876,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			assertBlockReception(map[string]int{"systemchannel": 1}, network.Orderers, peer, network)
 
-			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
+			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:    "mycc",
 				Version: "0.0",
 				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
@@ -909,7 +909,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				Ctor:      `{"Args":["issue","x1","100"]}`,
 				PeerAddresses: []string{
 					network.PeerAddress(network.Peer("Org1", "peer0"), nwo.ListenPort),
-					network.PeerAddress(network.Peer("Org2", "peer1"), nwo.ListenPort),
+					network.PeerAddress(network.Peer("Org2", "peer0"), nwo.ListenPort),
 				},
 				WaitForEvent: false,
 			})
@@ -966,7 +966,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			assertBlockReception(map[string]int{"systemchannel": 1}, network.Orderers, peer, network)
 
-			nwo.DeployChaincode(network, channel, network.Orderers[0], nwo.Chaincode{
+			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
 				Name:    "mycc",
 				Version: "0.0",
 				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
