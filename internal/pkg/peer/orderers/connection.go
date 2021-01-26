@@ -218,4 +218,3 @@ func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
 	defer cs.mutex.RUnlock()
 	return cs.allEndpoints
 }
-
