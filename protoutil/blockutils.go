@@ -164,12 +164,12 @@ func GetConsenterMetadataFromBlock(block *cb.Block) (*cb.Metadata, error) {
 // GetLastConfigIndexFromBlock retrieves the index of the last config block as
 // encoded in the block metadata
 func GetLastConfigIndexFromBlock(block *cb.Block) (uint64, error) {
-	//m, err := GetMetadataFromBlock(block, cb.BlockMetadataIndex_SIGNATURES)
-	//if err != nil {
-	//	return 0, errors.WithMessage(err, "failed to retrieve metadata")
-	//}
-	//// TODO FAB-15864 Remove this fallback when we can stop supporting upgrade from pre-1.4.1 orderer
-	//if len(m.Value) == 0 {
+	m, err := GetMetadataFromBlock(block, cb.BlockMetadataIndex_SIGNATURES)
+	if err != nil {
+		return 0, errors.WithMessage(err, "failed to retrieve metadata")
+	}
+	// TODO FAB-15864 Remove this fallback when we can stop supporting upgrade from pre-1.4.1 orderer
+	if len(m.Value) == 0 {
 		m, err := GetMetadataFromBlock(block, cb.BlockMetadataIndex_LAST_CONFIG)
 		if err != nil {
 			return 0, errors.WithMessage(err, "failed to retrieve metadata")
@@ -180,7 +180,7 @@ func GetLastConfigIndexFromBlock(block *cb.Block) (uint64, error) {
 			return 0, errors.Wrap(err, "error unmarshaling LastConfig")
 		}
 		return lc.Index, nil
-	// }
+	}
 
 	obm := &cb.OrdererBlockMetadata{}
 	err = proto.Unmarshal(m.Value, obm)

@@ -229,6 +229,31 @@ func (bw *BlockWriter) addBlockSignature(block *cb.Block, consenterMetadata []by
 	})
 }
 
+func setLastConfigIndex(block *cb.Block, value uint64) {
+	lv := &cb.LastConfig{Index: value}
+	lastConfigValue := protoutil.MarshalOrPanic(lv)
+	block.Metadata.Metadata[cb.BlockMetadataIndex_LAST_CONFIG] = protoutil.MarshalOrPanic(&cb.Metadata{
+		Value: lastConfigValue,
+	})
+
+	signaturesMeta := block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES]
+	if len(signaturesMeta) > 0 {
+		meta := new(cb.Metadata)
+		if err := proto.Unmarshal(signaturesMeta, meta); err != nil {
+			panic(`invalid signature metadata`)
+		}
+
+		obm := new(cb.OrdererBlockMetadata)
+		if err := proto.Unmarshal(meta.Value, obm); err != nil {
+			panic(`failed to unmarshal orderer block metadata`)
+		}
+
+		obm.LastConfig = lv
+		meta.Value = protoutil.MarshalOrPanic(obm)
+		block.Metadata.Metadata[cb.BlockMetadataIndex_SIGNATURES] = protoutil.MarshalOrPanic(meta)
+	}
+}
+
 func (bw *BlockWriter) addLastConfig(block *cb.Block) {
 	configSeq := bw.support.Sequence()
 	if configSeq > bw.lastConfigSeq {
@@ -237,10 +262,6 @@ func (bw *BlockWriter) addLastConfig(block *cb.Block) {
 		bw.lastConfigSeq = configSeq
 	}
 
-	lastConfigValue := protoutil.MarshalOrPanic(&cb.LastConfig{Index: bw.lastConfigBlockNum})
 	logger.Debugf("[channel: %s] About to write block, setting its LAST_CONFIG to %d", bw.support.ChannelID(), bw.lastConfigBlockNum)
-
-	block.Metadata.Metadata[cb.BlockMetadataIndex_LAST_CONFIG] = protoutil.MarshalOrPanic(&cb.Metadata{
-		Value: lastConfigValue,
-	})
+	setLastConfigIndex(bw.lastBlock, bw.lastConfigBlockNum)
 }
