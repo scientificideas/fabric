@@ -114,7 +114,7 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, conn)
 
-	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 }
@@ -152,7 +152,7 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		return cc, nil
 	})
 
-	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -242,7 +242,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -368,7 +368,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -444,7 +444,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 			os := mocks.NewOrderer(port, t)
 			os.SetNextExpectedSeek(10)
 			osMap[ep.Address] = os
-			bftLogger.Infof("TEST: restarting: %s", ep)
+			bftLogger.Infof("TEST: restarting: %s", ep.Address)
 		}
 	}
 

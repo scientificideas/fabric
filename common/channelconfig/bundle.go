@@ -201,11 +201,14 @@ func NewBundle(channelID string, config *cb.Config, bccsp bccsp.BCCSP) (*Bundle,
 		case cb.Policy_MSP:
 			// Add hook for MSP Handler here
 		case cb.Policy_IMPLICIT_ORDERER:
-			policyProviderMap[pType] = orderer.NewPolicyProvider(
-				channelConfig.MSPManager(),
-				channelConfig.OrdererConfig().ConsensusType(),
-				channelConfig.OrdererConfig().ConsensusMetadata(),
-			)
+			// OrdererConfig (OrdererGroupKey) is not empty
+			if channelConfig.OrdererConfig() != nil {
+				policyProviderMap[pType] = orderer.NewPolicyProvider(
+					channelConfig.MSPManager(),
+					channelConfig.OrdererConfig().ConsensusType(),
+					channelConfig.OrdererConfig().ConsensusMetadata(),
+				)
+			}
 		}
 	}
 
