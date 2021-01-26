@@ -263,5 +263,5 @@ func (bw *BlockWriter) addLastConfig(block *cb.Block) {
 	}
 
 	logger.Debugf("[channel: %s] About to write block, setting its LAST_CONFIG to %d", bw.support.ChannelID(), bw.lastConfigBlockNum)
-	setLastConfigIndex(bw.lastBlock, bw.lastConfigBlockNum)
+	setLastConfigIndex(block, bw.lastConfigBlockNum)
 }
