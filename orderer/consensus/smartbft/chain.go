@@ -399,7 +399,7 @@ func (c *BFTChain) Errored() <-chan struct{} {
 // messages to a block cutter, and writes the resulting blocks to the ledger.
 func (c *BFTChain) Start() {
 	if err := c.consensus.Start(); err != nil {
-		c.Logger.Panicf("Failed to start chain, aborting: +%v", err)
+		c.Logger.Panicf("Failed to start chain, aborting: %+v", err)
 		// todo: close done channel instead of panic
 		return
 	}
