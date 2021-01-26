@@ -47,7 +47,7 @@ type broadcastClient struct {
 	dialer          blocksprovider.Dialer
 	seekInfo        seekInfo
 
-	endpoint *orderers.Endpoint
+	endpoint string
 }
 
 // NewBroadcastClient returns a broadcastClient with the given params
@@ -166,7 +166,7 @@ func (bc *broadcastClient) sleep(duration time.Duration) {
 
 func (bc *broadcastClient) connect() error {
 	bc.mutex.Lock()
-	bc.endpoint = nil
+	bc.endpoint = ""
 	bc.mutex.Unlock()
 
 	seekInfoEnv, err := bc.seekInfo()
@@ -195,7 +195,7 @@ func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient blo
 	logger.Debug("Entering")
 	defer logger.Debug("Exiting")
 	bc.mutex.Lock()
-	bc.endpoint = ep
+	bc.endpoint = ep.Address
 	bc.conn = &connection{ClientConn: conn, cancel: cf}
 	bc.blocksDeliverer = deliverClient
 	if bc.shouldStop() {
@@ -249,7 +249,7 @@ func (bc *broadcastClient) CloseSend() error {
 	if bc.conn == nil {
 		return nil
 	}
-	bc.endpoint = nil
+	bc.endpoint = ""
 	bc.conn.Close()
 	return nil
 }
@@ -260,7 +260,7 @@ func (bc *broadcastClient) Disconnect() {
 	defer logger.Debug("Exiting")
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
-	bc.endpoint = nil
+	bc.endpoint = ""
 	if bc.conn == nil {
 		return
 	}
@@ -270,7 +270,7 @@ func (bc *broadcastClient) Disconnect() {
 }
 
 // GetEndpoint returns the endpoint the client is currently connected to.
-func (bc *broadcastClient) GetEndpoint() *orderers.Endpoint {
+func (bc *broadcastClient) GetEndpoint() string {
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
 

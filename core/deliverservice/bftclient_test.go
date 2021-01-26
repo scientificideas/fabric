@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package deliverservice
 
 import (
+	"context"
 	"crypto/x509"
 	"strings"
 	"sync/atomic"
@@ -236,10 +237,9 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
-		cc, err := grpc.Dial(ep, grpc.WithInsecure(), grpc.WithBlock())
-		require.Nil(t, err)
-		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
-		return cc, nil
+		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
+		defer cancel()
+		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
 	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
@@ -268,7 +268,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	require.NotNil(t, blockEP)
 	osnMocks, err := detectOSNConnections(true, osnMapValues(osMap)...)
 	assert.NoError(t, err)
-	assert.Equal(t, strings.Split(blockEP.Address, ":")[1], strings.Split(osnMocks[0].Addr().String(), ":")[1])
+	assert.Equal(t, strings.Split(blockEP, ":")[1], strings.Split(osnMocks[0].Addr().String(), ":")[1])
 
 	// one normal block
 	beforeSend := time.Now()
@@ -288,7 +288,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	beforeSend = time.Now()
 	for seq := uint64(6); seq < uint64(10); seq++ {
 		for _, os := range osMap {
-			if strings.Split(blockEP.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] { // censorship
+			if strings.Split(blockEP, ":")[1] == strings.Split(os.Addr().String(), ":")[1] { // censorship
 				continue
 			}
 			os.SendBlock(seq)
@@ -300,12 +300,11 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	// the client detected the censorship and switched
 	blockEP2, err := waitForBlockEP(bc)
 	assert.NoError(t, err)
-	require.NotNil(t, blockEP2)
-	assert.True(t, blockEP.Address != blockEP2.Address)
+	assert.True(t, blockEP != blockEP2)
 
 	for seq := uint64(6); seq < uint64(10); seq++ {
 		for _, os := range osMap {
-			if strings.Split(blockEP2.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
+			if strings.Split(blockEP2, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
 				os.SendBlock(seq)
 			}
 		}
@@ -336,11 +335,11 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	viper.Set("peer.deliveryclient.connTimeout", 100*time.Millisecond)
 	defer viper.Reset()
 
-	osArray := make([]*mocks.Orderer, 0)
-	for port := range endpointMap {
-		osArray = append(osArray, mocks.NewOrderer(port, t))
+	osMap := make(map[string]*mocks.Orderer, len(endpointMap))
+	for port, ep := range endpointMap {
+		osMap[ep.Address] = mocks.NewOrderer(port, t)
 	}
-	for _, os := range osArray {
+	for _, os := range osMap {
 		os.SetNextExpectedSeek(5)
 	}
 
@@ -364,10 +363,9 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
-		cc, err := grpc.Dial(ep, grpc.WithInsecure(), grpc.WithBlock())
-		require.Nil(t, err)
-		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
-		return cc, nil
+		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
+		defer cancel()
+		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
 	bc, err := NewBFTDeliveryClient( "test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
@@ -395,22 +393,22 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	blockEP, err := waitForBlockEP(bc)
 	assert.NoError(t, err)
 
-	osnMocks, err := detectOSNConnections(true, osArray...)
+	osnMocks, err := detectOSNConnections(true, osnMapValues(osMap)...)
 	assert.NoError(t, err)
-	assert.Equal(t, strings.Split(blockEP.Address, ":")[1], strings.Split(osnMocks[0].Addr().String(), ":")[1])
+	assert.Equal(t, strings.Split(blockEP, ":")[1], strings.Split(osnMocks[0].Addr().String(), ":")[1])
 
 	// one normal block
 	beforeSend := time.Now()
-	for _, os := range osArray {
+	for _, os := range osMap {
 		os.SendBlock(5)
 	}
-	for _, os := range osArray {
+	for _, os := range osMap {
 		os.SetNextExpectedSeek(6)
 	}
 	time.Sleep(time.Second)
 
-	for _, os := range osArray {
-		if strings.Split(blockEP.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
+	for _, os := range osMap {
+		if strings.Split(blockEP, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
 			os.Shutdown()
 			bftLogger.Infof("TEST: shutting down: %s", os.Addr().String())
 		}
@@ -425,8 +423,8 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 
 	beforeSend = time.Now()
 	for seq := uint64(6); seq < uint64(10); seq++ {
-		for _, os := range osArray {
-			if strings.Split(blockEP.Address, ":")[1] == strings.Split(os.Addr().String(), ":")[1] {
+		for _, os := range osMap {
+			if strings.Split(blockEP, ":")[1] == strings.Split(os.Addr().String(), ":")[1] { // it is down
 				continue
 			}
 			os.SendBlock(seq)
@@ -441,44 +439,43 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	verifyHeaderReceivers(t, bc, 3, 9, beforeSend, 1)
 
 	//restart the orderer
-	//for port, ep := range endpointMap {
-	//	if ep == blockEP {
-	//		os := mocks.NewOrderer(port, t)
-	//		os.SetNextExpectedSeek(10)
-	//		osArray[ep.Endpoint] = os
-	//		bftLogger.Infof("TEST: restarting: %s", ep)
-	//	}
-	//}
+	for port, ep := range endpointMap {
+		if strings.Split(blockEP, ":")[1] == strings.Split(ep.Address, ":")[1] { // it is down
+			os := mocks.NewOrderer(port, t)
+			os.SetNextExpectedSeek(10)
+			osMap[ep.Address] = os
+			bftLogger.Infof("TEST: restarting: %s", ep)
+		}
+	}
 
-	//time.Sleep(2 * time.Second)
-	//beforeSend = time.Now()
-	//for _, os := range osArray {
-	//	os.SendBlock(10)
-	//}
-	//time.Sleep(1 * time.Second)
-	//
-	//lastN, lastT = bc.GetNextBlockNumTime()
-	//assert.Equal(t, uint64(11), lastN)
-	//assert.True(t, lastT.After(beforeSend))
-	//verifyHeaderReceivers(t, bc, 3, 10, beforeSend, 0)
+	time.Sleep(2 * time.Second)
+	beforeSend = time.Now()
+	for _, os := range osMap {
+		os.SendBlock(10)
+	}
+	time.Sleep(1 * time.Second)
+
+	lastN, lastT = bc.GetNextBlockNumTime()
+	assert.Equal(t, uint64(11), lastN)
+	assert.True(t, lastT.After(beforeSend))
+	verifyHeaderReceivers(t, bc, 3, 10, beforeSend, 0)
 
 	bc.Close()
 
-	for _, os := range osArray {
+	for _, os := range osMap {
 		os.Shutdown()
 	}
 }
 
-func waitForBlockEP(bc *bftDeliveryClient) (*orderers.Endpoint, error) {
+func waitForBlockEP(bc *bftDeliveryClient) (string, error) {
 	for i := int64(0); ; i++ {
-
 		blockEP := bc.GetEndpoint()
-		if blockEP != nil {
+		if blockEP != "" {
 			return blockEP, nil
 		}
 		time.Sleep(10 * time.Millisecond)
 		if time.Duration(i*10*time.Millisecond.Nanoseconds()) > 5*time.Second {
-			return nil, errors.New("timeout: no block receiver")
+			return "", errors.New("timeout: no block receiver")
 		}
 	}
 }
