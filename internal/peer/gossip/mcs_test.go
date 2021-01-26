@@ -342,7 +342,7 @@ func mockBlock(t *testing.T, channel string, seqNum uint64, localSigner *mocks.S
 
 	blockSignature := &common.MetadataSignature{
 		SignatureHeader: protoutil.MarshalOrPanic(shdr),
-		Nonce: shdr.Nonce,
+		Nonce:           shdr.Nonce,
 	}
 
 	// Note, this value is intentionally nil, as this metadata is only about the signature, there is no additional metadata
