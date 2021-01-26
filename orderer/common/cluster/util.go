@@ -370,7 +370,7 @@ func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte)
 			sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
 			if err != nil {
 				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
-				block.Header.Number, err)
+					block.Header.Number, err)
 			}
 			identity = sigHdr.Creator
 		} else {
@@ -640,7 +640,7 @@ func (bva *BlockVerifierAssembler) VerifierFromConfig(configuration *common.Conf
 		PolicyMgr: policyMgr,
 		Channel:   channel,
 		BCCSP:     bva.BCCSP,
-		envelope: configuration,
+		envelope:  configuration,
 	}, nil
 }
 
@@ -650,7 +650,7 @@ type BlockValidationPolicyVerifier struct {
 	Channel   string
 	PolicyMgr policies.Manager
 	BCCSP     bccsp.BCCSP
-	envelope *common.ConfigEnvelope
+	envelope  *common.ConfigEnvelope
 }
 
 // Id2Identity extracts identities of consenters against their identifiers from the envelope.

@@ -10,11 +10,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"crypto/x509"
-	"math/rand"
-	"sync"
-
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"math/rand"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -219,3 +218,4 @@ func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
 	defer cs.mutex.RUnlock()
 	return cs.allEndpoints
 }
+

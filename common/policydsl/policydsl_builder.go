@@ -48,7 +48,6 @@ func Envelope(policy *cb.SignaturePolicy, identities [][]byte) *cb.SignaturePoli
 	}
 }
 
-
 // SignedBy creates a SignaturePolicy requiring a given signer's signature
 func SignedBy(index int32) *cb.SignaturePolicy {
 	return &cb.SignaturePolicy{

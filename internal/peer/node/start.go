@@ -462,7 +462,7 @@ func serve(args []string) error {
 		deliverGRPCClient,
 		deliverServiceConfig,
 		privdataConfig,
-		&peer.IdentityFethcer{ Adaptee: peerInstance },
+		&peer.IdentityFethcer{Adaptee: peerInstance},
 	)
 	if err != nil {
 		return errors.WithMessage(err, "failed to initialize gossip service")

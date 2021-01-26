@@ -1169,6 +1169,8 @@ func TestInitializeSmartBFTConsenter(t *testing.T) {
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
 
+	bccsp := bccsp.BCCSP(nil)
+
 	initializeSmartBFTConsenter(
 		&server_mocks.SignerSerializer{},
 		&DynamicPolicyManagerRegistry{},
@@ -1188,6 +1190,7 @@ func TestInitializeSmartBFTConsenter(t *testing.T) {
 		srv,
 		&multichannel.Registrar{},
 		&disabled.Provider{},
+		bccsp,
 	)
 
 	require.NotNil(t, consenters["smartbft"])
