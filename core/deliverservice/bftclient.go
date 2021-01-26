@@ -85,7 +85,7 @@ func NewBftDeliverAdapter(
 
 type BlockReceiver interface {
 	blocksprovider.DeliverClient
-	GetEndpoint() *orderers.Endpoint
+	GetEndpoint() string
 }
 
 // bft delivery client
@@ -406,12 +406,12 @@ func (c *bftDeliveryClient) receiveBlock() (*orderer.DeliverResponse, error) {
 		endpoint := receiver.GetEndpoint()
 		if t.Block.Header.Number > nextBlockNumber {
 			bftLogger.Warnf("[%s] Ignoring out-of-order block from orderer: %s; received block number: %d, expected: %d",
-				c.chainID, endpoint.Address, t.Block.Header.Number, nextBlockNumber)
+				c.chainID, endpoint, t.Block.Header.Number, nextBlockNumber)
 			return nil, errOutOfOrderBlock
 		}
 		if t.Block.Header.Number < nextBlockNumber {
 			bftLogger.Warnf("[%s] Ignoring duplicate block from orderer: %s; received block number: %d, expected: %d",
-				c.chainID, endpoint.Address, t.Block.Header.Number, nextBlockNumber)
+				c.chainID, endpoint, t.Block.Header.Number, nextBlockNumber)
 			return nil, errDuplicateBlock
 		}
 	}
@@ -459,7 +459,7 @@ func (c *bftDeliveryClient) disconnectAll() {
 	if c.blockReceiver != nil {
 		ep := c.blockReceiver.GetEndpoint()
 		c.blockReceiver.CloseSend()
-		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep.Address)
+		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep)
 		c.blockReceiver = nil
 	}
 
@@ -501,11 +501,11 @@ func (c *bftDeliveryClient) shouldStop() bool {
 
 // GetEndpoint provides the endpoint of the ordering service server that delivers
 // blocks (as opposed to headers) to this delivery client.
-func (c *bftDeliveryClient) GetEndpoint() *orderers.Endpoint {
+func (c *bftDeliveryClient) GetEndpoint() string {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.blockReceiver == nil {
-		return nil
+		return ""
 	}
 	return c.blockReceiver.GetEndpoint()
 }
