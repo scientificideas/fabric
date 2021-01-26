@@ -193,21 +193,7 @@ func IsConfigBlock(block *cb.Block) bool {
 		return false
 	}
 
-	payload, err := UnmarshalPayload(envelope.Payload)
-	if err != nil {
-		return false
-	}
-
-	if payload.Header == nil {
-		return false
-	}
-
-	hdr, err := UnmarshalChannelHeader(payload.Header.ChannelHeader)
-	if err != nil {
-		return false
-	}
-
-	return cb.HeaderType(hdr.Type) == cb.HeaderType_CONFIG || cb.HeaderType(hdr.Type) == cb.HeaderType_ORDERER_TRANSACTION
+	return IsConfigTransaction(envelope)
 }
 
 // ChannelHeader returns the *cb.ChannelHeader for a given *cb.Envelope.

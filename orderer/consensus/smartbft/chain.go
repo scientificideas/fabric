@@ -399,7 +399,7 @@ func (c *BFTChain) Errored() <-chan struct{} {
 // messages to a block cutter, and writes the resulting blocks to the ledger.
 func (c *BFTChain) Start() {
 	if err := c.consensus.Start(); err != nil {
-		c.Logger.Panicf("Failed to start chain, aborting: +%v", err)
+		c.Logger.Panicf("Failed to start chain, aborting: %+v", err)
 		// todo: close done channel instead of panic
 		return
 	}
@@ -591,7 +591,7 @@ type chainACL struct {
 func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 	policy, ok := c.policyManager.GetPolicy(policies.ChannelWriters)
 	if !ok {
-		return fmt.Errorf("could not find policy 123 %s", policies.ChannelWriters)
+		return fmt.Errorf("could not find policy %s", policies.ChannelWriters)
 	}
 
 	err := policy.EvaluateSignedData(signatureSet)
