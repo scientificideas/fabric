@@ -212,11 +212,8 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 		})
 	}
 
-	select {
-	case cs.updateCh <- cs.allEndpoints:
-		cs.logger.Debugf("Sent endpoint to update channel")
-	default:
-	}
+	cs.logger.Debugf("Sent endpoints to update channel")
+	cs.updateCh <- cs.allEndpoints
 
 	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
 }
