@@ -99,6 +99,10 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
+		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
+	}
+
 	fakeLedgerInfo := &fake.LedgerInfo{}
 	fakeBlockVerifier := &fake.BlockVerifier{}
 	mockSignerSerializer := &mocks2.SignerSerializer{}
@@ -114,7 +118,7 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, conn)
 
-	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 }
@@ -138,6 +142,10 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
+		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
+	}
+
 	fakeLedgerInfo := &fake.LedgerInfo{}
 	fakeLedgerInfo.LedgerHeightReturns(5, nil)
 	fakeBlockVerifier := &fake.BlockVerifier{}
@@ -152,7 +160,7 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		return cc, nil
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -224,6 +232,10 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
+		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
+	}
+
 	var ledgerHeight uint64 = 5
 
 	fakeLedgerInfo := &fake.LedgerInfo{}
@@ -242,7 +254,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -350,6 +362,10 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
+		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
+	}
+
 	var ledgerHeight uint64 = 5
 
 	fakeLedgerInfo := &fake.LedgerInfo{}
@@ -368,7 +384,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", endpoints, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -459,6 +475,133 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	assert.Equal(t, uint64(11), lastN)
 	assert.True(t, lastT.After(beforeSend))
 	verifyHeaderReceivers(t, bc, 3, 10, beforeSend, 0)
+
+	bc.Close()
+
+	for _, os := range osMap {
+		os.Shutdown()
+	}
+}
+
+// Scenario: update endpoints. Create a client against a set of 4 orderer mocks.
+// Receive one block. Then, increase the set to 7 orderers.
+// The client should disconnect and re-connect to new set.
+// Send a few blocks. Check block & header reception.
+func TestBFTDeliverClient_UpdateEndpoints(t *testing.T) {
+	flogging.ActivateSpec("bftDeliveryClient,deliveryClient=DEBUG")
+	viper.Set("peer.deliveryclient.bft.blockRcvTotalBackoffDelay", time.Second)
+	viper.Set("peer.deliveryclient.bft.maxBackoffDelay", time.Second)
+	viper.Set("peer.deliveryclient.connTimeout", 100*time.Millisecond)
+	defer viper.Reset()
+
+	osMap := make(map[string]*mocks.Orderer, len(endpointMap))
+	for port, ep := range endpointMap {
+		osMap[ep.Address] = mocks.NewOrderer(port, t)
+	}
+	for _, os := range osMap {
+		os.SetNextExpectedSeek(5)
+	}
+
+	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
+		SecOpts: comm.SecureOptions{
+			UseTLS: true,
+		},
+	})
+	require.NoError(t, err)
+
+	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
+		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
+	}
+
+	var ledgerHeight uint64 = 5
+
+	fakeLedgerInfo := &fake.LedgerInfo{}
+	fakeLedgerInfo.LedgerHeightStub = func() (uint64, error) {
+		return atomic.LoadUint64(&ledgerHeight), nil
+	}
+	fakeBlockVerifier := &fake.BlockVerifier{}
+	fakeBlockVerifier.VerifyHeaderReturns(nil)
+	mockSignerSerializer := &mocks2.SignerSerializer{}
+	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
+	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
+	fakeDialer := &fake.Dialer{}
+	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
+		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
+		defer cancel()
+		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
+	})
+
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	require.NotNil(t, bc)
+	require.Nil(t, err)
+
+	go func() {
+		for {
+			resp, err := bc.Recv()
+			if err != nil {
+				assert.EqualError(t, err, "client is closing")
+				return
+			}
+			block := resp.GetBlock()
+			assert.NotNil(t, block)
+			if block == nil {
+				return
+			}
+			atomic.StoreUint64(&ledgerHeight, block.Header.Number+1)
+			bc.UpdateReceived(block.Header.Number)
+		}
+	}()
+
+	blockEP, err := waitForBlockEP(bc)
+	assert.NoError(t, err)
+	osnMocks, err := detectOSNConnections(true, osnMapValues(osMap)...)
+	assert.NoError(t, err)
+	assert.Equal(t, strings.Split(blockEP, ":")[1], strings.Split(osnMocks[0].Addr().String(), ":")[1])
+
+	// one normal block
+	beforeSend := time.Now()
+	for _, os := range osMap {
+		os.SendBlock(5)
+	}
+	for _, os := range osMap {
+		os.SetNextExpectedSeek(6)
+	}
+	time.Sleep(time.Second)
+	lastN, lastT := bc.GetNextBlockNumTime()
+	assert.Equal(t, uint64(6), lastN)
+	assert.True(t, lastT.After(beforeSend))
+	verifyHeaderReceivers(t, bc, 3, 5, beforeSend, 0)
+
+	// start 3 additional orderers
+	for port, ep := range endpointMap3 {
+		os := mocks.NewOrderer(port, t)
+		os.SetNextExpectedSeek(6)
+		osMap[ep.Address] = os
+	}
+
+	time.Sleep(time.Second)
+
+	endpoints7 := append(make([]*orderers.Endpoint, 0), endpoints...)
+	endpoints7 = append(endpoints7, endpoints3...)
+	bc.UpdateEndpoints(endpoints7)
+	time.Sleep(time.Second)
+
+	_, err = waitForBlockEP(bc)
+	assert.NoError(t, err)
+
+	beforeSend = time.Now()
+	for seq := uint64(6); seq < uint64(10); seq++ {
+		for _, os := range osMap {
+			os.SendBlock(seq)
+		}
+	}
+
+	time.Sleep(2 * time.Second)
+
+	lastN, lastT = bc.GetNextBlockNumTime()
+	assert.Equal(t, uint64(10), lastN)
+	assert.True(t, lastT.After(beforeSend))
+	verifyHeaderReceivers(t, bc, 6, 9, beforeSend, 0)
 
 	bc.Close()
 
