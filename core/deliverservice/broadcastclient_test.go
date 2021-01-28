@@ -464,8 +464,8 @@ func TestCloseWhileRecv(t *testing.T) {
 
 	broadcastSetup := func(bd blocksprovider.DeliverClient) error {
 		requester := &blocksRequester{
-			chainID:           "TEST_CHAIN",
-			signer:            mockSignerSerializer,
+			chainID: "TEST_CHAIN",
+			signer:  mockSignerSerializer,
 		}
 		seekInfoEnv, err := requester.RequestBlocks(fakeLedgerInfo)
 		if err != nil {
@@ -617,14 +617,13 @@ func TestDisconnect(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 
-
 	fakeLedgerInfo := &fake.LedgerInfo{}
 	fakeLedgerInfo.LedgerHeightReturns(5, nil)
 
 	broadcastSetup := func(bd blocksprovider.DeliverClient) error {
 		requester := &blocksRequester{
-			chainID:           "TEST_CHAIN",
-			signer:            mockSignerSerializer,
+			chainID: "TEST_CHAIN",
+			signer:  mockSignerSerializer,
 		}
 		seekInfoEnv, err := requester.RequestBlocks(fakeLedgerInfo)
 		if err != nil {

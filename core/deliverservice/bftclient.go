@@ -499,6 +499,24 @@ func (c *bftDeliveryClient) shouldStop() bool {
 	return c.stopFlag
 }
 
+func (c *bftDeliveryClient) UpdateEndpoints(endpoints []*orderers.Endpoint) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if c.stopFlag {
+		return
+	}
+
+	if equalEndpoints(c.endpoints, endpoints) {
+		return
+	}
+
+	bftLogger.Debugf("[%s] updating endpoints: existing: %s, new: %s", c.chainID, c.endpoints, endpoints)
+	c.endpoints = endpoints
+	c.blockReceiverIndex = 0
+	c.disconnectAll()
+}
+
 // GetEndpoint provides the endpoint of the ordering service server that delivers
 // blocks (as opposed to headers) to this delivery client.
 func (c *bftDeliveryClient) GetEndpoint() string {
@@ -598,7 +616,7 @@ func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broad
 	}
 
 	connectionProducer := func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
-			return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
+		return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
 	}
 
 	clFactory := func(conn *grpc.ClientConn) orderer.AtomicBroadcastClient {
@@ -618,4 +636,30 @@ func shuffle(a []*orderers.Endpoint) []*orderers.Endpoint {
 		returnedSlice[i] = a[idx]
 	}
 	return returnedSlice
+}
+
+func equalEndpoints(existingEndpoints, newEndpoints []*orderers.Endpoint) bool {
+	if len(newEndpoints) != len(existingEndpoints) {
+		return false
+	}
+
+	// Check that endpoints were actually updated
+	for _, endpoint := range newEndpoints {
+		if !contains(endpoint, existingEndpoints) {
+			// Found new endpoint
+			return false
+		}
+	}
+	// Endpoints are of the same length and the existing endpoints contain all the new endpoints,
+	// so there are no new changes.
+	return true
+}
+
+func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
+	for _, e := range a {
+		if e.Address == s.Address{
+			return true
+		}
+	}
+	return false
 }
