@@ -186,24 +186,26 @@ func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, hea
 	// - Prepare SignedData
 	signatureSet := []*protoutil.SignedData{}
 	for _, metadataSignature := range metadata.Signatures {
-		identity, ok := id2identities[metadataSignature.SignerId]
-		if !ok {
-			return fmt.Errorf("identity for id %d was not found", metadataSignature.SignerId)
+		// fixme: no orderers, no identities
+		if id2identities != nil && len(id2identities) > 0 {
+			identity, ok := id2identities[metadataSignature.SignerId]
+			if !ok {
+				return fmt.Errorf("identity for id %d was not found", metadataSignature.SignerId)
+			}
+			metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&pcommon.SignatureHeader{
+				Nonce:   metadataSignature.Nonce,
+				Creator: identity,
+			})
 		}
-		metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&pcommon.SignatureHeader{
-			Nonce:   metadataSignature.Nonce,
-			Creator: identity,
-		})
 		shdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
 		if err != nil {
 			return fmt.Errorf("Failed unmarshalling signature header for block with id [%d] on channel [%s]: [%s]", header.Number, channelID, err)
 		}
-		aux := metadataSignature.AuxiliaryInput
 		signatureSet = append(
 			signatureSet,
 			&protoutil.SignedData{
 				Identity:  shdr.Creator,
-				Data:      util.ConcatenateBytes(metadata.Value, metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(header), aux),
+				Data:      util.ConcatenateBytes(metadata.Value, metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(header), metadataSignature.AuxiliaryInput),
 				Signature: metadataSignature.Signature,
 			},
 		)
