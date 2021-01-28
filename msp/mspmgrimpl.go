@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package msp
 
 import (
+	"runtime/debug"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/common/flogging"
@@ -83,6 +85,7 @@ func (mgr *mspManagerImpl) DeserializeIdentity(serializedID []byte) (Identity, e
 	// we can now attempt to obtain the MSP
 	msp := mgr.mspsMap[sId.Mspid]
 	if msp == nil {
+		debug.PrintStack()
 		return nil, errors.Errorf("MSP %s is not defined on channel", sId.Mspid)
 	}
 

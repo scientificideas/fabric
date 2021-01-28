@@ -29,7 +29,6 @@ import (
 	"github.com/hyperledger/fabric/common/configtx"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
@@ -353,49 +352,10 @@ func VerifyBlockHash(indexInBuffer int, blockBuff []*common.Block) error {
 	return nil
 }
 
-// SignatureSetFromBlock creates a signature set out of a block.
-func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte) ([]*protoutil.SignedData, error) {
-	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
-		return nil, errors.New("no metadata in block")
-	}
-	metadata, err := protoutil.GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
-	if err != nil {
-		return nil, errors.Errorf("failed unmarshaling medatata for signatures: %v", err)
-	}
-
-	var signatureSet []*protoutil.SignedData
-	for _, metadataSignature := range metadata.Signatures {
-		identity := id2identities[metadataSignature.SignerId]
-		if len(metadataSignature.SignatureHeader) > 0 {
-			sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
-			if err != nil {
-				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
-					block.Header.Number, err)
-			}
-			identity = sigHdr.Creator
-		} else {
-			metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&common.SignatureHeader{
-				Creator: identity,
-				Nonce:   metadataSignature.Nonce,
-			})
-		}
-
-		signatureSet = append(signatureSet,
-			&protoutil.SignedData{
-				Identity: identity,
-				Data: util.ConcatenateBytes(metadata.Value,
-					metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(block.Header), metadataSignature.AuxiliaryInput),
-				Signature: metadataSignature.Signature,
-			},
-		)
-	}
-	return signatureSet, nil
-}
-
 // VerifyBlockSignature verifies the signature on the block with the given BlockVerifier and the given config.
 func VerifyBlockSignature(block *common.Block, verifier BlockVerifier, config *common.ConfigEnvelope) error {
 	id2identities := verifier.Id2Identity(config)
-	signatureSet, err := SignatureSetFromBlock(block, id2identities)
+	signatureSet, err := protoutil.SignatureSetFromBlock(block, id2identities)
 	if err != nil {
 		return err
 	}
