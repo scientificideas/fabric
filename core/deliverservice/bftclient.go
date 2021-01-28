@@ -657,7 +657,7 @@ func equalEndpoints(existingEndpoints, newEndpoints []*orderers.Endpoint) bool {
 
 func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 	for _, e := range a {
-		if e.Address == s.Address{
+		if e.Address == s.Address {
 			return true
 		}
 	}
