@@ -65,8 +65,7 @@ type bftDeliverAdapter struct {
 
 // Deliver initialize deliver client
 func (a *bftDeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
-	endpoints := a.conf.OrdererSource.GetAllEndpoints()
-	return NewBFTDeliveryClient(a.chainID, endpoints, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
+	return NewBFTDeliveryClient(a.chainID, a.conf.OrdererSource, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
 }
 
 func NewBftDeliverAdapter(
@@ -116,6 +115,7 @@ type bftDeliveryClient struct {
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
+	updateEndpointsCh  chan []*orderers.Endpoint
 	endpoints          []*orderers.Endpoint // a set of endpoints
 	blockReceiverIndex int                  // index of the current block receiver endpoint
 
@@ -128,7 +128,7 @@ type bftDeliveryClient struct {
 
 func NewBFTDeliveryClient(
 	chainID string,
-	endpoints []*orderers.Endpoint,
+	orderers blocksprovider.OrdererConnectionSource,
 	ledgerInfoProvider blocksprovider.LedgerInfo,
 	msgVerifier blocksprovider.BlockVerifier,
 	signer identity.SignerSerializer,
@@ -145,12 +145,13 @@ func NewBFTDeliveryClient(
 		minBackoffDelay:                     util.GetDurationOrDefault("peer.deliveryclient.bft.minBackoffDelay", bftMinBackoffDelay),
 		maxBackoffDelay:                     util.GetDurationOrDefault("peer.deliveryclient.bft.maxBackoffDelay", bftMaxBackoffDelay),
 		blockCensorshipTimeout:              util.GetDurationOrDefault("peer.deliveryclient.bft.blockCensorshipTimeout", bftBlockCensorshipTimeout),
-		endpoints:                           shuffle(endpoints),
+		endpoints:                           shuffle(orderers.GetAllEndpoints()),
 		blockReceiverIndex:                  -1,
 		headerReceivers:                     make(map[string]*bftHeaderReceiver),
 		signer:                              signer,
 		deliverGPRCClient:                   deliverGPRCClient,
 		dialer:                              dialer,
+		updateEndpointsCh:                   orderers.GetUpdateEndpointsChannel(),
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
@@ -174,6 +175,8 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 		c.lastBlockTime = time.Now()
 		bftLogger.Debugf("[%s] Starting monitor routine; Initial ledger height: %d", c.chainID, num)
 		go c.monitor()
+		bftLogger.Debugf("[%s] Starting updae endpoints routine; Current num of endpoints: %d", c.chainID, len(c.endpoints))
+		go c.updateEndpoints()
 	})
 	// can only happen once, after first invocation
 	if err != nil {
@@ -265,6 +268,22 @@ func (c *bftDeliveryClient) monitor() {
 		}
 	}
 	ticker.Stop()
+
+	bftLogger.Debugf("[%s] Exit", c.chainID)
+}
+
+// Check endpoints changes.
+func (c *bftDeliveryClient) updateEndpoints() {
+	bftLogger.Debugf("[%s] Entry", c.chainID)
+
+	for !c.shouldStop() {
+		select {
+		case endpoints := <-c.updateEndpointsCh:
+			bftLogger.Debugf("[%s] Received endpoints: %d", c.chainID, len(endpoints))
+			c.UpdateEndpoints(endpoints)
+		default:
+		}
+	}
 
 	bftLogger.Debugf("[%s] Exit", c.chainID)
 }
@@ -511,7 +530,7 @@ func (c *bftDeliveryClient) UpdateEndpoints(endpoints []*orderers.Endpoint) {
 		return
 	}
 
-	bftLogger.Debugf("[%s] updating endpoints: existing: %s, new: %s", c.chainID, c.endpoints, endpoints)
+	bftLogger.Debugf("[%s] updating endpoints: existing: %v, new: %v", c.chainID, c.endpoints, endpoints)
 	c.endpoints = endpoints
 	c.blockReceiverIndex = 0
 	c.disconnectAll()
