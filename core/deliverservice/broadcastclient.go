@@ -21,6 +21,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+// broadcastSetup is a function that is called by the broadcastClient immediately after each successful connection to
+// the ordering service in order to request the reception of a stream of blocks
+type broadcastSetup func(deliverClient blocksprovider.DeliverClient) error
+
 // retryPolicy receives as parameters the number of times the attempt has failed
 // and a duration that specifies the total elapsed time passed since the first attempt.
 // If further attempts should be made, it returns:
@@ -31,34 +35,33 @@ type retryPolicy func(attemptNum int, elapsedTime time.Duration) (time.Duration,
 // clientFactory creates a gRPC broadcast client out of a ClientConn
 type clientFactory func(*grpc.ClientConn) orderer.AtomicBroadcastClient
 
-type seekInfo func() (*common.Envelope, error)
+// connectionProducer produces connection out of a endpoint
+type connectionProducer func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error)
 
 type broadcastClient struct {
-	stopFlag    int32
-	stopChan    chan struct{}
-	shouldRetry retryPolicy
+	stopFlag           int32
+	stopChan           chan struct{}
+	createClient       clientFactory
+	shouldRetry        retryPolicy
+	onConnect          broadcastSetup
+	connectionProducer connectionProducer
+	ep                 *orderers.Endpoint
 
 	mutex           sync.Mutex
 	blocksDeliverer blocksprovider.DeliverClient
 	conn            *connection
-	ep              *orderers.Endpoint
-
-	deliverStreamer blocksprovider.DeliverStreamer
-	dialer          blocksprovider.Dialer
-	seekInfo        seekInfo
-
-	endpoint string
+	endpoint        string
 }
 
 // NewBroadcastClient returns a broadcastClient with the given params
-func NewBroadcastClient(bos retryPolicy, ep *orderers.Endpoint, dialer blocksprovider.Dialer, seekInfo seekInfo) *broadcastClient {
+func NewBroadcastClient(ep *orderers.Endpoint, connectionProducer connectionProducer, clFactory clientFactory, onConnect broadcastSetup, bos retryPolicy) *broadcastClient {
 	return &broadcastClient{
-		shouldRetry:     bos,
-		stopChan:        make(chan struct{}, 1),
-		ep:              ep,
-		deliverStreamer: DeliverAdapter{},
-		dialer:          dialer,
-		seekInfo:        seekInfo,
+		ep:                 ep,
+		connectionProducer: connectionProducer,
+		onConnect:          onConnect,
+		shouldRetry:        bos,
+		createClient:       clFactory,
+		stopChan:           make(chan struct{}, 1),
 	}
 }
 
@@ -168,19 +171,22 @@ func (bc *broadcastClient) connect() error {
 	bc.mutex.Lock()
 	bc.endpoint = ""
 	bc.mutex.Unlock()
-
-	seekInfoEnv, err := bc.seekInfo()
+	conn, err := bc.connectionProducer(bc.ep)
 	if err != nil {
-		return errors.WithMessagef(err, "could not get seek info for endpoint %s", bc.ep.Address)
+		logger.Errorf("Failed obtaining connection to %s: %s", bc.ep.Address, err)
+		return err
 	}
-
-	blocksDeliverer, conn, cf, err := blocksprovider.Connect(bc.ep, bc.dialer, &DeliverAdapter{}, seekInfoEnv)
+	logger.Debug("Connected to", bc.ep.Address)
+	ctx, cf := context.WithCancel(context.Background())
+	logger.Debug("Establishing gRPC stream with", bc.ep.Address, "...")
+	abc, err := bc.createClient(conn).Deliver(ctx)
 	if err != nil {
-		// already cancelled on error
-		return errors.WithMessagef(err, "could not connect to endpoint '%s'", bc.ep.Address)
+		logger.Error("Connection to ", bc.ep.Address, "established but was unable to create gRPC stream:", err)
+		conn.Close()
+		cf()
+		return err
 	}
-
-	err = bc.afterConnect(conn, blocksDeliverer, cf, bc.ep)
+	err = bc.afterConnect(conn, abc, cf)
 	if err == nil {
 		return nil
 	}
@@ -188,14 +194,14 @@ func (bc *broadcastClient) connect() error {
 	// If we reached here, lets make sure connection is closed
 	// and nullified before we return
 	bc.Disconnect()
-	return nil
+	return err
 }
 
-func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient blocksprovider.DeliverClient, cf context.CancelFunc, ep *orderers.Endpoint) error {
+func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient blocksprovider.DeliverClient, cf context.CancelFunc) error {
 	logger.Debug("Entering")
 	defer logger.Debug("Exiting")
 	bc.mutex.Lock()
-	bc.endpoint = ep.Address
+	bc.endpoint = bc.ep.Address
 	bc.conn = &connection{ClientConn: conn, cancel: cf}
 	bc.blocksDeliverer = deliverClient
 	if bc.shouldStop() {
@@ -204,12 +210,9 @@ func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient blo
 	}
 	bc.mutex.Unlock()
 
-	// on connect
-	seekInfoEnv, err := bc.seekInfo()
-	if err != nil {
-		return errors.WithMessagef(err, "could not get seek info for endpoint %s", bc.ep.Address)
-	}
-	err = deliverClient.Send(seekInfoEnv)
+	// If the client is closed at this point- before onConnect,
+	// any use of this object by onConnect would return an error.
+	err := bc.onConnect(bc)
 
 	// If the client is closed right after onConnect, but before
 	// the following lock- this method would return an error because
@@ -250,8 +253,7 @@ func (bc *broadcastClient) CloseSend() error {
 		return nil
 	}
 	bc.endpoint = ""
-	bc.conn.Close()
-	return nil
+	return bc.conn.Close()
 }
 
 // Disconnect makes the client close the existing connection and makes current endpoint unavailable for time interval, if disableEndpoint set to true

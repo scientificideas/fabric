@@ -24,7 +24,9 @@ import (
 	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
+	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/protoutil"
+	"github.com/pkg/errors"
 )
 
 type blocksRequester struct {
@@ -33,7 +35,12 @@ type blocksRequester struct {
 	deliverGPRCClient *comm.GRPCClient
 }
 
-func (b *blocksRequester) RequestBlocks(height uint64) (*common.Envelope, error) {
+func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider.LedgerInfo) (*common.Envelope, error) {
+	height, err := ledgerInfoProvider.LedgerHeight()
+	if err != nil {
+		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", b.chainID)
+	}
+
 	if height > 0 {
 		logger.Infof("Starting deliver with block [%d] for channel %s", height, b.chainID)
 		return b.seekLatestFromCommitter(height, orderer.SeekInfo_BLOCK)
@@ -43,7 +50,12 @@ func (b *blocksRequester) RequestBlocks(height uint64) (*common.Envelope, error)
 	return b.seekOldest(orderer.SeekInfo_BLOCK)
 }
 
-func (b *blocksRequester) RequestHeaders(height uint64) (*common.Envelope, error) {
+func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) (*common.Envelope, error) {
+	height, err := ledgerInfoProvider.LedgerHeight()
+	if err != nil {
+		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", b.chainID)
+	}
+
 	if height > 0 {
 		logger.Infof("Starting deliver with block [%d] for channel %s", height, b.chainID)
 		return b.seekLatestFromCommitter(height, orderer.SeekInfo_HEADER_WITH_SIG)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/hyperledger/fabric/core/deliverservice/fake"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,10 +42,13 @@ func TestRequestByContent(t *testing.T) {
 				err      error
 			)
 
+			fakeLedgerInfo := &fake.LedgerInfo{}
+			fakeLedgerInfo.LedgerHeightReturns(tc.height, nil)
+
 			if tc.contentType == orderer.SeekInfo_BLOCK {
-				envelope, err = requester.RequestBlocks(tc.height)
+				envelope, err = requester.RequestBlocks(fakeLedgerInfo)
 			} else {
-				envelope, err = requester.RequestHeaders(tc.height)
+				envelope, err = requester.RequestHeaders(fakeLedgerInfo)
 			}
 			assert.NoError(t, err)
 			assert.NotNil(t, envelope)

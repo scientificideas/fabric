@@ -317,15 +317,20 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer DeliverStreamer, seekInfoEnv *common.Envelope) (DeliverClient, *grpc.ClientConn, func(), error) {
-	conn, err := dialer.Dial(endpoint.Address, endpoint.CertPool)
+func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
+	endpoint, err := d.Orderers.RandomEndpoint()
+	if err != nil {
+		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
+	}
+
+	conn, err := d.Dialer.Dial(endpoint.Address, endpoint.CertPool)
 	if err != nil {
 		return nil, nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", endpoint.Address)
 	}
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
 
-	deliverClient, err := deliverStreamer.Deliver(ctx, conn)
+	deliverClient, err := d.DeliverStreamer.Deliver(ctx, conn)
 	if err != nil {
 		conn.Close()
 		ctxCancel()
@@ -340,21 +345,11 @@ func Connect(endpoint *orderers.Endpoint, dialer Dialer, deliverStreamer Deliver
 		return nil, nil, nil, errors.WithMessagef(err, "could not send deliver seek info handshake to '%s'", endpoint.Address)
 	}
 
-	return deliverClient, conn, func() {
+	return deliverClient, endpoint, func() {
 		deliverClient.CloseSend()
 		ctxCancel()
 		conn.Close()
 	}, nil
-}
-
-func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
-	endpoint, err := d.Orderers.RandomEndpoint()
-	if err != nil {
-		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
-	}
-
-	dc, _, cancel, err := Connect(endpoint, d.Dialer, d.DeliverStreamer, seekInfoEnv)
-	return dc, endpoint, cancel, err
 }
 
 func (d *Deliverer) createSeekInfo(ledgerHeight uint64) (*common.Envelope, error) {
