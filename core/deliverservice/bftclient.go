@@ -541,6 +541,19 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 		c.nextBlockNumber = height
 	}
 
+	setup := func(deliverer blocksprovider.DeliverClient) error {
+		requester := &blocksRequester{
+			chainID:           c.chainID,
+			signer:            c.signer,
+			deliverGPRCClient: c.deliverGPRCClient,
+		}
+		seekInfoEnv, err := requester.RequestBlocks(c)
+		if err != nil {
+			return errors.WithMessagef(err, "could not create header seek info for channel %s", c.chainID)
+		}
+		return deliverer.Send(seekInfoEnv)
+	}
+
 	//Let block receivers give-up early so we can replace them with a header receiver
 	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		if elapsedTime >= c.reconnectBlockRcvTotalTimeThreshold {
@@ -549,26 +562,33 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	seekInfo := func() (*common.Envelope, error) {
-		height, err := c.LedgerHeight()
-		if err != nil {
-			return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
-		}
-
-		requester := &blocksRequester{
-			chainID:           c.chainID,
-			signer:            c.signer,
-			deliverGPRCClient: c.deliverGPRCClient,
-		}
-		return requester.RequestBlocks(height)
+	connectionProducer := func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
+		return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
 	}
 
-	blockClient := NewBroadcastClient(backoffPolicy, endpoint, c.dialer, seekInfo)
+	clFactory := func(conn *grpc.ClientConn) orderer.AtomicBroadcastClient {
+		return orderer.NewAtomicBroadcastClient(conn)
+	}
+
+	blockClient := NewBroadcastClient(endpoint, connectionProducer, clFactory, setup, backoffPolicy)
 	return blockClient, nil
 }
 
 // create a deliver client that delivers headers
 func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
+	setup := func(deliverer blocksprovider.DeliverClient) error {
+		requester := &blocksRequester{
+			chainID:           c.chainID,
+			signer:            c.signer,
+			deliverGPRCClient: c.deliverGPRCClient,
+		}
+		seekInfoEnv, err := requester.RequestHeaders(c.ledgerInfoProvider)
+		if err != nil {
+			return errors.WithMessagef(err, "could not create header seek info for channel %s", c.chainID)
+		}
+		return deliverer.Send(seekInfoEnv)
+	}
+
 	//Let block receivers give-up early so we can replace them with a header receiver
 	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		if elapsedTime >= c.reconnectTotalTimeThreshold { // Let header receivers continue to try until we close them
@@ -577,21 +597,15 @@ func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broad
 		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	seekInfo := func() (*common.Envelope, error) {
-		height, err := c.ledgerInfoProvider.LedgerHeight()
-		if err != nil {
-			return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", c.chainID)
-		}
-
-		requester := &blocksRequester{
-			chainID:           c.chainID,
-			signer:            c.signer,
-			deliverGPRCClient: c.deliverGPRCClient,
-		}
-		return requester.RequestHeaders(height)
+	connectionProducer := func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
+			return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
 	}
 
-	blockClient := NewBroadcastClient(backoffPolicy, endpoint, c.dialer, seekInfo)
+	clFactory := func(conn *grpc.ClientConn) orderer.AtomicBroadcastClient {
+		return orderer.NewAtomicBroadcastClient(conn)
+	}
+
+	blockClient := NewBroadcastClient(endpoint, connectionProducer, clFactory, setup, backoffPolicy)
 	return blockClient, nil
 }
 
