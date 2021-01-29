@@ -43,7 +43,6 @@ func NewConnectionSource(logger *flogging.FabricLogger, overrides map[string]*En
 		orgToEndpointsHash: map[string][]byte{},
 		logger:             logger,
 		overrides:          overrides,
-		updateCh:           make(chan []*Endpoint),
 	}
 }
 
@@ -212,8 +211,10 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 		})
 	}
 
-	cs.logger.Debugf("Sent endpoints to update channel")
-	cs.updateCh <- cs.allEndpoints
+	if cs.updateCh != nil {
+		cs.logger.Debugf("Sent endpoints to update channel")
+		cs.updateCh <- cs.allEndpoints
+	}
 
 	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
 }
@@ -224,8 +225,9 @@ func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
 	return cs.allEndpoints
 }
 
-func (cs *ConnectionSource) GetUpdateEndpointsChannel() chan []*Endpoint {
+func (cs *ConnectionSource) InitUpdateEndpointsChannel() chan []*Endpoint {
 	cs.mutex.RLock()
 	defer cs.mutex.RUnlock()
+	cs.updateCh = make(chan []*Endpoint)
 	return cs.updateCh
 }
