@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"strings"
 
-	"google.golang.org/grpc"
+	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
-	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
 )
 
 // OrdererClient represents a client for communicating with an ordering
@@ -46,9 +46,9 @@ func NewOrdererClientFromEnv() (*OrdererClient, error) {
 }
 
 type BroadcastOrdererClient interface {
-    CloseSend() error
-    Send(envelope *cb.Envelope) error
-    Recv() (*ab.BroadcastResponse, error)
+	CloseSend() error
+	Send(envelope *cb.Envelope) error
+	Recv() (*ab.BroadcastResponse, error)
 }
 
 // Broadcast returns a broadcast client for the AtomicBroadcast service

@@ -418,9 +418,9 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
+				sigSet1, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
 				require.NoError(t, err)
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/2], nil)
+				sigSet2, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)/2], nil)
 				require.NoError(t, err)
 
 				return blockSequence
@@ -449,10 +449,10 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
+				sigSet1, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)/4], nil)
 				require.NoError(t, err)
 
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
+				sigSet2, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
 				require.NoError(t, err)
 
 				return blockSequence
@@ -485,10 +485,10 @@ func TestVerifyBlocks(t *testing.T) {
 
 				assignHashes(blockSequence)
 
-				sigSet1, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-2], nil)
+				sigSet1, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)-2], nil)
 				require.NoError(t, err)
 
-				sigSet2, err = cluster.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
+				sigSet2, err = protoutil.SignatureSetFromBlock(blockSequence[len(blockSequence)-1], nil)
 				require.NoError(t, err)
 
 				return blockSequence
