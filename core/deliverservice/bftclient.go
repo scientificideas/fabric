@@ -151,7 +151,7 @@ func NewBFTDeliveryClient(
 		signer:                              signer,
 		deliverGPRCClient:                   deliverGPRCClient,
 		dialer:                              dialer,
-		updateEndpointsCh:                   orderers.GetUpdateEndpointsChannel(),
+		updateEndpointsCh:                   orderers.InitUpdateEndpointsChannel(),
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
