@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-protos-go/common"
+	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/flogging"
@@ -117,9 +117,9 @@ func (ri *ReplicationInitiator) createReplicator(bootstrapBlock *common.Block, f
 	}.IsConsenterOfChannel
 
 	if ConsensusType(bootstrapBlock, ri.cryptoProvider) == "smartbft" {
-		amIPartOfChannel = smartbft.ConsenterCertificate {
+		amIPartOfChannel = smartbft.ConsenterCertificate{
 			ConsenterCertificate: ri.secOpts.Certificate,
-			CryptoProvider: ri.cryptoProvider,
+			CryptoProvider:       ri.cryptoProvider,
 		}.IsConsenterOfChannel
 	}
 
