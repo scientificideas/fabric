@@ -15,7 +15,6 @@ import (
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/policies"
-	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/gossip/api"
 	"github.com/hyperledger/fabric/gossip/common"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
@@ -164,10 +163,10 @@ func (s *MSPMessageCryptoService) VerifyBlock(chainID common.ChannelID, seqNum u
 		return fmt.Errorf("Header.DataHash is different from Hash(block.Data) for block with id [%d] on channel [%s]", block.Header.Number, chainID)
 	}
 
-	return s.verifyHeaderWithMetadata(channelID, block.Header, metadata)
+	return s.verifyHeaderWithMetadata(channelID, block, metadata)
 }
 
-func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, header *pcommon.BlockHeader, metadata *pcommon.Metadata) error {
+func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, block *pcommon.Block, metadata *pcommon.Metadata) error {
 	// Get the policy manager for channelID
 	cpm := s.channelPolicyManagerGetter.Manager(channelID)
 	if cpm == nil {
@@ -184,34 +183,11 @@ func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, hea
 	id2identities := s.id2IdentitiesFetcher.Id2Identities(channelID)
 
 	// - Prepare SignedData
-	signatureSet := []*protoutil.SignedData{}
-	for _, metadataSignature := range metadata.Signatures {
-		// fixme: no orderers, no identities
-		if id2identities != nil && len(id2identities) > 0 {
-			identity, ok := id2identities[metadataSignature.SignerId]
-			if !ok {
-				return fmt.Errorf("identity for id %d was not found", metadataSignature.SignerId)
-			}
-			metadataSignature.SignatureHeader = protoutil.MarshalOrPanic(&pcommon.SignatureHeader{
-				Nonce:   metadataSignature.Nonce,
-				Creator: identity,
-			})
-		}
-		shdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
-		if err != nil {
-			return fmt.Errorf("Failed unmarshalling signature header for block with id [%d] on channel [%s]: [%s]", header.Number, channelID, err)
-		}
-		signatureSet = append(
-			signatureSet,
-			&protoutil.SignedData{
-				Identity:  shdr.Creator,
-				Data:      util.ConcatenateBytes(metadata.Value, metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(header), metadataSignature.AuxiliaryInput),
-				Signature: metadataSignature.Signature,
-			},
-		)
+	signatureSet, err := protoutil.SignatureSetFromBlock(block, id2identities)
+	if err != nil {
+		return errors.Wrap(err, "fail getting signatures from block")
 	}
 
-	// - Evaluate policy
 	return policy.EvaluateSignedData(signatureSet)
 }
 
@@ -234,7 +210,7 @@ func (s *MSPMessageCryptoService) VerifyHeader(chainID string, signedBlock *pcom
 		return fmt.Errorf("Failed unmarshalling medatata for signatures [%s]", err)
 	}
 
-	return s.verifyHeaderWithMetadata(chainID, signedBlock.Header, metadata)
+	return s.verifyHeaderWithMetadata(chainID, signedBlock, metadata)
 }
 
 // Sign signs msg with this peer's signing key and outputs
