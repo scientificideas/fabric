@@ -7,8 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
@@ -407,4 +409,46 @@ type nodeConfig struct {
 	id2Identities NodeIdentitiesByID
 	remoteNodes   []cluster.RemoteNode
 	nodeIDs       []uint64
+}
+
+// ConsenterCertificate denotes a TLS certificate of a consenter
+type ConsenterCertificate struct {
+	ConsenterCertificate []byte
+	CryptoProvider       bccsp.BCCSP
+}
+
+// IsConsenterOfChannel returns whether the caller is a consenter of a channel
+// by inspecting the given configuration block.
+// It returns nil if true, else returns an error.
+func (conCert ConsenterCertificate) IsConsenterOfChannel(configBlock *cb.Block) error {
+	if configBlock == nil {
+		return errors.New("nil block")
+	}
+	envelopeConfig, err := protoutil.ExtractEnvelope(configBlock, 0)
+	if err != nil {
+		return err
+	}
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelopeConfig, conCert.CryptoProvider)
+	if err != nil {
+		return err
+	}
+	oc, exists := bundle.OrdererConfig()
+	if !exists {
+		return errors.New("no orderer config in bundle")
+	}
+	if oc.ConsensusType() != "smartbft" {
+		return errors.New("not a SmartBFT config block")
+	}
+	m := &smartbft.ConfigMetadata{}
+	if err := proto.Unmarshal(oc.ConsensusMetadata(), m); err != nil {
+		return err
+	}
+
+	for _, consenter := range m.Consenters {
+		fmt.Println(base64.StdEncoding.EncodeToString(consenter.ServerTlsCert))
+		if bytes.Equal(conCert.ConsenterCertificate, consenter.ServerTlsCert) || bytes.Equal(conCert.ConsenterCertificate, consenter.ClientTlsCert) {
+			return nil
+		}
+	}
+	return cluster.ErrNotInChannel
 }
