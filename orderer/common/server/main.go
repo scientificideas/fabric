@@ -20,7 +20,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-lib-go/healthz"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
@@ -164,7 +163,7 @@ func Main() {
 			logger.Panicf("Failed getting channel ID from clusterBootBlock: %s", err)
 		}
 
-		consensusTypeName := consensusType(clusterBootBlock, cryptoProvider)
+		consensusTypeName := onboarding.ConsensusType(clusterBootBlock, cryptoProvider)
 		logger.Infof("Starting with system channel: %s, consensus type: %s", sysChanID, consensusTypeName)
 		_, isClusterType = clusterTypes[consensusTypeName]
 	}
@@ -717,27 +716,8 @@ func initializeBootstrapChannel(genesisBlock *cb.Block, lf blockledger.Factory) 
 }
 
 func isClusterType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) bool {
-	_, exists := clusterTypes[consensusType(genesisBlock, bccsp)]
+	_, exists := clusterTypes[onboarding.ConsensusType(genesisBlock, bccsp)]
 	return exists
-}
-
-func consensusType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) string {
-	if genesisBlock == nil || genesisBlock.Data == nil || len(genesisBlock.Data.Data) == 0 {
-		logger.Fatalf("Empty genesis block")
-	}
-	env := &cb.Envelope{}
-	if err := proto.Unmarshal(genesisBlock.Data.Data[0], env); err != nil {
-		logger.Fatalf("Failed to unmarshal the genesis block's envelope: %v", err)
-	}
-	bundle, err := channelconfig.NewBundleFromEnvelope(env, bccsp)
-	if err != nil {
-		logger.Fatalf("Failed creating bundle from the genesis block: %v", err)
-	}
-	ordConf, exists := bundle.OrdererConfig()
-	if !exists {
-		logger.Fatalf("Orderer config doesn't exist in bundle derived from genesis block")
-	}
-	return ordConf.ConsensusType()
 }
 
 func initializeGrpcServer(conf *localconfig.TopLevel, serverConfig comm.ServerConfig) *comm.GRPCServer {
@@ -811,7 +791,7 @@ func initializeMultichannelRegistrar(
 	if conf.General.BootstrapMethod == "file" || conf.General.BootstrapMethod == "none" {
 		if bootstrapBlock != nil && isClusterType(bootstrapBlock, bccsp) {
 			// with a system channel
-			consenterType := consensusType(bootstrapBlock, bccsp)
+			consenterType := onboarding.ConsensusType(bootstrapBlock, bccsp)
 			switch consenterType {
 			case "etcdraft":
 				etcdConsenter := initializeEtcdraftConsenter(consenters, conf, lf, clusterDialer, bootstrapBlock, repInitiator, srvConf, srv, registrar, metricsProvider, bccsp)
@@ -829,7 +809,7 @@ func initializeMultichannelRegistrar(
 
 			// search a join block for a system channel
 			if bootstrapBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf); bootstrapBlock != nil {
-				consenterType = consensusType(bootstrapBlock, bccsp)
+				consenterType = onboarding.ConsensusType(bootstrapBlock, bccsp)
 			}
 
 			// the orderer can start without channels at all and have an initialized cluster type consenter

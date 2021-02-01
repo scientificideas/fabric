@@ -852,7 +852,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {
-				runner := network.OrdererRunner(orderer)
+				runner := network.OrdererRunner(orderer, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug")
 				ordererRunners = append(ordererRunners, runner)
 				proc := ifrit.Invoke(runner)
 				ordererProcesses = append(ordererProcesses, proc)
@@ -1053,6 +1053,11 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			ordererRunners = append(ordererRunners, orderer5Runner)
 			proc := ifrit.Invoke(orderer5Runner)
 			ordererProcesses = append(ordererProcesses, proc)
+			select {
+			case err := <-proc.Wait():
+				Fail(err.Error())
+			case <-proc.Ready():
+			}
 			Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
 
 			By("Waiting for the added orderer to see the leader")
