@@ -116,6 +116,11 @@ func (ri *ReplicationInitiator) createReplicator(bootstrapBlock *common.Block, f
 		CryptoProvider:       ri.cryptoProvider,
 	}.IsConsenterOfChannel
 
+	systemChannelName, err := protoutil.GetChannelIDFromBlock(bootstrapBlock)
+	if err != nil {
+		ri.logger.Panicf("Failed extracting system channel name from bootstrap block: %v", err)
+	}
+
 	if ConsensusType(bootstrapBlock, ri.cryptoProvider) == "smartbft" {
 		amIPartOfChannel = smartbft.ConsenterCertificate{
 			ConsenterCertificate: ri.secOpts.Certificate,
@@ -123,10 +128,6 @@ func (ri *ReplicationInitiator) createReplicator(bootstrapBlock *common.Block, f
 		}.IsConsenterOfChannel
 	}
 
-	systemChannelName, err := protoutil.GetChannelIDFromBlock(bootstrapBlock)
-	if err != nil {
-		ri.logger.Panicf("Failed extracting system channel name from bootstrap block: %v", err)
-	}
 	pullerConfig := cluster.PullerConfigFromTopLevelConfig(systemChannelName, ri.conf, ri.secOpts.Key, ri.secOpts.Certificate, ri.signer)
 	puller, err := cluster.BlockPullerFromConfigBlock(pullerConfig, bootstrapBlock, ri.verifierRetriever, ri.cryptoProvider)
 	if err != nil {
