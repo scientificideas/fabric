@@ -65,7 +65,11 @@ type bftDeliverAdapter struct {
 
 // Deliver initialize deliver client
 func (a *bftDeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
-	return NewBFTDeliveryClient(a.chainID, a.conf.OrdererSource, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
+	abc, err := orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return NewBFTDeliveryClient(abc, a.chainID, a.conf.OrdererSource, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
 }
 
 func NewBftDeliverAdapter(
@@ -115,6 +119,8 @@ type bftDeliveryClient struct {
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
+	abc orderer.AtomicBroadcast_DeliverClient
+
 	updateEndpointsCh  chan []*orderers.Endpoint
 	endpoints          []*orderers.Endpoint // a set of endpoints
 	blockReceiverIndex int                  // index of the current block receiver endpoint
@@ -127,6 +133,7 @@ type bftDeliveryClient struct {
 }
 
 func NewBFTDeliveryClient(
+	abc orderer.AtomicBroadcast_DeliverClient,
 	chainID string,
 	orderers blocksprovider.OrdererConnectionSource,
 	ledgerInfoProvider blocksprovider.LedgerInfo,
@@ -152,6 +159,7 @@ func NewBFTDeliveryClient(
 		deliverGPRCClient:                   deliverGPRCClient,
 		dialer:                              dialer,
 		updateEndpointsCh:                   orderers.InitUpdateEndpointsChannel(),
+		abc:                                 abc,
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
@@ -159,7 +167,7 @@ func NewBFTDeliveryClient(
 }
 
 func (c *bftDeliveryClient) Send(envelope *common.Envelope) error {
-	return errors.New("should never be called")
+	return c.abc.Send(envelope)
 }
 
 func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error) {
@@ -475,6 +483,8 @@ func (c *bftDeliveryClient) Close() {
 }
 
 func (c *bftDeliveryClient) disconnectAll() {
+	c.abc.CloseSend()
+
 	if c.blockReceiver != nil {
 		ep := c.blockReceiver.GetEndpoint()
 		c.blockReceiver.CloseSend()
