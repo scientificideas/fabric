@@ -150,7 +150,7 @@ func (c *DeliverServiceConfig) loadDeliverServiceConfig() {
 		c.SecOpts.Certificate = certPEM
 	}
 
-	c.IsBFT = viper.GetBool("peer.deliveryclient.bft")
+	c.IsBFT = viper.GetBool("peer.deliveryclient.bft.enabled")
 
 	overridesMap, err := LoadOverridesMap()
 	if err != nil {
