@@ -67,6 +67,8 @@ func (s sleeper) Sleep(d time.Duration, doneC chan struct{}) {
 	s.sleep(d)
 }
 
+type connector func() (DeliverClient, *orderers.Endpoint, func(), error)
+
 // LedgerInfo an adapter to provide the interface to query
 // the ledger committer for current ledger height
 //go:generate counterfeiter -o fake/ledger_info.go --fake-name LedgerInfo . LedgerInfo
@@ -140,6 +142,9 @@ type Deliverer struct {
 	TLSCertHash []byte // util.ComputeSHA256(b.credSupport.GetClientCertificate().Certificate[0])
 
 	sleeper sleeper
+
+	// Connector overrides DeliverStreamer behaviour
+	Connector connector
 }
 
 const backoffExponentBase = 1.2
@@ -321,6 +326,10 @@ func (d *Deliverer) Stop() {
 }
 
 func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
+	if d.Connector != nil {
+		return d.Connector()
+	}
+
 	endpoint, err := d.Orderers.RandomEndpoint()
 	if err != nil {
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")

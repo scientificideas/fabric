@@ -131,6 +131,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		Orderers:          d.conf.OrdererSource,
 		DoneC:             make(chan struct{}),
 		Signer:            d.conf.Signer,
+		DeliverStreamer:   DeliverAdapter{},
 		Logger:            flogging.MustGetLogger("peer.blocksprovider").With("channel", chainID),
 		MaxRetryDelay:     d.conf.DeliverServiceConfig.ReConnectBackoffThreshold,
 		MaxRetryDuration:  d.conf.DeliverServiceConfig.ReconnectTotalTimeThreshold,
@@ -138,11 +139,17 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		YieldLeadership:   !d.conf.IsStaticLeader,
 	}
 
-	if !d.conf.DeliverServiceConfig.IsBFT {
-		// default value
-		dc.DeliverStreamer = DeliverAdapter{}
-	} else {
-		dc.DeliverStreamer = NewBftDeliverAdapter(chainID, ledgerInfo, d.conf, dc.Dialer)
+	// Override DeliverStreamer behaviour
+	if d.conf.DeliverServiceConfig.IsBFT {
+		dc.Connector = func() (blocksprovider.DeliverClient, *orderers.Endpoint, func(), error) {
+			deliverClient, err := NewBFTDeliveryClient(chainID, d.conf.OrdererSource, ledgerInfo, d.conf.CryptoSvc, d.conf.Signer, d.conf.DeliverGRPCClient, dc.Dialer)
+			if err != nil {
+				return nil, nil, nil, errors.New("could not create BFT deliver client")
+			}
+			return deliverClient, &orderers.Endpoint{}, func() {
+				deliverClient.Close()
+			}, nil
+		}
 	}
 
 	if d.conf.DeliverGRPCClient.MutualTLSRequired() {

@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package deliverservice
 
 import (
-	"context"
 	"math"
 	"math/rand"
 	"sync"
@@ -55,32 +54,6 @@ var (
 	errClientClosing          = errors.New("client is closing")
 	errClientReconnectTimeout = errors.New("client reconnect timeout")
 )
-
-type bftDeliverAdapter struct {
-	chainID            string
-	ledgerInfoProvider blocksprovider.LedgerInfo // provides access to the ledger height
-	conf               *Config
-	dialer             blocksprovider.Dialer
-}
-
-// Deliver initialize deliver client
-func (a *bftDeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
-	return NewBFTDeliveryClient(a.chainID, a.conf.OrdererSource, a.ledgerInfoProvider, a.conf.CryptoSvc, a.conf.Signer, a.conf.DeliverGRPCClient, a.dialer)
-}
-
-func NewBftDeliverAdapter(
-	chainID string,
-	ledgerInfoProvider blocksprovider.LedgerInfo,
-	conf *Config,
-	dialer blocksprovider.Dialer,
-) *bftDeliverAdapter {
-	return &bftDeliverAdapter{
-		chainID:            chainID,
-		ledgerInfoProvider: ledgerInfoProvider,
-		conf:               conf,
-		dialer:             dialer,
-	}
-}
 
 type BlockReceiver interface {
 	blocksprovider.DeliverClient
@@ -492,9 +465,6 @@ func (c *bftDeliveryClient) disconnectAll() {
 		bftLogger.Debugf("[%s] closed header receiver to: %s", c.chainID, ep)
 		delete(c.headerReceivers, ep)
 	}
-
-	//c.abc.CloseSend()
-	bftLogger.Debugf("[%s] closed ABC", c.chainID)
 }
 
 // Disconnect just the block receiver client, so that the next Recv() will choose a new one.
