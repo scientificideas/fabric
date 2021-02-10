@@ -30,7 +30,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 )
@@ -62,31 +61,6 @@ var endpointMap3 = map[int]*orderers.Endpoint{
 }
 
 const goRoutineTestWaitTimeout = time.Second * 15
-
-// Scenario: create an deliver adapter.
-func TestNewBftDeliverAdapter(t *testing.T) {
-	fakeLedgerInfo := &fake.LedgerInfo{}
-	fakeBlockVerifier := &fake.BlockVerifier{}
-
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
-
-	logger = flogging.NewFabricLogger(zap.NewNop())
-	conf := &Config{
-		CryptoSvc:         fakeBlockVerifier,
-		Gossip:            nil,
-		OrdererSource:     orderers.NewConnectionSource(logger, nil),
-		Signer:            nil,
-		DeliverGRPCClient: grpcClient,
-	}
-
-	da := NewBftDeliverAdapter("test-chain", fakeLedgerInfo, conf, &fake.Dialer{})
-	require.NotNil(t, da)
-}
 
 // Scenario: create an delivery client.
 func TestNewBFTDeliveryClient(t *testing.T) {
