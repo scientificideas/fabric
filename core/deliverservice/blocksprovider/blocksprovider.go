@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package blocksprovider
 
 import (
-	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
-	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	"math"
 	"sync/atomic"
 	"time"
@@ -20,6 +18,8 @@ import (
 	"github.com/hyperledger/fabric/common/flogging"
 	gossipcommon "github.com/hyperledger/fabric/gossip/common"
 	"github.com/hyperledger/fabric/gossip/discovery"
+	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
+	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 )
 
 //go:generate mockery -dir . -name LedgerInfo -case underscore -output ../mocks/
