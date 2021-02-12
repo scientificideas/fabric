@@ -316,6 +316,17 @@ func (g *GossipService) NewConfigEventer() ConfigProcessor {
 	return newConfigEventer(g)
 }
 
+func (g *GossipService) UpdateEndpoints(chainID string, endpoints []*orderers.Endpoint) {
+	if ds, ok := g.deliveryService[chainID]; ok {
+		logger.Infof("Updating endpoints for %s", chainID)
+		if err := ds.UpdateEndpoints(chainID, endpoints); err != nil {
+			// The only reason to fail is because of absence of block provider
+			// for given channel id, hence printing a warning will be enough
+			logger.Warningf("Failed to update ordering service endpoints, due to %s", err)
+		}
+	}
+}
+
 // Support aggregates functionality of several
 // interfaces required by gossip service
 type Support struct {

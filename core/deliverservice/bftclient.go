@@ -88,7 +88,6 @@ type bftDeliveryClient struct {
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
-	updateEndpointsCh  chan []*orderers.Endpoint
 	endpoints          []*orderers.Endpoint // a set of endpoints
 	blockReceiverIndex int                  // index of the current block receiver endpoint
 
@@ -124,7 +123,6 @@ func NewBFTDeliveryClient(
 		signer:                              signer,
 		deliverGPRCClient:                   deliverGPRCClient,
 		dialer:                              dialer,
-		updateEndpointsCh:                   orderers.InitUpdateEndpointsChannel(),
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
@@ -153,7 +151,6 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 		bftLogger.Debugf("[%s] Starting monitor routine; Initial ledger height: %d", c.chainID, num)
 		go c.monitor()
 		bftLogger.Debugf("[%s] Starting updae endpoints routine; Current num of endpoints: %d", c.chainID, len(c.endpoints))
-		go c.updateEndpoints()
 	})
 	// can only happen once, after first invocation
 	if err != nil {
@@ -200,11 +197,6 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 	return nil, errClientClosing
 }
 
-func (c *bftDeliveryClient) CloseSend() error {
-	c.Close()
-	return nil
-}
-
 func backOffDuration(base float64, exponent uint, minDur, maxDur time.Duration) time.Duration {
 	if base < 1.0 {
 		base = 1.0
@@ -245,22 +237,6 @@ func (c *bftDeliveryClient) monitor() {
 		}
 	}
 	ticker.Stop()
-
-	bftLogger.Debugf("[%s] Exit", c.chainID)
-}
-
-// Check endpoints changes.
-func (c *bftDeliveryClient) updateEndpoints() {
-	bftLogger.Debugf("[%s] Entry", c.chainID)
-
-	for !c.shouldStop() {
-		select {
-		case endpoints := <-c.updateEndpointsCh:
-			bftLogger.Debugf("[%s] Received endpoints: %d", c.chainID, len(endpoints))
-			c.UpdateEndpoints(endpoints)
-		default:
-		}
-	}
 
 	bftLogger.Debugf("[%s] Exit", c.chainID)
 }
@@ -425,7 +401,7 @@ func (c *bftDeliveryClient) closeBlockReceiver(updateLastBlockTime bool) {
 	}
 
 	if c.blockReceiver != nil {
-		c.blockReceiver.CloseSend()
+		c.blockReceiver.Close()
 		c.blockReceiver = nil
 	}
 }
@@ -455,7 +431,7 @@ func (c *bftDeliveryClient) Close() {
 func (c *bftDeliveryClient) disconnectAll() {
 	if c.blockReceiver != nil {
 		ep := c.blockReceiver.GetEndpoint()
-		c.blockReceiver.CloseSend()
+		c.blockReceiver.Close()
 		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep)
 		c.blockReceiver = nil
 	}
@@ -473,7 +449,7 @@ func (c *bftDeliveryClient) Disconnect() {
 	defer c.mutex.Unlock()
 
 	if c.blockReceiver != nil {
-		c.blockReceiver.CloseSend()
+		c.blockReceiver.Close()
 		c.blockReceiver = nil
 	}
 }
@@ -484,7 +460,7 @@ func (c *bftDeliveryClient) UpdateReceived(blockNumber uint64) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	bftLogger.Debugf("[%s] received blockNumber=%d", c.chainID, blockNumber)
+	bftLogger.Infof("[%s] received blockNumber=%d", c.chainID, blockNumber)
 	c.nextBlockNumber = blockNumber + 1
 	c.lastBlockTime = time.Now()
 }

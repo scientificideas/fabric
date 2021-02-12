@@ -44,10 +44,19 @@ type DeliverClient interface {
 	// Recv receives a chaincode message
 	Recv() (*orderer.DeliverResponse, error)
 
-	// CloseSend closes the send direction of the stream. It closes the stream
-	// when non-nil error is met. It is also not safe to call CloseSend
-	// concurrently with SendMsg.
-	CloseSend() error
+	// Close closes the stream and its underlying connection
+	Close()
+}
+
+// StreamClient used to receive blocks from the ordering service
+type StreamClient interface {
+	DeliverClient
+
+	// Disconnect disconnects from the remote node.
+	Disconnect()
+
+	// Update the client on the last valid block number
+	UpdateReceived(blockNumber uint64)
 }
 
 type sleeper struct {
@@ -67,7 +76,7 @@ func (s sleeper) Sleep(d time.Duration, doneC chan struct{}) {
 	s.sleep(d)
 }
 
-type connector func() (DeliverClient, *orderers.Endpoint, func(), error)
+type connector func() (StreamClient, *orderers.Endpoint, func(), error)
 
 // LedgerInfo an adapter to provide the interface to query
 // the ledger committer for current ledger height
@@ -105,9 +114,6 @@ type OrdererConnectionSource interface {
 
 	// GetAllEndpoints retrieves all endpoints
 	GetAllEndpoints() []*orderers.Endpoint
-
-	// InitUpdateEndpointsChannel returns channel to retrieve endpoints
-	InitUpdateEndpointsChannel() chan []*orderers.Endpoint
 }
 
 //go:generate counterfeiter -o fake/dialer.go --fake-name Dialer . Dialer
@@ -117,7 +123,7 @@ type Dialer interface {
 
 //go:generate counterfeiter -o fake/deliver_streamer.go --fake-name DeliverStreamer . DeliverStreamer
 type DeliverStreamer interface {
-	Deliver(context.Context, *grpc.ClientConn) (DeliverClient, error)
+	Deliver(context.Context, *grpc.ClientConn) (StreamClient, error)
 }
 
 // Deliverer the actual implementation for BlocksProvider interface
@@ -142,9 +148,6 @@ type Deliverer struct {
 	TLSCertHash []byte // util.ComputeSHA256(b.credSupport.GetClientCertificate().Certificate[0])
 
 	sleeper sleeper
-
-	// Connector overrides DeliverStreamer behaviour
-	Connector connector
 }
 
 const backoffExponentBase = 1.2
@@ -254,22 +257,23 @@ func (d *Deliverer) DeliverBlocks() {
 	}
 }
 
-func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient DeliverClient) error {
+func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient StreamClient) error {
 	switch t := msg.Type.(type) {
 	case *orderer.DeliverResponse_Status:
 		if t.Status == common.Status_SUCCESS {
 			return errors.Errorf("received success for a seek that should never complete")
 		}
-
 		return errors.Errorf("received bad status %v from orderer", t.Status)
 	case *orderer.DeliverResponse_Block:
 		blockNum := t.Block.Header.Number
 		if err := d.BlockVerifier.VerifyBlock(gossipcommon.ChannelID(d.ChannelID), blockNum, t.Block); err != nil {
+			deliverClient.Disconnect()
 			return errors.WithMessage(err, "block from orderer could not be verified")
 		}
 
 		marshaledBlock, err := proto.Marshal(t.Block)
 		if err != nil {
+			deliverClient.Disconnect()
 			return errors.WithMessage(err, "block from orderer could not be re-marshaled")
 		}
 
@@ -303,9 +307,7 @@ func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient Deliv
 		d.Gossip.Gossip(gossipMsg)
 
 		// Update received block
-		if bftClient, ok := deliverClient.(interface{ UpdateReceived(blockNumber uint64) }); ok {
-			bftClient.UpdateReceived(blockNum)
-		}
+		deliverClient.UpdateReceived(blockNum)
 
 		return nil
 	default:
@@ -325,11 +327,7 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *orderers.Endpoint, func(), error) {
-	if d.Connector != nil {
-		return d.Connector()
-	}
-
+func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (StreamClient, *orderers.Endpoint, func(), error) {
 	endpoint, err := d.Orderers.RandomEndpoint()
 	if err != nil {
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")
@@ -351,14 +349,14 @@ func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (DeliverClient, *order
 
 	err = deliverClient.Send(seekInfoEnv)
 	if err != nil {
-		deliverClient.CloseSend()
+		deliverClient.Close()
 		conn.Close()
 		ctxCancel()
 		return nil, nil, nil, errors.WithMessagef(err, "could not send deliver seek info handshake to '%s'", endpoint.Address)
 	}
 
 	return deliverClient, endpoint, func() {
-		deliverClient.CloseSend()
+		deliverClient.Close()
 		ctxCancel()
 		conn.Close()
 	}, nil

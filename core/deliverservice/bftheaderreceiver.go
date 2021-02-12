@@ -100,7 +100,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 			backOffSleep(dur, hr.stopChan)
 			statusCounter++
 
-			hr.client.CloseSend()
+			hr.client.Close()
 			continue
 
 		case *orderer.DeliverResponse_Block:
@@ -153,7 +153,7 @@ func (hr *bftHeaderReceiver) Close() {
 	}
 
 	hr.stop = true
-	hr.client.CloseSend()
+	hr.client.Close()
 	close(hr.stopChan)
 }
 
