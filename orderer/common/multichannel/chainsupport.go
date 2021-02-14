@@ -81,7 +81,7 @@ func newChainSupport(
 	var synchronousBlockWriting bool
 	oc, _ := ledgerResources.OrdererConfig()
 	if oc.ConsensusType() == "smartbft" {
-//		synchronousBlockWriting = true
+		synchronousBlockWriting = true
 	}
 
 	// Set up the block writer
