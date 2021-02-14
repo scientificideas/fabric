@@ -180,6 +180,11 @@ func GetBytesSignatureHeader(hdr *common.SignatureHeader) ([]byte, error) {
 	return bytes, errors.Wrap(err, "error marshaling SignatureHeader")
 }
 
+// GetSignatureHeader Get SignatureHeader from bytes
+func GetSignatureHeader(bytes []byte) (*common.SignatureHeader, error) {
+	return UnmarshalSignatureHeader(bytes)
+}
+
 // GetBytesTransaction get the bytes of Transaction from the message
 func GetBytesTransaction(tx *peer.Transaction) ([]byte, error) {
 	bytes, err := proto.Marshal(tx)
