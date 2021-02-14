@@ -225,7 +225,15 @@ type Dialer interface {
 
 // VerifyBlocks verifies the given consecutive sequence of blocks is valid,
 // and returns nil if it's valid, else an error.
-func VerifyBlocks(blockBuff []*common.Block, signatureVerifier BlockVerifier) error {
+func VerifyBlocksCFT(blockBuff []*common.Block, signatureVerifier BlockVerifier) error {
+	return verifyBlockSequence(blockBuff, signatureVerifier, false)
+}
+
+func VerifyBlocksBFT(blockBuff []*common.Block, signatureVerifier BlockVerifier) error {
+	return verifyBlockSequence(blockBuff, signatureVerifier, true)
+}
+
+func verifyBlockSequence(blockBuff []*common.Block, signatureVerifier BlockVerifier, alwaysCheckSig bool) error {
 	if len(blockBuff) == 0 {
 		return errors.New("buffer is empty")
 	}
@@ -245,11 +253,11 @@ func VerifyBlocks(blockBuff []*common.Block, signatureVerifier BlockVerifier) er
 	// during iteration over the block batch.
 	for _, block := range blockBuff {
 		configFromBlock, err := ConfigFromBlock(block)
-		if err == errNotAConfig {
+		if err == errNotAConfig && !alwaysCheckSig {
 			isLastBlockConfigBlock = false
 			continue
 		}
-		if err != nil {
+		if err != nil && !alwaysCheckSig {
 			return err
 		}
 		// The block is a configuration block, so verify it

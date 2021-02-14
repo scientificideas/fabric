@@ -80,7 +80,7 @@ func NewBlockPullerCreator(
 		signer:              signer,
 		stdDialer:           stdDialer,
 		der:                 der,
-		ClusterVerifyBlocks: cluster.VerifyBlocks, // The default block sequence verification method.
+		ClusterVerifyBlocks: cluster.VerifyBlocksBFT, // The default block sequence verification method.
 	}
 
 	return factory, nil
