@@ -17,62 +17,78 @@ limitations under the License.
 package deliverservice
 
 import (
+	"github.com/spf13/viper"
 	"math"
 
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/common/util"
+	"github.com/hyperledger/fabric/core/deliverservice/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
-	"github.com/hyperledger/fabric/internal/pkg/identity"
-	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/protoutil"
-	"github.com/pkg/errors"
 )
 
 type blocksRequester struct {
+	tls               bool
 	chainID           string
-	signer            identity.SignerSerializer
+	client            blocksprovider.BlocksDeliverer
+	cs                *comm.CredentialSupport
+	signer            protoutil.Signer
 	deliverGPRCClient *comm.GRPCClient
 }
 
-func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider.LedgerInfo) (*common.Envelope, error) {
+func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {
-		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", b.chainID)
+		logger.Errorf("Can't get ledger height for channel %s from committer [%s]", b.chainID, err)
+		return err
 	}
 
 	if height > 0 {
 		logger.Infof("Starting deliver with block [%d] for channel %s", height, b.chainID)
-		return b.seekLatestFromCommitter(height, orderer.SeekInfo_BLOCK)
+		if err := b.seekLatestFromCommitter(height, orderer.SeekInfo_BLOCK); err != nil {
+			return err
+		}
+	} else {
+		logger.Infof("Starting deliver with oldest block for channel %s", b.chainID)
+		if err := b.seekOldest(orderer.SeekInfo_BLOCK); err != nil {
+			return err
+		}
 	}
 
-	logger.Infof("Starting deliver with oldest block for channel %s", b.chainID)
-	return b.seekOldest(orderer.SeekInfo_BLOCK)
+	return nil
 }
 
-func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) (*common.Envelope, error) {
+func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {
-		return nil, errors.WithMessagef(err, "could not get ledger height for channel %s", b.chainID)
+		logger.Errorf("Can't get ledger height for channel %s from committer [%s]", b.chainID, err)
+		return err
 	}
 
 	if height > 0 {
 		logger.Infof("Starting deliver with block [%d] for channel %s", height, b.chainID)
-		return b.seekLatestFromCommitter(height, orderer.SeekInfo_HEADER_WITH_SIG)
+		if err := b.seekLatestFromCommitter(height, orderer.SeekInfo_HEADER_WITH_SIG); err != nil {
+			return err
+		}
+	} else {
+		logger.Infof("Starting deliver with oldest block for channel %s", b.chainID)
+		if err := b.seekOldest(orderer.SeekInfo_HEADER_WITH_SIG); err != nil {
+			return err
+		}
 	}
 
-	logger.Infof("Starting deliver with oldest block for channel %s", b.chainID)
-	return b.seekOldest(orderer.SeekInfo_HEADER_WITH_SIG)
+	return nil
 }
 
 func (b *blocksRequester) getTLSCertHash() []byte {
-	if b.deliverGPRCClient != nil && b.deliverGPRCClient.MutualTLSRequired() {
+	if viper.GetBool("peer.tls.enabled") && b.deliverGPRCClient.MutualTLSRequired() {
 		return util.ComputeSHA256(b.deliverGPRCClient.Certificate().Certificate[0])
 	}
 	return nil
 }
 
-func (b *blocksRequester) seekOldest(contentType orderer.SeekInfo_SeekContentType) (*common.Envelope, error) {
+func (b *blocksRequester) seekOldest(contentType orderer.SeekInfo_SeekContentType) error {
 	seekInfo := &orderer.SeekInfo{
 		Start:       &orderer.SeekPosition{Type: &orderer.SeekPosition_Oldest{Oldest: &orderer.SeekOldest{}}},
 		Stop:        &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: math.MaxUint64}}},
@@ -84,10 +100,14 @@ func (b *blocksRequester) seekOldest(contentType orderer.SeekInfo_SeekContentTyp
 	msgVersion := int32(0)
 	epoch := uint64(0)
 	tlsCertHash := b.getTLSCertHash()
-	return protoutil.CreateSignedEnvelopeWithTLSBinding(common.HeaderType_DELIVER_SEEK_INFO, b.chainID, b.signer, seekInfo, msgVersion, epoch, tlsCertHash)
+	env, err := protoutil.CreateSignedEnvelopeWithTLSBinding(common.HeaderType_DELIVER_SEEK_INFO, b.chainID, b.signer, seekInfo, msgVersion, epoch, tlsCertHash)
+	if err != nil {
+		return err
+	}
+	return b.client.Send(env)
 }
 
-func (b *blocksRequester) seekLatestFromCommitter(height uint64, contentType orderer.SeekInfo_SeekContentType) (*common.Envelope, error) {
+func (b *blocksRequester) seekLatestFromCommitter(height uint64, contentType orderer.SeekInfo_SeekContentType) error {
 	seekInfo := &orderer.SeekInfo{
 		Start:       &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: height}}},
 		Stop:        &orderer.SeekPosition{Type: &orderer.SeekPosition_Specified{Specified: &orderer.SeekSpecified{Number: math.MaxUint64}}},
@@ -99,5 +119,9 @@ func (b *blocksRequester) seekLatestFromCommitter(height uint64, contentType ord
 	msgVersion := int32(0)
 	epoch := uint64(0)
 	tlsCertHash := b.getTLSCertHash()
-	return protoutil.CreateSignedEnvelopeWithTLSBinding(common.HeaderType_DELIVER_SEEK_INFO, b.chainID, b.signer, seekInfo, msgVersion, epoch, tlsCertHash)
+	env, err := protoutil.CreateSignedEnvelopeWithTLSBinding(common.HeaderType_DELIVER_SEEK_INFO, b.chainID, b.signer, seekInfo, msgVersion, epoch, tlsCertHash)
+	if err != nil {
+		return err
+	}
+	return b.client.Send(env)
 }

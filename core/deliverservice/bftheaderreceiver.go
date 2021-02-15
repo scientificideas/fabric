@@ -100,7 +100,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 			backOffSleep(dur, hr.stopChan)
 			statusCounter++
 
-			hr.client.CloseSend()
+			hr.client.Close()
 			continue
 
 		case *orderer.DeliverResponse_Block:
@@ -109,7 +109,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 			blockNum := t.Block.Header.Number
 
 			// do not verify, just save for later, in case the block-receiver is suspected of censorship
-			bftLogger.Debugf("[%s] Saving block with header & metadata, blockNum = [%d]", hr.chainID, blockNum)
+			bftLogger.Debugf("[%s][%s] Saving block with header & metadata, blockNum = [%d], block = [%v]", hr.chainID, hr.endpoint, blockNum, t.Block)
 			hr.mutex.Lock()
 			hr.lastHeader = t.Block
 			hr.lastHeaderTime = time.Now()
@@ -153,7 +153,7 @@ func (hr *bftHeaderReceiver) Close() {
 	}
 
 	hr.stop = true
-	hr.client.CloseSend()
+	hr.client.Close()
 	close(hr.stopChan)
 }
 

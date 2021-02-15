@@ -274,8 +274,8 @@ github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18/go.mod h1:UETIi67q
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8 h1:K0o3Y0Ina3BOhmUp5oaUyiUGBeWVkJGcHRWFrfBdYAc=
 gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8/go.mod h1:WBYL/XtOwBxUsuUO3YB+Id9XoVw2z9Nr9hH9ylXM2z8=
-gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2 h1:43ecPEXMOx1dwhxxncAl8qhgRdz93FD62afW3OLMfVI=
-gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2/go.mod h1:NmSa4DOlGjcsxa7mj1uy6RRb0lUz9NFHkPuOTAAMO7Q=
+gitlab.n-t.io/ntbc/consensus v0.0.0-20210215075419-5d204b3dea4f h1:v0Xu92YoG3FTZApyqobdNcpg9SIY0rU1q05WdTtq9lI=
+gitlab.n-t.io/ntbc/consensus v0.0.0-20210215075419-5d204b3dea4f/go.mod h1:NmSa4DOlGjcsxa7mj1uy6RRb0lUz9NFHkPuOTAAMO7Q=
 gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201215092930-2292463a9d1e h1:Df9l+q9Wni25spRva2BjSM7RVpdQtuDdyv2D780BJss=
 gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201215092930-2292463a9d1e/go.mod h1:Yksg2bQTVYqFC/rLEP+p8LQLV3mGovNtHjh0KvhB3AM=
 go.etcd.io/bbolt v1.3.1-etcd.7/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=

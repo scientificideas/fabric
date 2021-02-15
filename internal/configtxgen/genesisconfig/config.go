@@ -57,6 +57,10 @@ const (
 	// the etcd/raft-based ordering service.
 	SampleDevModeEtcdRaftProfile = "SampleDevModeEtcdRaft"
 
+	// SampleDevModeSmartBFTProfile references the sample profile used for testing
+	// the SmartBFT-based ordering service.
+	SampleDevModeSmartBFTProfile = "SampleDevModeSmartBFT"
+
 	// SampleAppChannelInsecureSoloProfile references the sample profile which
 	// does not include any MSPs and uses solo for ordering.
 	SampleAppChannelInsecureSoloProfile = "SampleAppChannelInsecureSolo"

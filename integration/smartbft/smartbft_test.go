@@ -423,7 +423,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			peerProcesses = ifrit.Invoke(peerRunner)
 
 			Eventually(peerProcesses.Ready(), network.EventuallyTimeout).Should(BeClosed())
-
 			peer := network.Peer("Org1", "peer0")
 
 			assertBlockReception(map[string]int{"systemchannel": 0}, network.Orderers, peer, network)
@@ -690,10 +689,12 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			network.GenerateConfigTree()
 			network.Bootstrap()
 
+			network.EventuallyTimeout *= 2
+
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {
 				runner := network.OrdererRunner(orderer)
-				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.common.cluster=debug:orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
 				ordererRunners = append(ordererRunners, runner)
 				proc := ifrit.Invoke(runner)
 				ordererProcesses = append(ordererProcesses, proc)
@@ -789,7 +790,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 				fmt.Fprintf(GinkgoWriter, "Launching orderer %d", 5+i)
 				runner := network.OrdererRunner(newOrderer)
-				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.common.cluster=debug:orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
 				ordererRunners = append(ordererRunners, runner)
 				proc := ifrit.Invoke(runner)
 				ordererRunners = append(ordererRunners, runner)
@@ -1093,50 +1094,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Skipping verifying prev commits due to verification sequence advancing from 1 to 2 channel=testchannel1"))
 		})
 
-		It("smartbft upgrade BFT-2 to BFT-3", func() {
-			wd, err := os.Getwd()
-			Expect(err).To(Not(HaveOccurred()))
-
-			archive, err := ioutil.ReadFile(filepath.Join(wd, "bft-pre-upgrade.tar.gz"))
-			Expect(err).To(Not(HaveOccurred()))
-
-			path := filepath.Join("/tmp", "e2e-smartbft-test254466452")
-			if _, err := os.Stat(path); err == nil {
-				os.RemoveAll(path)
-			}
-			if _, err := os.Stat(path); os.IsNotExist(err) {
-				err = os.Mkdir(path, 0755)
-				Expect(err).To(Not(HaveOccurred()))
-			}
-			testDir = path
-
-			err = extractTarGZ(archive, path)
-			Expect(err).ToNot(HaveOccurred())
-
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-
-			var ordererRunners []*ginkgomon.Runner
-			for _, orderer := range network.Orderers {
-				runner := network.OrdererRunner(orderer)
-				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
-				ordererRunners = append(ordererRunners, runner)
-				proc := ifrit.Invoke(runner)
-				ordererProcesses = append(ordererProcesses, proc)
-				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
-			}
-
-			peerGroupRunner, _ := peerGroupRunners(network)
-			peerProcesses = ifrit.Invoke(peerGroupRunner)
-			Eventually(peerProcesses.Ready(), network.EventuallyTimeout).Should(BeClosed())
-
-			network.PortsByOrdererID[network.Orderers[3].ID()] = map[nwo.PortName]uint16{
-				nwo.ListenPort: 39012,
-			}
-			peer := network.Peer("Org1", "peer0")
-			invokeQuery(network, peer, network.Orderers[3], "testchannel1", 70)
-			invokeQuery(network, peer, network.Orderers[3], "testchannel1", 60)
-			invokeQuery(network, peer, network.Orderers[3], "testchannel1", 50)
-		})
 	})
 })
 

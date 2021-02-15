@@ -10,11 +10,11 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"crypto/x509"
-	"github.com/hyperledger/fabric/common/flogging"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"math/rand"
 	"sync"
 
+	"github.com/hyperledger/fabric/common/flogging"
+	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/pkg/errors"
 )
 
@@ -188,6 +188,10 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 
 	if len(cs.allEndpoints) != 0 {
 		cs.logger.Debugf("Returning an orderer connection pool source with org specific endpoints only")
+
+		// update endpoints
+		cs.updateEndpoints()
+
 		// There are some org specific endpoints, so we do not
 		// add any of the global endpoints to our pool.
 		return
@@ -211,12 +215,19 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 		})
 	}
 
+	// update endpoints
+	cs.updateEndpoints()
+
+	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
+}
+
+func (cs *ConnectionSource) updateEndpoints() {
+	//	cs.mutex.RLock()
+	//	defer cs.mutex.RUnlock()
 	if cs.updateCh != nil {
 		cs.logger.Debugf("Sent endpoints to update channel")
 		cs.updateCh <- cs.allEndpoints
 	}
-
-	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
 }
 
 func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {

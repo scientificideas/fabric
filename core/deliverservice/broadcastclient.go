@@ -48,7 +48,7 @@ type broadcastClient struct {
 	ep                 *orderers.Endpoint
 
 	mutex           sync.Mutex
-	blocksDeliverer blocksprovider.DeliverClient
+	blocksDeliverer orderer.AtomicBroadcast_DeliverClient
 	conn            *connection
 	endpoint        string
 }
@@ -197,7 +197,7 @@ func (bc *broadcastClient) connect() error {
 	return err
 }
 
-func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient blocksprovider.DeliverClient, cf context.CancelFunc) error {
+func (bc *broadcastClient) afterConnect(conn *grpc.ClientConn, deliverClient orderer.AtomicBroadcast_DeliverClient, cf context.CancelFunc) error {
 	logger.Debug("Entering")
 	defer logger.Debug("Exiting")
 	bc.mutex.Lock()
@@ -238,22 +238,22 @@ func (bc *broadcastClient) shouldStop() bool {
 	return atomic.LoadInt32(&bc.stopFlag) == int32(1)
 }
 
-// CloseSend makes the client close its connection and shut down
-func (bc *broadcastClient) CloseSend() error {
+// Close makes the client close its connection and shut down
+func (bc *broadcastClient) Close() {
 	logger.Debugf("Entering for ep=%s", bc.ep.Address)
 	defer logger.Debugf("Exiting for ep=%s", bc.ep.Address)
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
 	if bc.shouldStop() {
-		return nil
+		return
 	}
 	atomic.StoreInt32(&bc.stopFlag, int32(1))
 	bc.stopChan <- struct{}{}
 	if bc.conn == nil {
-		return nil
+		return
 	}
 	bc.endpoint = ""
-	return bc.conn.Close()
+	bc.conn.Close()
 }
 
 // Disconnect makes the client close the existing connection and makes current endpoint unavailable for time interval, if disableEndpoint set to true
