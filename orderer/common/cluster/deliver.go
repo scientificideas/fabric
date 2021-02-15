@@ -186,7 +186,7 @@ func (p *BlockPuller) tryFetchBlock(seq uint64) *common.Block {
 
 	if err := p.VerifyBlockSequence(p.blockBuff, p.Channel); err != nil {
 		p.Close()
-		p.Logger.Errorf("Failed verifying received blocks: %v", err)
+		p.Logger.Errorf("[%s] Failed verifying received blocks: %v", p.Channel, err)
 		return nil
 	}
 
@@ -234,7 +234,7 @@ func (p *BlockPuller) pullBlocks(seq uint64, reConnected bool) error {
 		totalSize += size
 		p.blockBuff = append(p.blockBuff, block)
 		nextExpectedSequence++
-		p.Logger.Infof("Got block [%d] of size %d KB from %s", seq, size/1024, p.endpoint)
+		p.Logger.Infof("[%s] Got block [%d] of size %d KB from %s", p.Channel, seq, size/1024, p.endpoint)
 	}
 	return nil
 }
@@ -307,7 +307,7 @@ func (p *BlockPuller) connectToSomeEndpoint(minRequestedSequence uint64) {
 	p.endpoint = chosenEndpoint
 	p.latestSeq = endpointsInfo[chosenEndpoint].lastBlockSeq
 
-	p.Logger.Infof("Connected to %s with last block seq of %d", p.endpoint, p.latestSeq)
+	p.Logger.Infof("[%s] Connected to %s with last block seq of %d ", p.Channel, p.endpoint, p.latestSeq)
 }
 
 // probeEndpoints reaches to all endpoints known and returns the latest block sequences
@@ -419,7 +419,7 @@ func (p *BlockPuller) fetchLastBlockSeq(minRequestedSequence uint64, endpoint st
 		return 0, err
 	}
 
-	p.Logger.Infof("%s is at block sequence of %d", endpoint, seq)
+	p.Logger.Infof("[%s] %s is at block sequence of %d", p.Channel, endpoint, seq)
 	return block.Header.Number, nil
 }
 

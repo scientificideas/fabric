@@ -68,7 +68,7 @@ type Config struct {
 	CryptoSvc blocksprovider.BlockVerifier
 	// Gossip enables to enumerate peers in the channel, send a message to peers,
 	// and add a block to the gossip state transfer layer.
-	Gossip blocksprovider.GossipServiceAdapter
+	Gossip bftBlocksprovider.GossipServiceAdapter
 	// OrdererSource provides orderer endpoints, complete with TLS cert pools.
 	OrdererSource *orderers.ConnectionSource
 	// Signer is the identity used to sign requests.

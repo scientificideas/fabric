@@ -89,7 +89,7 @@ type blocksProviderImpl struct {
 
 	client StreamClient
 
-	gossip blocksprovider.GossipServiceAdapter
+	gossip GossipServiceAdapter
 
 	mcs blocksprovider.BlockVerifier
 
@@ -104,7 +104,7 @@ var maxRetryDelay = time.Second * 10
 var logger = flogging.MustGetLogger("blocksProvider")
 
 // NewBlocksProvider constructor function to create blocks deliverer instance
-func NewBlocksProvider(chainID string, client StreamClient, gossip blocksprovider.GossipServiceAdapter, mcs blocksprovider.BlockVerifier) BlocksProvider {
+func NewBlocksProvider(chainID string, client StreamClient, gossip GossipServiceAdapter, mcs blocksprovider.BlockVerifier) BlocksProvider {
 	return &blocksProviderImpl{
 		chainID:              chainID,
 		client:               client,
@@ -168,7 +168,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 			}
 
 			if err := b.mcs.VerifyBlock(gossipcommon.ChannelID(b.chainID), blockNum, t.Block); err != nil {
-				logger.Errorf("[%s] Error verifying block with sequnce number %d, due to %s; Disconnecting client from orderer.", b.chainID, blockNum, err)
+				logger.Errorf("[%s] Error verifying block with sequence number %d, due to %s; Disconnecting client from orderer.", b.chainID, blockNum, err)
 				delay, verErrCounter = computeBackOffDelay(verErrCounter)
 				time.Sleep(delay)
 				b.client.Disconnect()
@@ -177,6 +177,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 
 			verErrCounter = 0 // On a good block
 
+			numberOfPeers := len(b.gossip.PeersOfChannel(gossipcommon.ChannelID(b.chainID)))
 			// Create payload with a block received
 			payload := createPayload(blockNum, marshaledBlock)
 			// Use payload to create gossip message
@@ -189,7 +190,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 			}
 
 			// Gossip messages with other nodes
-			logger.Debugf("[%s] Gossiping block [%d], peers number [X]", b.chainID, blockNum)
+			logger.Debugf("[%s] Gossiping block [%d], peers number [%]", b.chainID, blockNum, numberOfPeers)
 			if !b.isDone() {
 				b.gossip.Gossip(gossipMsg)
 			}

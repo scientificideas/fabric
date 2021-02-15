@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package deliverservice
 
 import (
+	"context"
 	"math"
 	"math/rand"
 	"sync"
@@ -21,7 +22,9 @@ import (
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var bftLogger = flogging.MustGetLogger("bftDeliveryClient")
@@ -88,6 +91,7 @@ type bftDeliveryClient struct {
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
+	updateEndpointsCh  chan []*orderers.Endpoint
 	endpoints          []*orderers.Endpoint // a set of endpoints
 	blockReceiverIndex int                  // index of the current block receiver endpoint
 
@@ -123,6 +127,7 @@ func NewBFTDeliveryClient(
 		signer:                              signer,
 		deliverGPRCClient:                   deliverGPRCClient,
 		dialer:                              dialer,
+		updateEndpointsCh:                   orderers.InitUpdateEndpointsChannel(),
 	}
 
 	bftLogger.Infof("[%s] Created BFT Delivery Client", chainID)
@@ -151,6 +156,7 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 		bftLogger.Debugf("[%s] Starting monitor routine; Initial ledger height: %d", c.chainID, num)
 		go c.monitor()
 		bftLogger.Debugf("[%s] Starting updae endpoints routine; Current num of endpoints: %d", c.chainID, len(c.endpoints))
+		go c.updateEndpoints()
 	})
 	// can only happen once, after first invocation
 	if err != nil {
@@ -237,6 +243,22 @@ func (c *bftDeliveryClient) monitor() {
 		}
 	}
 	ticker.Stop()
+
+	bftLogger.Debugf("[%s] Exit", c.chainID)
+}
+
+// Check endpoints changes.
+func (c *bftDeliveryClient) updateEndpoints() {
+	bftLogger.Debugf("[%s] Entry", c.chainID)
+
+	for !c.shouldStop() {
+		select {
+		case endpoints := <-c.updateEndpointsCh:
+			bftLogger.Debugf("[%s] Received endpoints: %d", c.chainID, len(endpoints))
+			c.UpdateEndpoints(endpoints)
+		default:
+		}
+	}
 
 	bftLogger.Debugf("[%s] Exit", c.chainID)
 }
@@ -526,23 +548,21 @@ func (c *bftDeliveryClient) GetHeadersBlockNumTime() ([]uint64, []time.Time, []e
 
 // create a deliver client that delivers blocks
 func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
+	requester := &blocksRequester{
+		tls:               viper.GetBool("peer.tls.enabled"),
+		chainID:           c.chainID,
+		signer:            c.signer,
+		deliverGPRCClient: c.deliverGPRCClient,
+	}
+
 	//Update the nextBlockNumber from the ledger, and then make sure the client request the nextBlockNumber,
 	// because that is what we expect in the Recv() loop.
 	if height, err := c.ledgerInfoProvider.LedgerHeight(); err == nil {
 		c.nextBlockNumber = height
 	}
 
-	setup := func(deliverer blocksprovider.DeliverClient) error {
-		requester := &blocksRequester{
-			chainID:           c.chainID,
-			signer:            c.signer,
-			deliverGPRCClient: c.deliverGPRCClient,
-		}
-		seekInfoEnv, err := requester.RequestBlocks(c)
-		if err != nil {
-			return errors.WithMessagef(err, "could not create header seek info for channel %s", c.chainID)
-		}
-		return deliverer.Send(seekInfoEnv)
+	broadcastSetup := func(deliverer blocksprovider.DeliverClient) error {
+		return requester.RequestBlocks(c) // Do not ask the ledger directly, ask the bftDeliveryClient
 	}
 
 	//Let block receivers give-up early so we can replace them with a header receiver
@@ -553,31 +573,27 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	connectionProducer := func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
-		return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
-	}
-
 	clFactory := func(conn *grpc.ClientConn) orderer.AtomicBroadcastClient {
 		return orderer.NewAtomicBroadcastClient(conn)
 	}
 
-	blockClient := NewBroadcastClient(endpoint, connectionProducer, clFactory, setup, backoffPolicy)
+	//Only a single endpoint
+	blockClient := NewBroadcastClient(endpoint, c.defaultConnectionProducer, clFactory, broadcastSetup, backoffPolicy)
+	requester.client = blockClient
 	return blockClient, nil
 }
 
 // create a deliver client that delivers headers
 func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
-	setup := func(deliverer blocksprovider.DeliverClient) error {
-		requester := &blocksRequester{
-			chainID:           c.chainID,
-			signer:            c.signer,
-			deliverGPRCClient: c.deliverGPRCClient,
-		}
-		seekInfoEnv, err := requester.RequestHeaders(c.ledgerInfoProvider)
-		if err != nil {
-			return errors.WithMessagef(err, "could not create header seek info for channel %s", c.chainID)
-		}
-		return deliverer.Send(seekInfoEnv)
+	requester := &blocksRequester{
+		tls:               viper.GetBool("peer.tls.enabled"),
+		chainID:           c.chainID,
+		signer:            c.signer,
+		deliverGPRCClient: c.deliverGPRCClient,
+	}
+
+	broadcastSetup := func(deliverer blocksprovider.DeliverClient) error {
+		return requester.RequestHeaders(c) // Do not ask the ledger directly, ask the bftDeliveryClient
 	}
 
 	//Let block receivers give-up early so we can replace them with a header receiver
@@ -588,16 +604,14 @@ func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broad
 		return backOffDuration(2.0, uint(attemptNum), c.minBackoffDelay, c.maxBackoffDelay), true
 	}
 
-	connectionProducer := func(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
-		return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
-	}
-
 	clFactory := func(conn *grpc.ClientConn) orderer.AtomicBroadcastClient {
 		return orderer.NewAtomicBroadcastClient(conn)
 	}
 
-	blockClient := NewBroadcastClient(endpoint, connectionProducer, clFactory, setup, backoffPolicy)
-	return blockClient, nil
+	//Only a single endpoint
+	headerClient := NewBroadcastClient(endpoint, c.defaultConnectionProducer, clFactory, broadcastSetup, backoffPolicy)
+	requester.client = headerClient
+	return headerClient, nil
 }
 
 func shuffle(a []*orderers.Endpoint) []*orderers.Endpoint {
@@ -635,4 +649,30 @@ func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 		}
 	}
 	return false
+}
+
+func (c *bftDeliveryClient) defaultConnectionProducer(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
+	dialOpts := []grpc.DialOption{grpc.WithBlock()}
+	// set max send/recv msg sizes
+	dialOpts = append(dialOpts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(comm.MaxRecvMsgSize),
+		grpc.MaxCallSendMsgSize(comm.MaxSendMsgSize)))
+	// set the keepalive options
+	kaOpts := comm.DefaultKeepaliveOptions
+	if viper.IsSet("peer.keepalive.deliveryClient.interval") {
+		kaOpts.ClientInterval = viper.GetDuration("peer.keepalive.deliveryClient.interval")
+	}
+	if viper.IsSet("peer.keepalive.deliveryClient.timeout") {
+		kaOpts.ClientTimeout = viper.GetDuration("peer.keepalive.deliveryClient.timeout")
+	}
+	dialOpts = append(dialOpts, comm.ClientKeepaliveOptions(kaOpts)...)
+
+	if viper.GetBool("peer.tls.enabled") {
+		creds := credentials.NewClientTLSFromCert(endpoint.CertPool, "")
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithInsecure())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
+	defer cancel()
+	return grpc.DialContext(ctx, endpoint.Address, dialOpts...)
 }

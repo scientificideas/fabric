@@ -114,6 +114,9 @@ type OrdererConnectionSource interface {
 
 	// GetAllEndpoints retrieves all endpoints
 	GetAllEndpoints() []*orderers.Endpoint
+
+	// InitUpdateEndpointsChannel returns channel to retrieve endpoints
+	InitUpdateEndpointsChannel() chan []*orderers.Endpoint
 }
 
 //go:generate counterfeiter -o fake/dialer.go --fake-name Dialer . Dialer
