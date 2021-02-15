@@ -252,8 +252,6 @@ func bftSmartConsensusBuild(
 		consensus.LastSignatures = signatures
 	}
 
-	c.reportIsLeader(proposal) // report the leader
-
 	return consensus
 }
 
@@ -340,7 +338,7 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 			// We do not put a signature header when we commit the block.
 			// Instead, we put the nonce and the identifier and at validation
 			// we reconstruct the signature header at runtime.
-			// SignatureHeader: sig.SignatureHeader,
+			SignatureHeader: sig.SignatureHeader,
 			Nonce:    sig.Nonce,
 			SignerId: s.ID,
 		})
@@ -365,7 +363,7 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		signers,
 		c.Config.SelfID)
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
-	c.reportIsLeader(&proposal)                                      // report the leader
+	c.reportIsLeader()                                      // report the leader
 	if protoutil.IsConfigBlock(block) {
 
 		c.support.WriteConfigBlock(block, nil)
@@ -403,6 +401,7 @@ func (c *BFTChain) Start() {
 		// todo: close done channel instead of panic
 		return
 	}
+	c.reportIsLeader() // report the leader
 }
 
 // Halt frees the resources which were allocated for this Chain.
@@ -528,22 +527,8 @@ func (c *BFTChain) lastPersistedProposalAndSignatures() (*types.Proposal, []type
 	return &decision.Proposal, decision.Signatures
 }
 
-func (c *BFTChain) reportIsLeader(proposal *types.Proposal) {
-	var viewNum uint64
-	if proposal.Metadata == nil { // genesis block
-		viewNum = 0
-	} else {
-		proposalMD := &smartbftprotos.ViewMetadata{}
-		if err := proto.Unmarshal(proposal.Metadata, proposalMD); err != nil {
-			c.Logger.Panicf("Failed unmarshaling smartbft metadata from proposal: %v", err)
-		}
-		viewNum = proposalMD.ViewId
-	}
-
-	nodes := c.RuntimeConfig.Load().(RuntimeConfig).Nodes
-	n := uint64(len(nodes))
-	leaderID := nodes[viewNum%n] // same calculation as done in the library
-
+func (c *BFTChain) reportIsLeader() {
+	leaderID := c.consensus.GetLeaderID()
 	c.Metrics.LeaderID.Set(float64(leaderID))
 
 	if leaderID == c.Config.SelfID {

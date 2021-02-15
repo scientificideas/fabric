@@ -22,7 +22,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20200624082633-5623f7133ae2 => gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2
+# github.com/SmartBFT-Go/consensus v0.0.0-20200624082633-5623f7133ae2 => gitlab.n-t.io/ntbc/consensus v0.0.0-20210215075419-5d204b3dea4f
 ## explicit
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
@@ -363,8 +363,6 @@ github.com/tedsuo/ifrit/grouper
 # github.com/willf/bitset v1.1.10
 ## explicit
 github.com/willf/bitset
-# gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8
-## explicit
 # go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55
 ## explicit
 go.etcd.io/etcd/etcdserver/api/snap
@@ -513,5 +511,5 @@ gopkg.in/yaml.v2
 gopkg.in/yaml.v3
 # github.com/hyperledger/fabric => ./
 # github.com/hyperledger/fabric-protos-go => gitlab.n-t.io/ntbc/fabric-protos-go v0.0.0-20201215092930-2292463a9d1e
-# github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20201202091542-89c135e87fa2
+# github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20210215075419-5d204b3dea4f
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
