@@ -568,7 +568,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(ordererRunners[4].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Changing to follower role, current view: 1, current leader: 2 channel=systemchannel"))
 
 			By("Bringing the previous leader back up")
-			runner := network.OrdererRunner(network.Orderers[2])
+			runner := network.OrdererRunner(network.Orderers[2], "FABRIC_LOGGING_SPEC=orderer.common.cluster=debug:orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
 			ordererRunners[2] = runner
 			proc = ifrit.Invoke(runner)
 			ordererProcesses[2] = proc
