@@ -44,8 +44,10 @@ type DeliverClient interface {
 	// Recv receives a chaincode message
 	Recv() (*orderer.DeliverResponse, error)
 
-	// Close closes the stream and its underlying connection
-	Close()
+	// CloseSend closes the send direction of the stream. It closes the stream
+	// when non-nil error is met. It is also not safe to call CloseSend
+	// concurrently with SendMsg.
+	CloseSend() error
 }
 
 // StreamClient used to receive blocks from the ordering service
@@ -352,14 +354,14 @@ func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (StreamClient, *ordere
 
 	err = deliverClient.Send(seekInfoEnv)
 	if err != nil {
-		deliverClient.Close()
+		deliverClient.CloseSend()
 		conn.Close()
 		ctxCancel()
 		return nil, nil, nil, errors.WithMessagef(err, "could not send deliver seek info handshake to '%s'", endpoint.Address)
 	}
 
 	return deliverClient, endpoint, func() {
-		deliverClient.Close()
+		deliverClient.CloseSend()
 		ctxCancel()
 		conn.Close()
 	}, nil

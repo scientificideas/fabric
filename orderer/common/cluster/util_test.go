@@ -356,11 +356,11 @@ func TestVerifyBlocks(t *testing.T) {
 	}
 
 	for _, testCase := range []struct {
-		name                      string
-		configureVerifier         func(*mocks.BlockVerifier)
-		mutateBlockSequence       func([]*common.Block) []*common.Block
-		expectedError             string
-		verifyFunc                func(blockBuff []*common.Block, signatureVerifier cluster.BlockVerifier) error
+		name                  string
+		configureVerifier     func(*mocks.BlockVerifier)
+		mutateBlockSequence   func([]*common.Block) []*common.Block
+		expectedError         string
+		verifyFunc            func(blockBuff []*common.Block, signatureVerifier cluster.BlockVerifier) error
 		verifierExpectedCalls int
 	}{
 		{
@@ -432,6 +432,7 @@ func TestVerifyBlocks(t *testing.T) {
 			},
 			configureVerifier: func(verifier *mocks.BlockVerifier) {
 				var nilEnvelope *common.ConfigEnvelope
+				verifier.On("Id2Identity", mock.Anything).Return(nil)
 				// The first config block, validates correctly.
 				verifier.On("VerifyBlockSignature", sigSet1, nilEnvelope).Return(nil).Once()
 				// However, the second config block - validates incorrectly.
@@ -464,6 +465,7 @@ func TestVerifyBlocks(t *testing.T) {
 			},
 			configureVerifier: func(verifier *mocks.BlockVerifier) {
 				var nilEnvelope *common.ConfigEnvelope
+				verifier.On("Id2Identity", mock.Anything).Return(nil)
 				confEnv1 := &common.ConfigEnvelope{}
 				proto.Unmarshal(protoutil.MarshalOrPanic(configEnvelope1), confEnv1)
 				verifier.On("VerifyBlockSignature", sigSet1, nilEnvelope).Return(nil).Once()
@@ -514,7 +516,7 @@ func TestVerifyBlocks(t *testing.T) {
 			verifierExpectedCalls: 2,
 		},
 		{
-			name:                      "config block in the sequence needs to be verified, along with all other blocks",
+			name:                  "config block in the sequence needs to be verified, along with all other blocks",
 			verifierExpectedCalls: 51,
 			mutateBlockSequence: func(blockSequence []*common.Block) []*common.Block {
 				// Put a config transaction in block n / 4

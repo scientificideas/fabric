@@ -98,7 +98,7 @@ func TestBftHeaderReceiver_WithBlocks(t *testing.T) {
 	assert.True(t, bTime.After(start))
 	assert.Equal(t, fakeBlockVerifier.VerifyHeaderCallCount(), 3)
 
-	hr.Close()
+	hr.CloseSend()
 	assert.True(t, hr.isStopped())
 }
 
@@ -150,7 +150,7 @@ func TestBftHeaderReceiver_VerifyOnce(t *testing.T) {
 	}
 	assert.Equal(t, fakeBlockVerifier.VerifyHeaderCallCount(), 1)
 
-	hr.Close()
+	hr.CloseSend()
 	atomic.StoreUint32(&done, 1)
 	assert.True(t, hr.isStopped())
 }

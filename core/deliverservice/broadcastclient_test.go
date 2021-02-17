@@ -462,22 +462,24 @@ func TestCloseWhileRecv(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 
+	requester := &blocksRequester{
+		chainID: "TEST_CHAIN",
+		signer:  mockSignerSerializer,
+	}
+
 	broadcastSetup := func(bd blocksprovider.DeliverClient) error {
-		requester := &blocksRequester{
-			chainID: "TEST_CHAIN",
-			signer:  mockSignerSerializer,
-		}
-		seekInfoEnv, err := requester.RequestBlocks(fakeLedgerInfo)
+		err := requester.RequestBlocks(fakeLedgerInfo)
 		if err != nil {
 			return fmt.Errorf("could not create header seek info for channel %s: %w", requester.chainID, err)
 		}
-		return bd.Send(seekInfoEnv)
+		return nil
 	}
 	backoffStrategy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		return 0, true
 	}
 
 	bc := NewBroadcastClient(connProducerEnpoint, cp.NewConnection, clFactory, broadcastSetup, backoffStrategy)
+	requester.client = bc
 
 	var flag int32
 	go func() {
@@ -625,11 +627,11 @@ func TestDisconnect(t *testing.T) {
 			chainID: "TEST_CHAIN",
 			signer:  mockSignerSerializer,
 		}
-		seekInfoEnv, err := requester.RequestBlocks(fakeLedgerInfo)
+		err := requester.RequestBlocks(fakeLedgerInfo)
 		if err != nil {
 			return fmt.Errorf("could not create header seek info for channel %s: %w", requester.chainID, err)
 		}
-		return bd.Send(seekInfoEnv)
+		return nil
 	}
 
 	retryPol := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {

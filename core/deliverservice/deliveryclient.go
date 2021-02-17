@@ -122,8 +122,9 @@ func (d deliverClient) Recv() (*orderer.DeliverResponse, error) {
 	return d.abc.Recv()
 }
 
-func (d deliverClient) Close() {
+func (d deliverClient) CloseSend() error {
 	d.abc.CloseSend()
+	return nil
 }
 
 func (d deliverClient) Disconnect() {

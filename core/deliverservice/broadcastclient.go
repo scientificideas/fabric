@@ -238,22 +238,25 @@ func (bc *broadcastClient) shouldStop() bool {
 	return atomic.LoadInt32(&bc.stopFlag) == int32(1)
 }
 
-// Close makes the client close its connection and shut down
-func (bc *broadcastClient) Close() {
+// CloseSend makes the client close its connection and shut down
+func (bc *broadcastClient) CloseSend() error {
 	logger.Debugf("Entering for ep=%s", bc.ep.Address)
 	defer logger.Debugf("Exiting for ep=%s", bc.ep.Address)
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
 	if bc.shouldStop() {
-		return
+		return nil
 	}
 	atomic.StoreInt32(&bc.stopFlag, int32(1))
 	bc.stopChan <- struct{}{}
 	if bc.conn == nil {
-		return
+		return nil
 	}
 	bc.endpoint = ""
-	bc.conn.Close()
+	if err := bc.conn.Close(); err != nil {
+		// todo:
+	}
+	return nil
 }
 
 // Disconnect makes the client close the existing connection and makes current endpoint unavailable for time interval, if disableEndpoint set to true

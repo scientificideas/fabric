@@ -128,10 +128,9 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
 	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
-		cc, err := grpc.Dial(ep, grpc.WithInsecure(), grpc.WithBlock())
-		require.Nil(t, err)
-		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
-		return cc, nil
+		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
+		defer cancel()
+		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
 	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
@@ -154,6 +153,9 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		}
 	}()
 
+	// fixme: wait before send blocks
+	time.Sleep(time.Second)
+
 	// all orderers send something: block/header
 	beforeSend := time.Now()
 	for seq := uint64(5); seq < uint64(10); seq++ {
@@ -163,7 +165,7 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	}
 
 	time.Sleep(time.Second)
-	bc.Close()
+	bc.CloseSend()
 
 	lastN, lastT := bc.GetNextBlockNumTime()
 	assert.Equal(t, uint64(10), lastN)
@@ -303,7 +305,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	assert.True(t, lastT.After(beforeSend))
 	verifyHeaderReceivers(t, bc, 3, 9, beforeSend, 1)
 
-	bc.Close()
+	bc.CloseSend()
 
 	for _, os := range osMap {
 		os.Shutdown()
@@ -450,7 +452,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	assert.True(t, lastT.After(beforeSend))
 	verifyHeaderReceivers(t, bc, 3, 10, beforeSend, 0)
 
-	bc.Close()
+	bc.CloseSend()
 
 	for _, os := range osMap {
 		os.Shutdown()
@@ -577,7 +579,7 @@ func TestBFTDeliverClient_UpdateEndpoints(t *testing.T) {
 	assert.True(t, lastT.After(beforeSend))
 	verifyHeaderReceivers(t, bc, 6, 9, beforeSend, 0)
 
-	bc.Close()
+	bc.CloseSend()
 
 	for _, os := range osMap {
 		os.Shutdown()

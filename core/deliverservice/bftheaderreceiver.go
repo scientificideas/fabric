@@ -63,7 +63,7 @@ func newBFTHeaderReceiver(
 
 func (hr *bftHeaderReceiver) DeliverHeaders() {
 	defer func() {
-		hr.Close()
+		hr.CloseSend()
 	}()
 
 	bftLogger.Debugf("[%s] Starting to deliver headers from endpoint: %s", hr.chainID, hr.endpoint)
@@ -100,7 +100,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 			backOffSleep(dur, hr.stopChan)
 			statusCounter++
 
-			hr.client.Close()
+			hr.client.CloseSend()
 			continue
 
 		case *orderer.DeliverResponse_Block:
@@ -144,17 +144,19 @@ func (hr *bftHeaderReceiver) setStarted() {
 	hr.started = true
 }
 
-func (hr *bftHeaderReceiver) Close() {
+func (hr *bftHeaderReceiver) CloseSend() error {
 	hr.mutex.Lock()
 	defer hr.mutex.Unlock()
 
 	if hr.stop {
-		return
+		return nil
 	}
 
 	hr.stop = true
-	hr.client.Close()
+	hr.client.CloseSend()
 	close(hr.stopChan)
+
+	return nil
 }
 
 func (hr *bftHeaderReceiver) LastBlockNum() (uint64, time.Time, error) {

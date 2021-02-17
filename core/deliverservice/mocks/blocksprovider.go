@@ -132,11 +132,12 @@ func (mock *MockBlocksDeliverer) UpdateReceived(blockNumber uint64) {
 	// nothing to do
 }
 
-func (mock *MockBlocksDeliverer) Close() {
+func (mock *MockBlocksDeliverer) CloseSend() error {
 	if mock.CloseCalled == nil {
-		return
+		return nil
 	}
 	mock.CloseCalled <- struct{}{}
+	return nil
 }
 
 func (mock *MockBlocksDeliverer) UpdateEndpoints(endpoints []*orderers.Endpoint) {

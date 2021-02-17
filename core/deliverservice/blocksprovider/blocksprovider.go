@@ -22,15 +22,6 @@ import (
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 )
 
-//go:generate mockery -dir . -name LedgerInfo -case underscore -output ../mocks/
-
-// LedgerInfo an adapter to provide the interface to query
-// the ledger committer for current ledger height
-type LedgerInfo interface {
-	// LedgerHeight returns current local ledger height
-	LedgerHeight() (uint64, error)
-}
-
 // GossipServiceAdapter serves to provide basic functionality
 // required from gossip service by delivery service
 type GossipServiceAdapter interface {
@@ -71,7 +62,7 @@ type StreamClient interface {
 	BlocksDeliverer
 
 	// Close closes the stream and its underlying connection
-	Close()
+	CloseSend() error
 
 	// Disconnect disconnects from the remote node.
 	Disconnect()
@@ -122,7 +113,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 	var verErrCounter uint64 = 0
 	var delay time.Duration
 
-	defer b.client.Close()
+	defer b.client.CloseSend()
 	for !b.isDone() {
 		msg, err := b.client.Recv()
 		if err != nil {
@@ -190,7 +181,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 			}
 
 			// Gossip messages with other nodes
-			logger.Debugf("[%s] Gossiping block [%d], peers number [%]", b.chainID, blockNum, numberOfPeers)
+			logger.Debugf("[%s] Gossiping block [%d], peers number [%d]", b.chainID, blockNum, numberOfPeers)
 			if !b.isDone() {
 				b.gossip.Gossip(gossipMsg)
 			}
@@ -207,7 +198,7 @@ func (b *blocksProviderImpl) DeliverBlocks() {
 // Stop stops blocks delivery provider
 func (b *blocksProviderImpl) Stop() {
 	atomic.StoreInt32(&b.done, 1)
-	b.client.Close()
+	b.client.CloseSend()
 }
 
 // Check whenever provider is stopped

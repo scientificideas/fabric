@@ -340,8 +340,8 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 			// we reconstruct the signature header at runtime.
 			// fixme: comment this
 			SignatureHeader: sig.SignatureHeader,
-			Nonce:    sig.Nonce,
-			SignerId: s.ID,
+			Nonce:           sig.Nonce,
+			SignerId:        s.ID,
 		})
 
 		signers = append(signers, s.ID)
@@ -364,7 +364,7 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		signers,
 		c.Config.SelfID)
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
-	c.reportIsLeader()                                      // report the leader
+	c.reportIsLeader()                                               // report the leader
 	if protoutil.IsConfigBlock(block) {
 
 		c.support.WriteConfigBlock(block, nil)

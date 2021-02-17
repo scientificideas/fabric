@@ -10,25 +10,25 @@ import (
 )
 
 type DeliverStreamer struct {
-	DeliverStub        func(context.Context, *grpc.ClientConn) (blocksprovider.DeliverClient, error)
+	DeliverStub        func(context.Context, *grpc.ClientConn) (blocksprovider.StreamClient, error)
 	deliverMutex       sync.RWMutex
 	deliverArgsForCall []struct {
 		arg1 context.Context
 		arg2 *grpc.ClientConn
 	}
 	deliverReturns struct {
-		result1 blocksprovider.DeliverClient
+		result1 blocksprovider.StreamClient
 		result2 error
 	}
 	deliverReturnsOnCall map[int]struct {
-		result1 blocksprovider.DeliverClient
+		result1 blocksprovider.StreamClient
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *DeliverStreamer) Deliver(arg1 context.Context, arg2 *grpc.ClientConn) (blocksprovider.DeliverClient, error) {
+func (fake *DeliverStreamer) Deliver(arg1 context.Context, arg2 *grpc.ClientConn) (blocksprovider.StreamClient, error) {
 	fake.deliverMutex.Lock()
 	ret, specificReturn := fake.deliverReturnsOnCall[len(fake.deliverArgsForCall)]
 	fake.deliverArgsForCall = append(fake.deliverArgsForCall, struct {
@@ -54,7 +54,7 @@ func (fake *DeliverStreamer) DeliverCallCount() int {
 	return len(fake.deliverArgsForCall)
 }
 
-func (fake *DeliverStreamer) DeliverCalls(stub func(context.Context, *grpc.ClientConn) (blocksprovider.DeliverClient, error)) {
+func (fake *DeliverStreamer) DeliverCalls(stub func(context.Context, *grpc.ClientConn) (blocksprovider.StreamClient, error)) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = stub
@@ -67,28 +67,28 @@ func (fake *DeliverStreamer) DeliverArgsForCall(i int) (context.Context, *grpc.C
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *DeliverStreamer) DeliverReturns(result1 blocksprovider.DeliverClient, result2 error) {
+func (fake *DeliverStreamer) DeliverReturns(result1 blocksprovider.StreamClient, result2 error) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = nil
 	fake.deliverReturns = struct {
-		result1 blocksprovider.DeliverClient
+		result1 blocksprovider.StreamClient
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *DeliverStreamer) DeliverReturnsOnCall(i int, result1 blocksprovider.DeliverClient, result2 error) {
+func (fake *DeliverStreamer) DeliverReturnsOnCall(i int, result1 blocksprovider.StreamClient, result2 error) {
 	fake.deliverMutex.Lock()
 	defer fake.deliverMutex.Unlock()
 	fake.DeliverStub = nil
 	if fake.deliverReturnsOnCall == nil {
 		fake.deliverReturnsOnCall = make(map[int]struct {
-			result1 blocksprovider.DeliverClient
+			result1 blocksprovider.StreamClient
 			result2 error
 		})
 	}
 	fake.deliverReturnsOnCall[i] = struct {
-		result1 blocksprovider.DeliverClient
+		result1 blocksprovider.StreamClient
 		result2 error
 	}{result1, result2}
 }

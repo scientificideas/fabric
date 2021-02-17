@@ -17,7 +17,6 @@ limitations under the License.
 package deliverservice
 
 import (
-	"github.com/spf13/viper"
 	"math"
 
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -25,7 +24,9 @@ import (
 	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/core/deliverservice/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
+	blocksprovider2 "github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/protoutil"
+	"github.com/spf13/viper"
 )
 
 type blocksRequester struct {
@@ -37,7 +38,7 @@ type blocksRequester struct {
 	deliverGPRCClient *comm.GRPCClient
 }
 
-func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider.LedgerInfo) error {
+func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider2.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {
 		logger.Errorf("Can't get ledger height for channel %s from committer [%s]", b.chainID, err)
@@ -59,7 +60,7 @@ func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider.Ledger
 	return nil
 }
 
-func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) error {
+func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider2.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {
 		logger.Errorf("Can't get ledger height for channel %s from committer [%s]", b.chainID, err)
