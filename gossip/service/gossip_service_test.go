@@ -399,6 +399,10 @@ func (ds *mockDeliverService) StopDeliverForChannel(chainID string) error {
 func (ds *mockDeliverService) Stop() {
 }
 
+func (ds *mockDeliverService) UpdateEndpoints(chainID string, endpoints []*orderers.Endpoint) error {
+	return nil
+}
+
 type mockLedgerInfo struct {
 	Height uint64
 }

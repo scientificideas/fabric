@@ -10,6 +10,7 @@ import (
 	"context"
 	"math"
 	"math/rand"
+	"reflect"
 	"sync"
 	"time"
 
@@ -155,7 +156,7 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 		c.lastBlockTime = time.Now()
 		bftLogger.Debugf("[%s] Starting monitor routine; Initial ledger height: %d", c.chainID, num)
 		go c.monitor()
-		bftLogger.Debugf("[%s] Starting updae endpoints routine; Current num of endpoints: %d", c.chainID, len(c.endpoints))
+		bftLogger.Debugf("[%s] Starting update endpoints routine; Current num of endpoints: %d", c.chainID, len(c.endpoints))
 		go c.updateEndpoints()
 	})
 	// can only happen once, after first invocation
@@ -320,7 +321,7 @@ func (c *bftDeliveryClient) assignReceivers() (int, error) {
 		c.blockReceiverIndex = (c.blockReceiverIndex + 1) % numEP
 		ep := c.endpoints[c.blockReceiverIndex]
 		if headerReceiver, exists := c.headerReceivers[ep.Address]; exists {
-			headerReceiver.Close()
+			headerReceiver.CloseSend()
 			delete(c.headerReceivers, ep.Address)
 			bftLogger.Debugf("[%s] Closed header receiver to: %s", c.chainID, ep.Address)
 		}
@@ -423,7 +424,7 @@ func (c *bftDeliveryClient) closeBlockReceiver(updateLastBlockTime bool) {
 	}
 
 	if c.blockReceiver != nil {
-		c.blockReceiver.Close()
+		c.blockReceiver.CloseSend()
 		c.blockReceiver = nil
 	}
 }
@@ -434,12 +435,12 @@ func (c *bftDeliveryClient) LedgerHeight() (uint64, error) {
 	return c.nextBlockNumber, nil
 }
 
-func (c *bftDeliveryClient) Close() {
+func (c *bftDeliveryClient) CloseSend() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	if c.stopFlag {
-		return
+		return nil
 	}
 
 	c.stopFlag = true
@@ -448,18 +449,20 @@ func (c *bftDeliveryClient) Close() {
 	c.disconnectAll()
 
 	bftLogger.Debugf("Exit")
+
+	return nil
 }
 
 func (c *bftDeliveryClient) disconnectAll() {
 	if c.blockReceiver != nil {
 		ep := c.blockReceiver.GetEndpoint()
-		c.blockReceiver.Close()
+		c.blockReceiver.CloseSend()
 		bftLogger.Debugf("[%s] closed block receiver to: %s", c.chainID, ep)
 		c.blockReceiver = nil
 	}
 
 	for ep, hRcv := range c.headerReceivers {
-		hRcv.Close()
+		hRcv.CloseSend()
 		bftLogger.Debugf("[%s] closed header receiver to: %s", c.chainID, ep)
 		delete(c.headerReceivers, ep)
 	}
@@ -471,7 +474,7 @@ func (c *bftDeliveryClient) Disconnect() {
 	defer c.mutex.Unlock()
 
 	if c.blockReceiver != nil {
-		c.blockReceiver.Close()
+		c.blockReceiver.CloseSend()
 		c.blockReceiver = nil
 	}
 }
@@ -644,7 +647,7 @@ func equalEndpoints(existingEndpoints, newEndpoints []*orderers.Endpoint) bool {
 
 func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 	for _, e := range a {
-		if e.Address == s.Address {
+		if e.Address == s.Address && reflect.DeepEqual(e.CertPool, s.CertPool) {
 			return true
 		}
 	}
