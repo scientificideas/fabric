@@ -29,6 +29,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
+	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
 	"github.com/hyperledger/fabric/protoutil"
@@ -490,15 +491,20 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
+			identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
+				Mspid:   "OrdererMSP",
+				IdBytes: ordererIdentity,
+			})
+
+			sanitizedIdentity, err := crypto.SanitizeIdentity(identity)
+			Expect(err).NotTo(HaveOccurred())
+
 			for _, channel := range []string{"systemchannel", "testchannel1"} {
 				nwo.UpdateSmartBFTMetadata(network, peer, orderer, channel, func(md *smartbft.ConfigMetadata) {
 					md.Consenters = append(md.Consenters, &smartbft.Consenter{
-						MspId:       "OrdererMSP",
-						ConsenterId: 5,
-						Identity: protoutil.MarshalOrPanic(&msp.SerializedIdentity{
-							Mspid:   "OrdererMSP",
-							IdBytes: ordererIdentity,
-						}),
+						MspId:         "OrdererMSP",
+						ConsenterId:   5,
+						Identity:      sanitizedIdentity,
 						ServerTlsCert: ordererCertificate,
 						ClientTlsCert: ordererCertificate,
 						Host:          "127.0.0.1",
@@ -648,12 +654,9 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			By("Adding back the node to the application channel")
 			nwo.UpdateSmartBFTMetadata(network, peer, network.Orderers[2], channel, func(md *smartbft.ConfigMetadata) {
 				md.Consenters = append(md.Consenters, &smartbft.Consenter{
-					MspId:       "OrdererMSP",
-					ConsenterId: 5,
-					Identity: protoutil.MarshalOrPanic(&msp.SerializedIdentity{
-						Mspid:   "OrdererMSP",
-						IdBytes: ordererIdentity,
-					}),
+					MspId:         "OrdererMSP",
+					ConsenterId:   5,
+					Identity:      sanitizedIdentity,
 					ServerTlsCert: ordererCertificate,
 					ClientTlsCert: ordererCertificate,
 					Host:          "127.0.0.1",
@@ -761,15 +764,20 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(newOrderer))
 				Expect(err).NotTo(HaveOccurred())
 
+				identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
+					Mspid:   "OrdererMSP",
+					IdBytes: ordererIdentity,
+				})
+
+				sanitizedIdentity, err := crypto.SanitizeIdentity(identity)
+				Expect(err).NotTo(HaveOccurred())
+
 				for _, channel := range []string{"systemchannel", "testchannel1"} {
 					nwo.UpdateSmartBFTMetadata(network, peer, orderer, channel, func(md *smartbft.ConfigMetadata) {
 						md.Consenters = append(md.Consenters, &smartbft.Consenter{
-							MspId:       "OrdererMSP",
-							ConsenterId: uint64(5 + i),
-							Identity: protoutil.MarshalOrPanic(&msp.SerializedIdentity{
-								Mspid:   "OrdererMSP",
-								IdBytes: ordererIdentity,
-							}),
+							MspId:         "OrdererMSP",
+							ConsenterId:   uint64(5 + i),
+							Identity:      sanitizedIdentity,
 							ServerTlsCert: ordererCertificate,
 							ClientTlsCert: ordererCertificate,
 							Host:          "127.0.0.1",
@@ -1016,15 +1024,20 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
+			identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
+				Mspid:   "OrdererMSP",
+				IdBytes: ordererIdentity,
+			})
+
+			sanitizedIdentity, err := crypto.SanitizeIdentity(identity)
+			Expect(err).NotTo(HaveOccurred())
+
 			for _, channel := range []string{"systemchannel", "testchannel1"} {
 				nwo.UpdateSmartBFTMetadata(network, peer, orderer, channel, func(md *smartbft.ConfigMetadata) {
 					md.Consenters = append(md.Consenters, &smartbft.Consenter{
-						MspId:       "OrdererMSP",
-						ConsenterId: 5,
-						Identity: protoutil.MarshalOrPanic(&msp.SerializedIdentity{
-							Mspid:   "OrdererMSP",
-							IdBytes: ordererIdentity,
-						}),
+						MspId:         "OrdererMSP",
+						ConsenterId:   5,
+						Identity:      sanitizedIdentity,
 						ServerTlsCert: ordererCertificate,
 						ClientTlsCert: ordererCertificate,
 						Host:          "127.0.0.1",
