@@ -56,8 +56,8 @@ func (s *Signer) SignProposal(proposal types.Proposal, auxiliaryInput []byte) *t
 
 	signature := protoutil.SignOrPanic(s.SignerSerializer, sig.AsBytes())
 
-	// fixme: Nil out the signature header after creating the signature
-	//sig.SignatureHeader = nil
+	// Nil out the signature header after creating the signature
+	sig.SignatureHeader = nil
 
 	return &types.Signature{
 		ID:    s.ID,

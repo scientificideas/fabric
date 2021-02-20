@@ -338,10 +338,9 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 			// We do not put a signature header when we commit the block.
 			// Instead, we put the nonce and the identifier and at validation
 			// we reconstruct the signature header at runtime.
-			// fixme: comment this
-			SignatureHeader: sig.SignatureHeader,
-			Nonce:           sig.Nonce,
-			SignerId:        s.ID,
+			// SignatureHeader: sig.SignatureHeader,
+			Nonce:    sig.Nonce,
+			SignerId: s.ID,
 		})
 
 		signers = append(signers, s.ID)
