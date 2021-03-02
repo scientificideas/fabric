@@ -18,3 +18,5 @@ build_manual:
       done
   only:
     - branches
+  tags:
+    - docker
