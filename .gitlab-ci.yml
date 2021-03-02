@@ -1,0 +1,19 @@
+stages:
+  - build
+
+build_manual:
+  stage: build
+  when: manual
+  image: docker:stable
+  services:
+    - docker:dind
+  script:
+    - DOCKER_NS=${CI_REGISTRY_IMAGE} make docker
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - |
+      for image in baseos peer orderer ccenv tools; do
+        docker tag ${CI_REGISTRY_IMAGE}/fabric-${image} ${CI_REGISTRY_IMAGE}/fabric-${image}:${CI_COMMIT_REF_NAME}
+        docker push ${CI_REGISTRY_IMAGE}/fabric-${image}:${CI_COMMIT_REF_NAME}
+      done
+  only:
+    - branches
