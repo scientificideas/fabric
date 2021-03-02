@@ -6,7 +6,9 @@ build_manual:
   when: manual
   image: docker:stable
   services:
-    - docker:dind
+    - docker:18.09-dind
+  before_script:
+    - docker info
   script:
     - apk add --no-cache git make musl-dev go
     - DOCKER_NS=${CI_REGISTRY_IMAGE} make docker
