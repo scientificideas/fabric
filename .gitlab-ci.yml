@@ -8,6 +8,13 @@ build_manual:
   services:
     - docker:dind
   script:
+    - |
+      apk add --no-cache \
+        bash \
+        gcc \
+        git \
+        make \
+        musl-dev
     - DOCKER_NS=${CI_REGISTRY_IMAGE} make docker
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - |
