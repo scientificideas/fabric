@@ -153,9 +153,6 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		}
 	}()
 
-	// fixme: wait before send blocks
-	time.Sleep(time.Second)
-
 	// all orderers send something: block/header
 	beforeSend := time.Now()
 	for seq := uint64(5); seq < uint64(10); seq++ {

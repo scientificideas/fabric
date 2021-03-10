@@ -222,8 +222,6 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 }
 
 func (cs *ConnectionSource) updateEndpoints() {
-	//	cs.mutex.RLock()
-	//	defer cs.mutex.RUnlock()
 	if cs.updateCh != nil {
 		cs.logger.Debugf("Sent endpoints to update channel")
 		cs.updateCh <- cs.allEndpoints
