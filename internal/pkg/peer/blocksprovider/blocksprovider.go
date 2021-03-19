@@ -78,8 +78,6 @@ func (s sleeper) Sleep(d time.Duration, doneC chan struct{}) {
 	s.sleep(d)
 }
 
-type connector func() (StreamClient, *orderers.Endpoint, func(), error)
-
 // LedgerInfo an adapter to provide the interface to query
 // the ledger committer for current ledger height
 //go:generate counterfeiter -o fake/ledger_info.go --fake-name LedgerInfo . LedgerInfo
