@@ -288,6 +288,7 @@ type connection struct {
 	cancel context.CancelFunc
 }
 
+// Close closes client connection
 func (c *connection) Close() error {
 	var err error
 	c.Once.Do(func() {

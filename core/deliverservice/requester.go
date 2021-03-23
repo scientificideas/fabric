@@ -38,6 +38,7 @@ type blocksRequester struct {
 	deliverGPRCClient *comm.GRPCClient
 }
 
+// RequestBlocks requests blocks from the given ledger info provider
 func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider2.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {
@@ -60,6 +61,7 @@ func (b *blocksRequester) RequestBlocks(ledgerInfoProvider blocksprovider2.Ledge
 	return nil
 }
 
+// RequestHeaders requests headers from the given ledger info provider
 func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider2.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {

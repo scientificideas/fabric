@@ -58,6 +58,7 @@ type BlocksDeliverer interface {
 	Send(*common.Envelope) error
 }
 
+// StreamClient is blocks provider client
 type StreamClient interface {
 	BlocksDeliverer
 
@@ -206,6 +207,7 @@ func (b *blocksProviderImpl) isDone() bool {
 	return atomic.LoadInt32(&b.done) == 1
 }
 
+// UpdateEndpoints updates client's endpoints
 func (b *blocksProviderImpl) UpdateEndpoints(endpoints []*orderers.Endpoint) {
 	b.client.UpdateEndpoints(endpoints)
 }
