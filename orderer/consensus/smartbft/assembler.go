@@ -20,6 +20,7 @@ import (
 
 //go:generate mockery -dir . -name Ledger -case underscore -output mocks
 
+// Ledger returns height and block
 type Ledger interface {
 	// Height returns the number of blocks in the ledger this channel is associated with.
 	Height() uint64
@@ -29,12 +30,14 @@ type Ledger interface {
 	Block(number uint64) *cb.Block
 }
 
+// Assembler is proposal assembler
 type Assembler struct {
 	RuntimeConfig   *atomic.Value
 	Logger          *flogging.FabricLogger
 	VerificationSeq func() uint64
 }
 
+// AssembleProposal assembles proposal from metadata and request
 func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextProp types.Proposal) {
 	rtc := a.RuntimeConfig.Load().(RuntimeConfig)
 
@@ -113,6 +116,7 @@ func singleConfigTxOrSeveralNonConfigTx(requests [][]byte, logger Logger) [][]by
 	return batchedRequests
 }
 
+// LastConfigBlockFromLedgerOrPanic returns last config block from the ledger
 func LastConfigBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	block, err := lastConfigBlockFromLedger(ledger)
 	if err != nil {
@@ -158,6 +162,7 @@ func previousConfigBlockFromLedger(ledger Ledger) (*cb.Block, error) {
 	return previousConfigBlock, nil
 }
 
+// LastBlockFromLedgerOrPanic returns last block from the ledger
 func LastBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	lastBlockSeq := ledger.Height() - 1
 	lastBlock := ledger.Block(lastBlockSeq)
@@ -167,11 +172,13 @@ func LastBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	return lastBlock
 }
 
+// ByteBufferTuple is byte slice tuple
 type ByteBufferTuple struct {
 	A []byte
 	B []byte
 }
 
+// ToBytes marshals the buffer tuple to bytes
 func (bbt *ByteBufferTuple) ToBytes() []byte {
 	bytes, err := asn1.Marshal(*bbt)
 	if err != nil {
@@ -180,6 +187,7 @@ func (bbt *ByteBufferTuple) ToBytes() []byte {
 	return bytes
 }
 
+// FromBytes unmarshals bytes to a buffer tuple
 func (bbt *ByteBufferTuple) FromBytes(bytes []byte) error {
 	_, err := asn1.Unmarshal(bytes, bbt)
 	return err

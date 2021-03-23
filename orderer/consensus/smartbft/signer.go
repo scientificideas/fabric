@@ -15,11 +15,13 @@ import (
 
 //go:generate mockery -dir . -name SignerSerializer -case underscore -output ./mocks/
 
+// SignerSerializer signs messages and serializes identities
 type SignerSerializer interface {
 	crypto.Signer
 	crypto.IdentitySerializer
 }
 
+// Signer implementation
 type Signer struct {
 	ID                 uint64
 	SignerSerializer   SignerSerializer
@@ -27,6 +29,7 @@ type Signer struct {
 	LastConfigBlockNum func(*cb.Block) uint64
 }
 
+// Sign signs message
 func (s *Signer) Sign(msg []byte) []byte {
 	signature, err := s.SignerSerializer.Sign(msg)
 	if err != nil {
@@ -35,6 +38,7 @@ func (s *Signer) Sign(msg []byte) []byte {
 	return signature
 }
 
+// SignProposal signs proposal
 func (s *Signer) SignProposal(proposal types.Proposal, auxiliaryInput []byte) *types.Signature {
 	block, err := ProposalToBlock(proposal)
 	if err != nil {
