@@ -398,8 +398,6 @@ func (c *BFTChain) Errored() <-chan struct{} {
 func (c *BFTChain) Start() {
 	if err := c.consensus.Start(); err != nil {
 		c.Logger.Panicf("Failed to start chain, aborting: %+v", err)
-		// todo: close done channel instead of panic
-		return
 	}
 	c.reportIsLeader() // report the leader
 }
