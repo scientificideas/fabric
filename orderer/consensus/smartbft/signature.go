@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Signature implementation
 type Signature struct {
 	Nonce                []byte
 	SignatureHeader      []byte
@@ -25,11 +26,13 @@ type Signature struct {
 	AuxiliaryInput       []byte
 }
 
+// Unmarshal signature
 func (sig *Signature) Unmarshal(bytes []byte) error {
 	_, err := asn1.Unmarshal(bytes, sig)
 	return err
 }
 
+// Marshal signature
 func (sig *Signature) Marshal() []byte {
 	bytes, err := asn1.Marshal(*sig)
 	if err != nil {
@@ -38,11 +41,13 @@ func (sig *Signature) Marshal() []byte {
 	return bytes
 }
 
+// AsBytes returns message to sign
 func (sig Signature) AsBytes() []byte {
 	msg2Sign := util.ConcatenateBytes(sig.OrdererBlockMetadata, sig.SignatureHeader, sig.BlockHeader, sig.AuxiliaryInput)
 	return msg2Sign
 }
 
+// ProposalToBlock creates block from proposal
 func ProposalToBlock(proposal types.Proposal) (*cb.Block, error) {
 	// initialize block with empty fields
 	block := &cb.Block{

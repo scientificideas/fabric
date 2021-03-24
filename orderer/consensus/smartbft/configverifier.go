@@ -20,30 +20,35 @@ import (
 
 //go:generate mockery -dir . -name Filters -case underscore -output mocks
 
+// Filters applies the filters on the outer envelope
 type Filters interface {
 	ApplyFilters(channel string, env *cb.Envelope) error
 }
 
 //go:generate mockery -dir . -name ChannelConfigTemplator -case underscore -output mocks
 
+// ChannelConfigTemplator returnes a channel creation transaction to the system channel
 type ChannelConfigTemplator interface {
 	NewChannelConfig(env *cb.Envelope) (channelconfig.Resources, error)
 }
 
 //go:generate mockery -dir . -name ConfigUpdateProposer -case underscore -output mocks
 
+// ConfigUpdateProposer produces a ConfigEnvelope
 type ConfigUpdateProposer interface {
 	ProposeConfigUpdate(channel string, configtx *cb.Envelope) (*cb.ConfigEnvelope, error)
 }
 
 //go:generate mockery -dir . -name Bundle -case underscore -output mocks
 
+// Bundle provides channelconfig resources interface
 type Bundle interface {
 	channelconfig.Resources
 }
 
 //go:generate mockery -dir . -name ConfigTxValidator -case underscore -output mocks
 
+// ConfigTxValidator provides configtx validator interface
 type ConfigTxValidator interface {
 	configtx.Validator
 }

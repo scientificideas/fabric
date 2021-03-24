@@ -43,6 +43,7 @@ var (
 	}
 )
 
+// Metrics defines the metrics for the cluster.
 type Metrics struct {
 	ClusterSize          metrics.Gauge
 	CommittedBlockNumber metrics.Gauge
@@ -50,6 +51,7 @@ type Metrics struct {
 	LeaderID             metrics.Gauge
 }
 
+// NewMetrics creates Metrics
 func NewMetrics(p metrics.Provider) *Metrics {
 	return &Metrics{
 		ClusterSize:          p.NewGauge(clusterSizeOpts),

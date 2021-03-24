@@ -45,6 +45,7 @@ type ChainGetter interface {
 	GetChain(chainID string) *multichannel.ChainSupport
 }
 
+// PolicyManagerRetriever type
 type PolicyManagerRetriever func(channel string) policies.Manager
 
 //go:generate mockery -dir . -name InactiveChainRegistry -case underscore -output mocks

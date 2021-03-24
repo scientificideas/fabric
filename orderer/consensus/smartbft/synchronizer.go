@@ -18,6 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Synchronizer implementation
 type Synchronizer struct {
 	lastReconfig    types.Reconfig
 	selfID          uint64
@@ -30,10 +31,12 @@ type Synchronizer struct {
 	Logger          *flogging.FabricLogger
 }
 
+// Close closes block puller connection
 func (s *Synchronizer) Close() {
 	s.BlockPuller.Close()
 }
 
+// Sync synchronizes blocks and returns decision and reconfig
 func (s *Synchronizer) Sync() types.SyncResponse {
 	decision, err := s.synchronize()
 	if err != nil {
