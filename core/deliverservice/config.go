@@ -61,6 +61,7 @@ func GlobalConfig() *DeliverServiceConfig {
 	return c
 }
 
+// LoadOverridesMap returns endpoints from config
 func LoadOverridesMap() (map[string]*orderers.Endpoint, error) {
 	var overrides []AddressOverride
 	err := viper.UnmarshalKey("peer.deliveryclient.addressOverrides", &overrides)

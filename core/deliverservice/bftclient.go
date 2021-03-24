@@ -59,6 +59,7 @@ var (
 	errClientReconnectTimeout = errors.New("client reconnect timeout")
 )
 
+// BlockReceiver is deliver client which also returns endpoint
 type BlockReceiver interface {
 	blocksprovider.DeliverClient
 	GetEndpoint() string
@@ -92,17 +93,18 @@ type bftDeliveryClient struct {
 	// ahead of the block receiver for a period larger than this timeout.
 	blockCensorshipTimeout time.Duration
 
-	updateEndpointsCh  chan []*orderers.Endpoint
-	endpoints          []*orderers.Endpoint // a set of endpoints
-	blockReceiverIndex int                  // index of the current block receiver endpoint
+	updateEndpointsCh  chan []*orderers.Endpoint // channel receives new endpoints
+	endpoints          []*orderers.Endpoint      // a set of endpoints
+	blockReceiverIndex int                       // index of the current block receiver endpoint
 
-	blockReceiver   BlockReceiver
-	nextBlockNumber uint64
-	lastBlockTime   time.Time
+	blockReceiver   BlockReceiver // block receiver
+	nextBlockNumber uint64        // next block number
+	lastBlockTime   time.Time     // last block time
 
 	headerReceivers map[string]*bftHeaderReceiver
 }
 
+// NewBFTDeliveryClient creates an instance of an bftDeliveryClient
 func NewBFTDeliveryClient(
 	chainID string,
 	orderers blocksprovider.OrdererConnectionSource,
@@ -138,11 +140,13 @@ func NewBFTDeliveryClient(
 	return c, nil
 }
 
+// Send does nothing
 func (c *bftDeliveryClient) Send(envelope *common.Envelope) error {
 	// ignore
 	return nil
 }
 
+// Recv receives a chaincode message
 func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error) {
 	bftLogger.Debugf("[%s] Entry", c.chainID)
 
@@ -429,12 +433,14 @@ func (c *bftDeliveryClient) closeBlockReceiver(updateLastBlockTime bool) {
 	}
 }
 
+// LedgerHeight returns next block number
 func (c *bftDeliveryClient) LedgerHeight() (uint64, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	return c.nextBlockNumber, nil
 }
 
+// CloseSend closes all receivers connections
 func (c *bftDeliveryClient) CloseSend() error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -497,6 +503,7 @@ func (c *bftDeliveryClient) shouldStop() bool {
 	return c.stopFlag
 }
 
+// UpdateEndpoints update endpoints to new values
 func (c *bftDeliveryClient) UpdateEndpoints(endpoints []*orderers.Endpoint) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -526,6 +533,7 @@ func (c *bftDeliveryClient) GetEndpoint() string {
 	return c.blockReceiver.GetEndpoint()
 }
 
+// GetNextBlockNumTime returns next block number and last block time
 func (c *bftDeliveryClient) GetNextBlockNumTime() (uint64, time.Time) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -533,6 +541,7 @@ func (c *bftDeliveryClient) GetNextBlockNumTime() (uint64, time.Time) {
 	return c.nextBlockNumber, c.lastBlockTime
 }
 
+// GetHeadersBlockNumTime return number of header receivers and their last block times
 func (c *bftDeliveryClient) GetHeadersBlockNumTime() ([]uint64, []time.Time, []error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

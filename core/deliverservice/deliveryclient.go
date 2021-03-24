@@ -92,14 +92,17 @@ func NewDeliverService(conf *Config) DeliverService {
 	return ds
 }
 
+// DialerAdapter implements dial call
 type DialerAdapter struct {
 	Client *comm.GRPCClient
 }
 
+// Dial dials an address according to the given EndpointCriteria
 func (da DialerAdapter) Dial(address string, certPool *x509.CertPool) (*grpc.ClientConn, error) {
 	return da.Client.NewConnection(address, comm.CertPoolOverride(certPool))
 }
 
+// DeliverAdapter implements deliver call
 type DeliverAdapter struct{}
 
 func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.StreamClient, error) {
@@ -114,22 +117,27 @@ type deliverClient struct {
 	abc orderer.AtomicBroadcast_DeliverClient
 }
 
+// Send sends an envelope to the ordering service
 func (d deliverClient) Send(envelope *common.Envelope) error {
 	return d.abc.Send(envelope)
 }
 
+// Recv receives a chaincode message
 func (d deliverClient) Recv() (*orderer.DeliverResponse, error) {
 	return d.abc.Recv()
 }
 
+// CloseSend closes client connection
 func (d deliverClient) CloseSend() error {
 	d.abc.CloseSend()
 	return nil
 }
 
+// Disconnect does nothing
 func (d deliverClient) Disconnect() {
 }
 
+// UpdateReceived does nothing
 func (d deliverClient) UpdateReceived(blockNumber uint64) {
 }
 
@@ -226,6 +234,7 @@ func (d *deliverServiceImpl) Stop() {
 	}
 }
 
+// UpdateEndpoints update endpoints to new values
 func (d *deliverServiceImpl) UpdateEndpoints(chainID string, endpoints []*orderers.Endpoint) error {
 	d.lock.RLock()
 	defer d.lock.RUnlock()

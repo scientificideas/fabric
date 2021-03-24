@@ -20,6 +20,7 @@ const bftHeaderWrongStatusThreshold = 10
 
 //go:generate mockery -dir . -name HeaderStreamClient -case underscore -output mocks/
 
+// HeaderStreamClient defines the interface for a deliver client
 type HeaderStreamClient interface {
 	blocksprovider.DeliverClient
 }
@@ -61,6 +62,7 @@ func newBFTHeaderReceiver(
 	return hRcv
 }
 
+// DeliverHeaders starts to deliver headers from endpoint
 func (hr *bftHeaderReceiver) DeliverHeaders() {
 	defer func() {
 		hr.CloseSend()
@@ -144,6 +146,7 @@ func (hr *bftHeaderReceiver) setStarted() {
 	hr.started = true
 }
 
+// CloseSend closes client connection
 func (hr *bftHeaderReceiver) CloseSend() error {
 	hr.mutex.Lock()
 	defer hr.mutex.Unlock()
@@ -159,6 +162,7 @@ func (hr *bftHeaderReceiver) CloseSend() error {
 	return nil
 }
 
+// LastBlockNum returns last block number
 func (hr *bftHeaderReceiver) LastBlockNum() (uint64, time.Time, error) {
 	hr.mutex.Lock()
 	defer hr.mutex.Unlock()
