@@ -240,8 +240,8 @@ func (bc *broadcastClient) shouldStop() bool {
 
 // CloseSend makes the client close its connection and shut down
 func (bc *broadcastClient) CloseSend() error {
-	logger.Debugf("Entering for ep=%s", bc.ep.Address)
-	defer logger.Debugf("Exiting for ep=%s", bc.ep.Address)
+	logger.Debugf("Entering")
+	defer logger.Debugf("Exiting")
 	bc.mutex.Lock()
 	defer bc.mutex.Unlock()
 	if bc.shouldStop() {
@@ -254,7 +254,7 @@ func (bc *broadcastClient) CloseSend() error {
 	}
 	bc.endpoint = ""
 	if err := bc.conn.Close(); err != nil {
-		// todo:
+		logger.Errorf("failed to close connection to endpoint = %s", bc.ep.Address)
 	}
 	return nil
 }
@@ -269,7 +269,9 @@ func (bc *broadcastClient) Disconnect() {
 	if bc.conn == nil {
 		return
 	}
-	bc.conn.Close()
+	if err := bc.conn.Close(); err != nil {
+		logger.Errorf("failed to close connection to endpoint = %s", bc.ep.Address)
+	}
 	bc.conn = nil
 	bc.blocksDeliverer = nil
 }

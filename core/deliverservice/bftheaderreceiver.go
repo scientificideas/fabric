@@ -123,7 +123,7 @@ func (hr *bftHeaderReceiver) DeliverHeaders() {
 		}
 	}
 
-	//fixme:bftLogger.Debugf("[%s] Stopped to deliver headers from endpoint: %s", hr.chainID, hr.client.GetEndpoint())
+	bftLogger.Debugf("[%s] Stopped to deliver headers from endpoint: %s", hr.chainID, hr.endpoint)
 }
 
 func (hr *bftHeaderReceiver) isStopped() bool {
