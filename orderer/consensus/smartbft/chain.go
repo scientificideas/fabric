@@ -484,13 +484,13 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 	}
 }
 
-// HandleMessage handles message from the sender
+// HandleMessage handles the message from the sender
 func (c *BFTChain) HandleMessage(sender uint64, m *smartbftprotos.Message) {
 	c.Logger.Debugf("Message from %d", sender)
 	c.consensus.HandleMessage(sender, m)
 }
 
-// HandleRequest handles request from the sender
+// HandleRequest handles the request from the sender
 func (c *BFTChain) HandleRequest(sender uint64, req []byte) {
 	c.Logger.Debugf("HandleRequest from %d", sender)
 	c.consensus.SubmitRequest(req)

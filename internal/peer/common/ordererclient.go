@@ -45,6 +45,7 @@ func NewOrdererClientFromEnv() (*OrdererClient, error) {
 	return oClient, nil
 }
 
+// BroadcastOrdererClient describes a broadcast client
 type BroadcastOrdererClient interface {
 	CloseSend() error
 	Send(envelope *cb.Envelope) error

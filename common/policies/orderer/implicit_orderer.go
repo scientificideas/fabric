@@ -41,6 +41,7 @@ type IdentityMock interface {
 	msp.Identity
 }
 
+// NewPolicyProvider creates new policy provider
 func NewPolicyProvider(
 	deserializer msp.IdentityDeserializer,
 	consensusType string,
@@ -53,6 +54,7 @@ func NewPolicyProvider(
 	}
 }
 
+// NewPolicyFromString creates a new implicit orderer policy from the given rule
 func NewPolicyFromString(ruleName string) (*cb.ImplicitOrdererPolicy, error) {
 	logger.Debugf("Entry: ruleName=%s", ruleName)
 	ruleVal, exist := cb.ImplicitOrdererPolicy_Rule_value[ruleName]
@@ -114,6 +116,7 @@ type implicitBFTPolicy struct {
 	quorumSize int             // The BFT quorum size
 }
 
+// EvaluateSignedData takes a set of SignedData and evaluates whether this set of signatures satisfies the policy
 func (ip *implicitBFTPolicy) EvaluateSignedData(signatureSet []*protoutil.SignedData) error {
 	logger.Debugf("Entry: signatureSet size: %d", len(signatureSet))
 
@@ -124,6 +127,7 @@ func (ip *implicitBFTPolicy) EvaluateSignedData(signatureSet []*protoutil.Signed
 	return ip.sigPolicy.EvaluateSignedData(signatureSet)
 }
 
+// EvaluateIdentities takes an array of identities and evaluates whether they satisfy the policy
 func (ip *implicitBFTPolicy) EvaluateIdentities(identities []msp.Identity) error {
 	if len(identities) < ip.quorumSize {
 		return errors.Errorf("expected at least %d signatures, but there are only %d", ip.quorumSize, len(identities))

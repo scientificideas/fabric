@@ -92,19 +92,20 @@ func NewDeliverService(conf *Config) DeliverService {
 	return ds
 }
 
-// DialerAdapter implements dial call
+// DialerAdapter implements the creation of a new gRPC connection
 type DialerAdapter struct {
 	Client *comm.GRPCClient
 }
 
-// Dial dials an address according to the given EndpointCriteria
+// Dial creates a new gRPC connection
 func (da DialerAdapter) Dial(address string, certPool *x509.CertPool) (*grpc.ClientConn, error) {
 	return da.Client.NewConnection(address, comm.CertPoolOverride(certPool))
 }
 
-// DeliverAdapter implements deliver call
+// DeliverAdapter implements the creation of a stream client
 type DeliverAdapter struct{}
 
+// Deliver returns a stream client
 func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.StreamClient, error) {
 	abc, err := orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
 	if err != nil {
@@ -127,7 +128,7 @@ func (d deliverClient) Recv() (*orderer.DeliverResponse, error) {
 	return d.abc.Recv()
 }
 
-// CloseSend closes client connection
+// CloseSend closes the client connection
 func (d deliverClient) CloseSend() error {
 	d.abc.CloseSend()
 	return nil
@@ -222,7 +223,7 @@ func (d *deliverServiceImpl) StopDeliverForChannel(chainID string) error {
 	return nil
 }
 
-// Stop all service and release resources
+// Stop all services and release resources
 func (d *deliverServiceImpl) Stop() {
 	d.lock.Lock()
 	defer d.lock.Unlock()
@@ -234,7 +235,7 @@ func (d *deliverServiceImpl) Stop() {
 	}
 }
 
-// UpdateEndpoints update endpoints to new values
+// UpdateEndpoints assigns the new endpoints for the block provider
 func (d *deliverServiceImpl) UpdateEndpoints(chainID string, endpoints []*orderers.Endpoint) error {
 	d.lock.RLock()
 	defer d.lock.RUnlock()

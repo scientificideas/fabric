@@ -21,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// SanitizeIdentity sanitizes the signature scheme of the identity
 func SanitizeIdentity(identity []byte) ([]byte, error) {
 	sID := &msp.SerializedIdentity{}
 	if err := proto.Unmarshal(identity, sID); err != nil {

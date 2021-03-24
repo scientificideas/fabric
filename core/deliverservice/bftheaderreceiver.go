@@ -62,7 +62,7 @@ func newBFTHeaderReceiver(
 	return hRcv
 }
 
-// DeliverHeaders starts to deliver headers from endpoint
+// DeliverHeaders starts to deliver headers from the stream client
 func (hr *bftHeaderReceiver) DeliverHeaders() {
 	defer func() {
 		hr.CloseSend()
@@ -146,7 +146,7 @@ func (hr *bftHeaderReceiver) setStarted() {
 	hr.started = true
 }
 
-// CloseSend closes client connection
+// CloseSend closes the client connection
 func (hr *bftHeaderReceiver) CloseSend() error {
 	hr.mutex.Lock()
 	defer hr.mutex.Unlock()
@@ -162,7 +162,7 @@ func (hr *bftHeaderReceiver) CloseSend() error {
 	return nil
 }
 
-// LastBlockNum returns last block number
+// LastBlockNum returns the last block number
 func (hr *bftHeaderReceiver) LastBlockNum() (uint64, time.Time, error) {
 	hr.mutex.Lock()
 	defer hr.mutex.Unlock()

@@ -180,7 +180,7 @@ func GetBytesSignatureHeader(hdr *common.SignatureHeader) ([]byte, error) {
 	return bytes, errors.Wrap(err, "error marshaling SignatureHeader")
 }
 
-// GetSignatureHeader Get SignatureHeader from bytes
+// GetSignatureHeader gets the signature header from the bytes
 func GetSignatureHeader(bytes []byte) (*common.SignatureHeader, error) {
 	return UnmarshalSignatureHeader(bytes)
 }
@@ -414,7 +414,7 @@ func InvokedChaincodeName(proposalBytes []byte) (string, error) {
 	return cis.ChaincodeSpec.ChaincodeId.Name, nil
 }
 
-// GetPayload Get Payload from Envelope message
+// GetPayload gets payload from the envelope
 func GetPayload(e *common.Envelope) (*common.Payload, error) {
 	payload := &common.Payload{}
 	err := proto.Unmarshal(e.Payload, payload)

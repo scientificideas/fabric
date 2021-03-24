@@ -51,7 +51,7 @@ type Metrics struct {
 	LeaderID             metrics.Gauge
 }
 
-// NewMetrics creates Metrics
+// NewMetrics creates the Metrics
 func NewMetrics(p metrics.Provider) *Metrics {
 	return &Metrics{
 		ClusterSize:          p.NewGauge(clusterSizeOpts),

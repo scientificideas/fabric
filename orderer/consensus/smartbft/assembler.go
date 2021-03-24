@@ -20,7 +20,7 @@ import (
 
 //go:generate mockery -dir . -name Ledger -case underscore -output mocks
 
-// Ledger returns height and block
+// Ledger returns the height and a block with the given number
 type Ledger interface {
 	// Height returns the number of blocks in the ledger this channel is associated with.
 	Height() uint64
@@ -30,14 +30,14 @@ type Ledger interface {
 	Block(number uint64) *cb.Block
 }
 
-// Assembler is proposal assembler
+// Assembler is the proposal assembler
 type Assembler struct {
 	RuntimeConfig   *atomic.Value
 	Logger          *flogging.FabricLogger
 	VerificationSeq func() uint64
 }
 
-// AssembleProposal assembles proposal from metadata and request
+// AssembleProposal assembles a proposal from the metadata and the request
 func (a *Assembler) AssembleProposal(metadata []byte, requests [][]byte) (nextProp types.Proposal) {
 	rtc := a.RuntimeConfig.Load().(RuntimeConfig)
 
@@ -116,7 +116,7 @@ func singleConfigTxOrSeveralNonConfigTx(requests [][]byte, logger Logger) [][]by
 	return batchedRequests
 }
 
-// LastConfigBlockFromLedgerOrPanic returns last config block from the ledger
+// LastConfigBlockFromLedgerOrPanic returns the last config block from the ledger
 func LastConfigBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	block, err := lastConfigBlockFromLedger(ledger)
 	if err != nil {
@@ -162,7 +162,7 @@ func previousConfigBlockFromLedger(ledger Ledger) (*cb.Block, error) {
 	return previousConfigBlock, nil
 }
 
-// LastBlockFromLedgerOrPanic returns last block from the ledger
+// LastBlockFromLedgerOrPanic returns the last block from the ledger
 func LastBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	lastBlockSeq := ledger.Height() - 1
 	lastBlock := ledger.Block(lastBlockSeq)
@@ -172,7 +172,7 @@ func LastBlockFromLedgerOrPanic(ledger Ledger, logger Logger) *cb.Block {
 	return lastBlock
 }
 
-// ByteBufferTuple is byte slice tuple
+// ByteBufferTuple is the byte slice tuple
 type ByteBufferTuple struct {
 	A []byte
 	B []byte

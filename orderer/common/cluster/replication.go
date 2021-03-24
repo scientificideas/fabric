@@ -412,6 +412,7 @@ func (*NoopBlockVerifier) VerifyBlockSignature(sd []*protoutil.SignedData, confi
 	return nil
 }
 
+// Id2Identity returns an empty map.
 func (*NoopBlockVerifier) Id2Identity(envelope *common.ConfigEnvelope) map[uint64][]byte {
 	return nil
 }

@@ -26,13 +26,13 @@ type Signature struct {
 	AuxiliaryInput       []byte
 }
 
-// Unmarshal signature
+// Unmarshal the signature
 func (sig *Signature) Unmarshal(bytes []byte) error {
 	_, err := asn1.Unmarshal(bytes, sig)
 	return err
 }
 
-// Marshal signature
+// Marshal the signature
 func (sig *Signature) Marshal() []byte {
 	bytes, err := asn1.Marshal(*sig)
 	if err != nil {
@@ -41,13 +41,13 @@ func (sig *Signature) Marshal() []byte {
 	return bytes
 }
 
-// AsBytes returns message to sign
+// AsBytes returns the message to sign
 func (sig Signature) AsBytes() []byte {
 	msg2Sign := util.ConcatenateBytes(sig.OrdererBlockMetadata, sig.SignatureHeader, sig.BlockHeader, sig.AuxiliaryInput)
 	return msg2Sign
 }
 
-// ProposalToBlock creates block from proposal
+// ProposalToBlock marshals the proposal the the block
 func ProposalToBlock(proposal types.Proposal) (*cb.Block, error) {
 	// initialize block with empty fields
 	block := &cb.Block{

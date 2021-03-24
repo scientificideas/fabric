@@ -50,7 +50,7 @@ type RuntimeConfig struct {
 	Nodes                  []uint64
 }
 
-// BlockCommitted updates config from block
+// BlockCommitted updates the config from the block
 func (rtc RuntimeConfig) BlockCommitted(block *cb.Block, bccsp bccsp.BCCSP) (RuntimeConfig, error) {
 	if _, err := cluster.ConfigFromBlock(block); err == nil {
 		return rtc.configBlockCommitted(block, bccsp)
@@ -281,7 +281,7 @@ func (ri *RequestInspector) requestIDFromSigHeader(sigHdr *cb.SignatureHeader) (
 	}, nil
 }
 
-// RequestID unwraps request info from raw request
+// RequestID unwraps the request info from the raw request
 func (ri *RequestInspector) RequestID(rawReq []byte) types.RequestInfo {
 	req, err := ri.unwrapReq(rawReq)
 	if err != nil {
@@ -329,7 +329,7 @@ func (ri *RequestInspector) unwrapReq(req []byte) (*request, error) {
 	}, nil
 }
 
-// RemoteNodesFromConfigBlock unmarshals node config from block metadata
+// RemoteNodesFromConfigBlock unmarshals the node config from the block metadata
 func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging.FabricLogger, bccsp bccsp.BCCSP) (*nodeConfig, error) {
 	env := &cb.Envelope{}
 	if err := proto.Unmarshal(block.Data.Data[0], env); err != nil {
