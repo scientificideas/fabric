@@ -31,12 +31,12 @@ type Synchronizer struct {
 	Logger          *flogging.FabricLogger
 }
 
-// Close closes block puller connection
+// Close closes the block puller connection
 func (s *Synchronizer) Close() {
 	s.BlockPuller.Close()
 }
 
-// Sync synchronizes blocks and returns decision and reconfig
+// Sync synchronizes blocks and returns the response
 func (s *Synchronizer) Sync() types.SyncResponse {
 	decision, err := s.synchronize()
 	if err != nil {

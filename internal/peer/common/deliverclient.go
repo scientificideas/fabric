@@ -119,6 +119,7 @@ func (d *DeliverClient) GetNewestBlock() (*cb.Block, error) {
 	return d.readBlock()
 }
 
+// RequestHeaders requests headers from the given ledger info provider
 func (d *DeliverClient) RequestHeaders(ledgerInfoProvider blocksprovider.LedgerInfo) error {
 	height, err := ledgerInfoProvider.LedgerHeight()
 	if err != nil {

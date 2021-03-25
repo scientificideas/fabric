@@ -59,7 +59,7 @@ var (
 	errClientReconnectTimeout = errors.New("client reconnect timeout")
 )
 
-// BlockReceiver is deliver client which also returns endpoint
+// BlockReceiver is the deliver client which also returns the endpoint address
 type BlockReceiver interface {
 	blocksprovider.DeliverClient
 	GetEndpoint() string
@@ -433,7 +433,7 @@ func (c *bftDeliveryClient) closeBlockReceiver(updateLastBlockTime bool) {
 	}
 }
 
-// LedgerHeight returns next block number
+// LedgerHeight returns the next block number
 func (c *bftDeliveryClient) LedgerHeight() (uint64, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -503,7 +503,7 @@ func (c *bftDeliveryClient) shouldStop() bool {
 	return c.stopFlag
 }
 
-// UpdateEndpoints update endpoints to new values
+// UpdateEndpoints assigns the new endpoints for the delivery client
 func (c *bftDeliveryClient) UpdateEndpoints(endpoints []*orderers.Endpoint) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -533,7 +533,7 @@ func (c *bftDeliveryClient) GetEndpoint() string {
 	return c.blockReceiver.GetEndpoint()
 }
 
-// GetNextBlockNumTime returns next block number and last block time
+// GetNextBlockNumTime returns the next block number and the last block time
 func (c *bftDeliveryClient) GetNextBlockNumTime() (uint64, time.Time) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -541,7 +541,7 @@ func (c *bftDeliveryClient) GetNextBlockNumTime() (uint64, time.Time) {
 	return c.nextBlockNumber, c.lastBlockTime
 }
 
-// GetHeadersBlockNumTime return number of header receivers and their last block times
+// GetHeadersBlockNumTime returns a number of header receivers and their last block times
 func (c *bftDeliveryClient) GetHeadersBlockNumTime() ([]uint64, []time.Time, []error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

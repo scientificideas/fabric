@@ -137,6 +137,7 @@ func InitJoinBlockFileRepo(config *localconfig.TopLevel) (*filerepo.Repo, error)
 	return joinBlockFileRepo, nil
 }
 
+// Initialize consenter's channels
 func (r *Registrar) Initialize(consenters map[string]consensus.Consenter) {
 	r.init(consenters)
 

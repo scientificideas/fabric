@@ -18,7 +18,7 @@ import (
 
 //go:generate mockery -dir . -name RPC -case underscore -output mocks
 
-// RPC sends consensus and submit
+// RPC sends a consensus and submits a request
 type RPC interface {
 	SendConsensus(dest uint64, msg *ab.ConsensusRequest) error
 	SendSubmit(dest uint64, request *ab.SubmitRequest) error
@@ -38,7 +38,7 @@ type Egress struct {
 	RuntimeConfig *atomic.Value
 }
 
-// Nodes returns nodes from runtime config
+// Nodes returns nodes from the runtime config
 func (e *Egress) Nodes() []uint64 {
 	nodes := e.RuntimeConfig.Load().(RuntimeConfig).Nodes
 	var res []uint64
@@ -48,7 +48,7 @@ func (e *Egress) Nodes() []uint64 {
 	return res
 }
 
-// SendConsensus sends bft message to cluster
+// SendConsensus sends the BFT message to the cluster
 func (e *Egress) SendConsensus(targetID uint64, m *protos.Message) {
 	err := e.RPC.SendConsensus(targetID, bftMsgToClusterMsg(m, e.Channel))
 	if err != nil {
@@ -56,7 +56,7 @@ func (e *Egress) SendConsensus(targetID uint64, m *protos.Message) {
 	}
 }
 
-// SendTransaction sends transaction to cluster
+// SendTransaction sends the transaction to the cluster
 func (e *Egress) SendTransaction(targetID uint64, request []byte) {
 	env := &cb.Envelope{}
 	err := proto.Unmarshal(request, env)

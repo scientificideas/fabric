@@ -80,9 +80,6 @@ func (ce *configEventer) ProcessConfigUpdate(config Config) {
 		logger.Debugf("Calling out because config was updated for channel %s", config.ChannelID())
 		ce.receiver.updateAnchors(config)
 	}
-
-	logger.Debugf("Codo: update endpoints for channel %s", config.ChannelID())
-	// todo: update endpoints
 }
 
 func cloneOrgConfig(src map[string]channelconfig.ApplicationOrg) map[string]channelconfig.ApplicationOrg {

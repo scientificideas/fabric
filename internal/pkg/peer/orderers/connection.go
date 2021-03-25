@@ -228,12 +228,14 @@ func (cs *ConnectionSource) updateEndpoints() {
 	}
 }
 
+// GetAllEndpoints returns all endpoints
 func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
 	cs.mutex.RLock()
 	defer cs.mutex.RUnlock()
 	return cs.allEndpoints
 }
 
+// InitUpdateEndpointsChannel creates a channel to send endpoints to it if they have changed
 func (cs *ConnectionSource) InitUpdateEndpointsChannel() chan []*Endpoint {
 	cs.mutex.RLock()
 	defer cs.mutex.RUnlock()

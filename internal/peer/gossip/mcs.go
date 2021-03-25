@@ -48,6 +48,7 @@ type MSPMessageCryptoService struct {
 	hasher                     Hasher
 }
 
+// Id2IdentitiesFetcher returns identities from last known configuration for the given channel
 type Id2IdentitiesFetcher interface {
 	Id2Identities(cid string) map[uint64][]byte
 }
@@ -191,6 +192,7 @@ func (s *MSPMessageCryptoService) verifyHeaderWithMetadata(channelID string, blo
 	return policy.EvaluateSignedData(signatureSet)
 }
 
+// VerifyHeader returns nil when the header matches the metadata signature
 func (s *MSPMessageCryptoService) VerifyHeader(chainID string, signedBlock *pcommon.Block) error {
 	if signedBlock == nil {
 		return fmt.Errorf("Invalid Block on channel [%s]. Block is nil.", chainID)

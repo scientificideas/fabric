@@ -316,6 +316,7 @@ func (g *GossipService) NewConfigEventer() ConfigProcessor {
 	return newConfigEventer(g)
 }
 
+// UpdateEndpoints updates the ordering endpoints for the given chain
 func (g *GossipService) UpdateEndpoints(chainID string, endpoints []*orderers.Endpoint) {
 	if ds, ok := g.deliveryService[chainID]; ok {
 		logger.Infof("Updating endpoints for %s", chainID)

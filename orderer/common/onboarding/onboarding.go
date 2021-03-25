@@ -446,6 +446,7 @@ func ValidateBootstrapBlock(block *common.Block, bccsp bccsp.BCCSP) error {
 	return nil
 }
 
+// ConsensusType returns the consensus type from the given genesis block.
 func ConsensusType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) string {
 	if genesisBlock == nil || genesisBlock.Data == nil || len(genesisBlock.Data.Data) == 0 {
 		logger.Fatalf("Empty genesis block")

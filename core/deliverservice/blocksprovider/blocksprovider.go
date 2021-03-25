@@ -58,7 +58,7 @@ type BlocksDeliverer interface {
 	Send(*common.Envelope) error
 }
 
-// StreamClient is blocks provider client
+// StreamClient defines the interface for stream client
 type StreamClient interface {
 	BlocksDeliverer
 

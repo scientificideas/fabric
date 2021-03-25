@@ -223,12 +223,14 @@ type Dialer interface {
 	Dial(endpointCriteria EndpointCriteria) (*grpc.ClientConn, error)
 }
 
-// VerifyBlocks verifies the given consecutive sequence of blocks is valid,
+// VerifyBlocksCFT verifies the given consecutive sequence of blocks is valid, doesn't verify signature,
 // and returns nil if it's valid, else an error.
 func VerifyBlocksCFT(blockBuff []*common.Block, signatureVerifier BlockVerifier) error {
 	return verifyBlockSequence(blockBuff, signatureVerifier, false)
 }
 
+// VerifyBlocksBFT verifies the given consecutive sequence of blocks is valid, always verifies signature,
+// and returns nil if it's valid, else an error.
 func VerifyBlocksBFT(blockBuff []*common.Block, signatureVerifier BlockVerifier) error {
 	return verifyBlockSequence(blockBuff, signatureVerifier, true)
 }

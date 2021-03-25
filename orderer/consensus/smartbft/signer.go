@@ -29,7 +29,7 @@ type Signer struct {
 	LastConfigBlockNum func(*cb.Block) uint64
 }
 
-// Sign signs message
+// Sign signs the message
 func (s *Signer) Sign(msg []byte) []byte {
 	signature, err := s.SignerSerializer.Sign(msg)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *Signer) Sign(msg []byte) []byte {
 	return signature
 }
 
-// SignProposal signs proposal
+// SignProposal signs the proposal
 func (s *Signer) SignProposal(proposal types.Proposal, auxiliaryInput []byte) *types.Signature {
 	block, err := ProposalToBlock(proposal)
 	if err != nil {

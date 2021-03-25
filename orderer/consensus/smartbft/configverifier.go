@@ -41,14 +41,14 @@ type ConfigUpdateProposer interface {
 
 //go:generate mockery -dir . -name Bundle -case underscore -output mocks
 
-// Bundle provides channelconfig resources interface
+// Bundle defines the channelconfig resources interface
 type Bundle interface {
 	channelconfig.Resources
 }
 
 //go:generate mockery -dir . -name ConfigTxValidator -case underscore -output mocks
 
-// ConfigTxValidator provides configtx validator interface
+// ConfigTxValidator defines the configtx validator interface
 type ConfigTxValidator interface {
 	configtx.Validator
 }
