@@ -94,7 +94,7 @@ func New(
 	r *multichannel.Registrar,
 	metricsProvider metrics.Provider,
 	BCCSP bccsp.BCCSP,
-) consensus.ClusterConsenter {
+) *Consenter {
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft")
 
 	metrics := cluster.NewMetrics(metricsProvider)
