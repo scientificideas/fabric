@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"reflect"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/hyperledger/fabric/common/policies"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
+	types2 "github.com/hyperledger/fabric/orderer/common/types"
 	"github.com/hyperledger/fabric/orderer/consensus"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
@@ -78,6 +80,10 @@ type BFTChain struct {
 	assembler        *Assembler
 	Metrics          *Metrics
 	bccsp            bccsp.BCCSP
+
+	statusReportMutex sync.Mutex
+	consensusRelation types2.ConsensusRelation
+	status            types2.Status
 }
 
 // NewChain creates new BFT Smart chain
@@ -105,16 +111,18 @@ func NewChain(
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft.chain").With(zap.String("channel", support.ChannelID()))
 
 	c := &BFTChain{
-		RuntimeConfig:    &atomic.Value{},
-		Channel:          support.ChannelID(),
-		Config:           config,
-		WALDir:           walDir,
-		Comm:             comm,
-		support:          support,
-		SignerSerializer: signerSerializer,
-		PolicyManager:    policyManager,
-		BlockPuller:      blockPuller,
-		Logger:           logger,
+		RuntimeConfig:     &atomic.Value{},
+		Channel:           support.ChannelID(),
+		Config:            config,
+		WALDir:            walDir,
+		Comm:              comm,
+		support:           support,
+		SignerSerializer:  signerSerializer,
+		PolicyManager:     policyManager,
+		BlockPuller:       blockPuller,
+		Logger:            logger,
+		consensusRelation: types2.ConsensusRelationConsenter,
+		status:            types2.StatusActive,
 		Metrics: &Metrics{
 			ClusterSize:          metrics.ClusterSize.With("channel", support.ChannelID()),
 			CommittedBlockNumber: metrics.CommittedBlockNumber.With("channel", support.ChannelID()),
@@ -536,6 +544,14 @@ func (c *BFTChain) reportIsLeader() {
 	} else {
 		c.Metrics.IsLeader.Set(0)
 	}
+}
+
+// StatusReport returns the ConsensusRelation & Status
+func (c *BFTChain) StatusReport() (types2.ConsensusRelation, types2.Status) {
+	c.statusReportMutex.Lock()
+	defer c.statusReportMutex.Unlock()
+
+	return c.consensusRelation, c.status
 }
 
 func buildVerifier(
