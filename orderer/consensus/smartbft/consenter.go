@@ -11,6 +11,7 @@ package smartbft
 
 import (
 	"bytes"
+	"crypto/x509"
 	"encoding/pem"
 	"path"
 	"reflect"
@@ -20,6 +21,7 @@ import (
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/bccsp"
+	"github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/metrics"
@@ -29,7 +31,9 @@ import (
 	"github.com/hyperledger/fabric/orderer/common/localconfig"
 	"github.com/hyperledger/fabric/orderer/common/multichannel"
 	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
 	"github.com/hyperledger/fabric/orderer/consensus/inactive"
+	"github.com/hyperledger/fabric/protoutil"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )
@@ -90,7 +94,7 @@ func New(
 	r *multichannel.Registrar,
 	metricsProvider metrics.Provider,
 	BCCSP bccsp.BCCSP,
-) *Consenter {
+) consensus.ClusterConsenter {
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft")
 
 	metrics := cluster.NewMetrics(metricsProvider)
@@ -226,6 +230,57 @@ func (c *Consenter) HandleChain(support consensus.ConsenterSupport, metadata *cb
 	return chain, nil
 }
 
+func (c *Consenter) IsChannelMember(joinBlock *cb.Block) (bool, error) {
+	if joinBlock == nil {
+		return false, errors.New("nil block")
+	}
+	envelopeConfig, err := protoutil.ExtractEnvelope(joinBlock, 0)
+	if err != nil {
+		return false, err
+	}
+	bundle, err := channelconfig.NewBundleFromEnvelope(envelopeConfig, c.BCCSP)
+	if err != nil {
+		return false, err
+	}
+	oc, exists := bundle.OrdererConfig()
+	if !exists {
+		return false, errors.New("no orderer config in bundle")
+	}
+	configMetadata := &smartbft.ConfigMetadata{}
+	if err := proto.Unmarshal(oc.ConsensusMetadata(), configMetadata); err != nil {
+		return false, err
+	}
+
+	verifyOpts, err := etcdraft.CreateX509VerifyOptions(oc)
+	if err != nil {
+		return false, errors.Wrapf(err, "failed to create x509 verify options from orderer config")
+	}
+
+	if err := VerifyConfigMetadata(configMetadata, verifyOpts); err != nil {
+		return false, errors.Wrapf(err, "failed to validate config metadata of ordering config")
+	}
+
+	member := false
+	for _, consenter := range configMetadata.Consenters {
+		if bytes.Equal(c.Cert, consenter.ServerTlsCert) || bytes.Equal(c.Cert, consenter.ClientTlsCert) {
+			member = true
+			break
+		}
+	}
+
+	return member, nil
+}
+
+// RemoveInactiveChainRegistry stops and removes the inactive chain registry.
+// This is used when removing the system channel.
+func (c *Consenter) RemoveInactiveChainRegistry() {
+	if c.InactiveChainRegistry == nil {
+		return
+	}
+	c.InactiveChainRegistry.Stop()
+	c.InactiveChainRegistry = nil
+}
+
 // TargetChannel extracts the channel from the given proto.Message.
 // Returns an empty string on failure.
 func (c *Consenter) TargetChannel(message proto.Message) string {
@@ -259,4 +314,22 @@ func (c *Consenter) detectSelfID(consenters []*smartbft.Consenter) (uint64, erro
 
 	c.Logger.Warning("Could not find", string(c.Cert), "among", serverCertificates)
 	return 0, cluster.ErrNotInChannel
+}
+
+// VerifyConfigMetadata validates SmartBFT config metadata.
+// Note: ignores certificates expiration.
+func VerifyConfigMetadata(metadata *smartbft.ConfigMetadata, verifyOpts x509.VerifyOptions) error {
+	if metadata == nil {
+		// defensive check. this should not happen as CheckConfigMetadata
+		// should always be called with non-nil config metadata
+		return errors.Errorf("nil SmartBFT config metadata")
+	}
+
+	if metadata.Options == nil {
+		return errors.Errorf("nil SmartBFT config metadata options")
+	}
+
+	// todo: check metadata
+
+	return nil
 }
