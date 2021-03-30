@@ -805,7 +805,7 @@ func initializeMultichannelRegistrar(
 
 		} else if bootstrapBlock == nil {
 			// without a system channel: assume cluster type, InactiveChainRegistry == nil, no go-routine.
-			consenterType := "etcdraft"
+			consenterType := "smartbft"
 
 			// search a join block for a system channel
 			if bootstrapBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf); bootstrapBlock != nil {
