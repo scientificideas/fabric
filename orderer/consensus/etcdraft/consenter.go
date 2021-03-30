@@ -281,7 +281,7 @@ func (c *Consenter) IsChannelMember(joinBlock *common.Block) (bool, error) {
 		return false, err
 	}
 
-	verifyOpts, err := createX509VerifyOptions(oc)
+	verifyOpts, err := CreateX509VerifyOptions(oc)
 	if err != nil {
 		return false, errors.Wrapf(err, "failed to create x509 verify options from orderer config")
 	}

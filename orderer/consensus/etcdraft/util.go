@@ -287,7 +287,7 @@ func parseCertificateListFromBytes(certs [][]byte) ([]*x509.Certificate, error) 
 	return certificateList, nil
 }
 
-func createX509VerifyOptions(ordererConfig channelconfig.Orderer) (x509.VerifyOptions, error) {
+func CreateX509VerifyOptions(ordererConfig channelconfig.Orderer) (x509.VerifyOptions, error) {
 	tlsRoots := x509.NewCertPool()
 	tlsIntermediates := x509.NewCertPool()
 
