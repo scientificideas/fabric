@@ -212,6 +212,11 @@ type ChannelParticipation struct {
 	MaxRequestBodySize uint32
 }
 
+// Consensus indicates the orderer type.
+type Consensus struct {
+	Type string `yaml:"type,omitempty"`
+}
+
 // Defaults carries the default orderer configuration values.
 var Defaults = TopLevel{
 	General: General{
