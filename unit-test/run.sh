@@ -19,6 +19,13 @@ echo "Running $type tests"
 echo "Pulling hyperledger/fabric-couchdb"
 docker pull hyperledger/fabric-couchdb:latest
 
+make ccenv
+
+echo "Tagging docker images"
+docker images | grep fabric-ccenv
+docker tag hyperledger/fabric-ccenv hyperledger/fabric-ccenv:amd64-latest
+docker tag hyperledger/fabric-ccenv hyperledger/fabric-ccenv:latest
+
 
 echo "Running Fabric unit tests"
 (for i in $(seq 1 60); do echo $i; sleep 120; done) &

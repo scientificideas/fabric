@@ -70,7 +70,6 @@ func TestSynchronizerSync(t *testing.T) {
 			},
 			Logger:      l,
 			BlockPuller: bp,
-			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
 		}
@@ -117,6 +116,9 @@ func TestSynchronizerSync(t *testing.T) {
 			Latest: types.Decision{},
 		}
 		syn := &smartbft.Synchronizer{
+			LatestConfig: func() (types.Configuration, []uint64) {
+				return types.Configuration{}, []uint64{1, 2, 3, 4}
+			},
 			BlockToDecision: func(block *common.Block) *types.Decision {
 				if block == b102 {
 					return &decision.Latest
@@ -125,7 +127,6 @@ func TestSynchronizerSync(t *testing.T) {
 			},
 			Logger:      flogging.NewFabricLogger(zap.NewExample()),
 			BlockPuller: bp,
-			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
 		}
@@ -171,6 +172,9 @@ func TestSynchronizerSync(t *testing.T) {
 			Latest: types.Decision{},
 		}
 		syn := &smartbft.Synchronizer{
+			LatestConfig: func() (types.Configuration, []uint64) {
+				return types.Configuration{}, []uint64{1, 2, 3, 4}
+			},
 			BlockToDecision: func(block *common.Block) *types.Decision {
 				if block == b101 {
 					return &decision.Latest
@@ -179,7 +183,6 @@ func TestSynchronizerSync(t *testing.T) {
 			},
 			Logger:      flogging.NewFabricLogger(zap.NewExample()),
 			BlockPuller: bp,
-			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
 		}
@@ -224,6 +227,9 @@ func TestSynchronizerSync(t *testing.T) {
 			Latest: types.Decision{},
 		}
 		syn := &smartbft.Synchronizer{
+			LatestConfig: func() (types.Configuration, []uint64) {
+				return types.Configuration{}, []uint64{1, 2, 3, 4}
+			},
 			BlockToDecision: func(block *common.Block) *types.Decision {
 				if block == b100 {
 					return &decision.Latest
@@ -232,7 +238,6 @@ func TestSynchronizerSync(t *testing.T) {
 			},
 			Logger:      flogging.NewFabricLogger(zap.NewExample()),
 			BlockPuller: bp,
-			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
 		}
@@ -287,7 +292,6 @@ func TestSynchronizerSync(t *testing.T) {
 			},
 			Logger:      flogging.NewFabricLogger(zap.NewExample()),
 			BlockPuller: bp,
-			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
 		}

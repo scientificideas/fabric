@@ -26,7 +26,6 @@ type Synchronizer struct {
 	OnCommit        func(*common.Block) types.Reconfig
 	Support         consensus.ConsenterSupport
 	BlockPuller     BlockPuller
-	ClusterSize     uint64
 	Logger          *flogging.FabricLogger
 }
 
@@ -147,8 +146,9 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 // heights: a slice containing the heights of accessible peers, length must be >0.
 // clusterSize: the cluster size, must be >0.
 func (s *Synchronizer) computeTargetHeight(heights []uint64) uint64 {
+	_, nodes := s.LatestConfig()
 	sort.Slice(heights, func(i, j int) bool { return heights[i] > heights[j] }) // Descending
-	f := uint64(s.ClusterSize-1) / 3                                            // The number of tolerated byzantine faults
+	f := uint64((len(nodes) - 1) / 3)                                           // The number of tolerated byzantine faults
 	lenH := uint64(len(heights))
 
 	s.Logger.Debugf("Heights: %v", heights)

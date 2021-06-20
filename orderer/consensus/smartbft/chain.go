@@ -66,6 +66,7 @@ type signerSerializer interface {
 // BFTChain implements Chain interface to wire with
 // BFT smart library
 type BFTChain struct {
+	cv               ConfigValidator
 	RuntimeConfig    *atomic.Value
 	Channel          string
 	Config           types.Configuration
@@ -105,6 +106,7 @@ func NewChain(
 	logger := flogging.MustGetLogger("orderer.consensus.smartbft.chain").With(zap.String("channel", support.ChainID()))
 
 	c := &BFTChain{
+		cv:               cv,
 		RuntimeConfig:    &atomic.Value{},
 		Channel:          support.ChainID(),
 		Config:           config,
@@ -189,7 +191,6 @@ func bftSmartConsensusBuild(
 		OnCommit:        c.updateRuntimeConfig,
 		Support:         c.support,
 		BlockPuller:     c.BlockPuller,
-		ClusterSize:     clusterSize,
 		Logger:          c.Logger,
 		LatestConfig: func() (types.Configuration, []uint64) {
 			rtc := c.RuntimeConfig.Load().(RuntimeConfig)
@@ -410,15 +411,17 @@ func (c *BFTChain) Order(env *common.Envelope, configSeq uint64) error {
 }
 
 func (c *BFTChain) Configure(config *common.Envelope, configSeq uint64) error {
-	// TODO: check configuration update validity
+	var err error
 	seq := c.support.Sequence()
 	if configSeq < seq {
 		c.Logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
-		if configEnv, _, err := c.support.ProcessConfigMsg(config); err != nil {
+		if config, _, err = c.support.ProcessConfigMsg(config); err != nil {
 			return errors.Errorf("bad normal message: %s", err)
-		} else {
-			return c.submit(configEnv, configSeq)
 		}
+	}
+
+	if err := c.cv.ValidateConfig(config); err != nil {
+		return errors.Wrap(err, "illegal config update attempted")
 	}
 
 	return c.submit(config, configSeq)
