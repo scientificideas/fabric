@@ -7,6 +7,8 @@ replace github.com/hyperledger/fabric => ./
 
 replace github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
 
+replace github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20211020141032-c6af054a2ba4
+
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 
@@ -70,9 +72,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20190625010220-02440ea7a285
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc
 	github.com/willf/bitset v1.1.10
-	gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8 // indirect
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55
-	go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee // indirect
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
@@ -80,5 +80,4 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.3.0
-	honnef.co/go/tools v0.0.1-2019.2.3 // indirect
 )

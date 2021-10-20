@@ -65,7 +65,6 @@ type View struct {
 	Comm               Comm
 	Verifier           api.Verifier
 	Signer             api.Signer
-	MembershipNotifier api.MembershipNotifier
 	ProposalSequence   uint64
 	DecisionsInView    uint64
 	State              State
@@ -549,12 +548,7 @@ func (v *View) verifyProposal(proposal types.Proposal, prevCommits []*protos.Sig
 		return nil, errors.New("verification sequence mismatch")
 	}
 
-	prepareAcknowledgements, err := v.verifyPrevCommitSignatures(prevCommits, expectedSeq)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := v.verifyBlacklist(prevCommits, expectedSeq, md.BlackList, prepareAcknowledgements); err != nil {
+	if err := v.verifyBlacklist(prevCommits, expectedSeq, md.BlackList); err != nil {
 		return nil, err
 	}
 
@@ -567,50 +561,7 @@ func (v *View) verifyProposal(proposal types.Proposal, prevCommits []*protos.Sig
 	return requests, nil
 }
 
-func (v *View) verifyPrevCommitSignatures(prevCommitSignatures []*protos.Signature, currVerificationSeq uint64) (map[uint64]*protos.PreparesFrom, error) {
-	prevPropRaw, _ := v.RetrieveCheckpoint()
-	prevProposalMetadata := &protos.ViewMetadata{}
-	if err := proto.Unmarshal(prevPropRaw.Metadata, prevProposalMetadata); err != nil {
-		v.Logger.Panicf("Couldn't unmarshal the previous persisted proposal metadata: %v", err)
-	}
-
-	v.Logger.Debugf("Previous proposal verification sequence: %d, current verification sequence: %d", prevPropRaw.VerificationSequence, currVerificationSeq)
-	if prevPropRaw.VerificationSequence != currVerificationSeq {
-		v.Logger.Infof("Skipping verifying prev commit signatures due to verification sequence advancing from %d to %d",
-			prevPropRaw.VerificationSequence, currVerificationSeq)
-		return nil, nil
-	}
-
-	prepareAcknowledgements := make(map[uint64]*protos.PreparesFrom)
-
-	prevProp := types.Proposal{
-		VerificationSequence: int64(prevPropRaw.VerificationSequence),
-		Metadata:             prevPropRaw.Metadata,
-		Payload:              prevPropRaw.Payload,
-		Header:               prevPropRaw.Header,
-	}
-
-	// All previous commit signatures should be verifiable
-	for _, sig := range prevCommitSignatures {
-		aux, err := v.Verifier.VerifyConsenterSig(types.Signature{
-			ID:    sig.Signer,
-			Msg:   sig.Msg,
-			Value: sig.Value,
-		}, prevProp)
-		if err != nil {
-			return nil, errors.Errorf("failed verifying consenter signature of %d: %v", sig.Signer, err)
-		}
-		prpf := &protos.PreparesFrom{}
-		if err := proto.Unmarshal(aux, prpf); err != nil {
-			return nil, errors.Errorf("failed unmarshaling auxiliary input from %d: %v", sig.Signer, err)
-		}
-		prepareAcknowledgements[sig.Signer] = prpf
-	}
-
-	return prepareAcknowledgements, nil
-}
-
-func (v *View) verifyBlacklist(prevCommitSignatures []*protos.Signature, currVerificationSeq uint64, pendingBlacklist []uint64, prepareAcknowledgements map[uint64]*protos.PreparesFrom) error {
+func (v *View) verifyBlacklist(prevCommitSignatures []*protos.Signature, currVerificationSeq uint64, pendingBlacklist []uint64) error {
 	if v.DecisionsPerLeader == 0 {
 		v.Logger.Debugf("DecisionsPerLeader is 0, hence leader rotation is inactive")
 		if len(pendingBlacklist) > 0 {
@@ -630,20 +581,20 @@ func (v *View) verifyBlacklist(prevCommitSignatures []*protos.Signature, currVer
 	if prevPropRaw.VerificationSequence != currVerificationSeq {
 		// If there has been a reconfiguration, black list should remain the same
 		if !equalIntLists(prevProposalMetadata.BlackList, pendingBlacklist) {
-			return errors.Errorf("blacklist changed (%v --> %v) during reconfiguration", prevProposalMetadata.BlackList, pendingBlacklist)
+			return errors.Errorf("blacklist changed during reconfiguration")
 		}
 		v.Logger.Infof("Skipping verifying prev commits due to verification sequence advancing from %d to %d",
 			prevPropRaw.VerificationSequence, currVerificationSeq)
 		return nil
 	}
 
-	if v.MembershipNotifier.MembershipChange() {
-		// If there has been a membership change, black list should remain the same
-		if !equalIntLists(prevProposalMetadata.BlackList, pendingBlacklist) {
-			return errors.Errorf("blacklist changed (%v --> %v) during membership change", prevProposalMetadata.BlackList, pendingBlacklist)
-		}
-		v.Logger.Infof("Skipping verifying prev commits due to membership change")
-		return nil
+	prepareAcknowledgements := make(map[uint64]*protos.PreparesFrom)
+
+	prevProp := types.Proposal{
+		VerificationSequence: int64(prevPropRaw.VerificationSequence),
+		Metadata:             prevPropRaw.Metadata,
+		Payload:              prevPropRaw.Payload,
+		Header:               prevPropRaw.Header,
 	}
 
 	_, f := computeQuorum(v.N)
@@ -653,7 +604,24 @@ func (v *View) verifyBlacklist(prevCommitSignatures []*protos.Signature, currVer
 			len(prevCommitSignatures), len(myLastCommitSignatures))
 	}
 
-	// We previously verified the previous commit signatures, now we need to ensure that the blacklist
+	// All previous commit signatures should be verifiable
+	for _, sig := range prevCommitSignatures {
+		aux, err := v.Verifier.VerifyConsenterSig(types.Signature{
+			ID:    sig.Signer,
+			Msg:   sig.Msg,
+			Value: sig.Value,
+		}, prevProp)
+		if err != nil {
+			return errors.Errorf("failed verifying consenter signature of %d: %v", sig.Signer, err)
+		}
+		prpf := &protos.PreparesFrom{}
+		if err := proto.Unmarshal(aux, prpf); err != nil {
+			return errors.Errorf("failed unmarshaling auxiliary input from %d: %v", sig.Signer, err)
+		}
+		prepareAcknowledgements[sig.Signer] = prpf
+	}
+
+	// We verified the previous commit signatures, now we need to ensure that the blacklist
 	// of this proposal is obtained by applying the deterministic blacklist maintenance algorithm
 	// on the blacklist of the previous proposal which has been committed.
 
@@ -867,13 +835,6 @@ func (v *View) GetMetadata() []byte {
 
 	prevProp, prevSigs = v.RetrieveCheckpoint()
 
-	prevMD := &protos.ViewMetadata{}
-	if err := proto.Unmarshal(prevProp.Metadata, prevMD); err != nil {
-		v.Logger.Panicf("Attempted to propose a proposal with invalid unchanged previous proposal view metadata: %v", err)
-	}
-
-	metadata.BlackList = prevMD.BlackList
-
 	metadata = v.metadataWithUpdatedBlacklist(metadata, verificationSeq, prevProp, prevSigs)
 	metadata = v.bindCommitSignaturesToProposalMetadata(metadata, prevSigs)
 
@@ -881,21 +842,14 @@ func (v *View) GetMetadata() []byte {
 }
 
 func (v *View) metadataWithUpdatedBlacklist(metadata *protos.ViewMetadata, verificationSeq uint64, prevProp protos.Proposal, prevSigs []*protos.Signature) *protos.ViewMetadata {
-	membershipChange := v.MembershipNotifier.MembershipChange()
-	if verificationSeq == prevProp.VerificationSequence && !membershipChange {
+	if verificationSeq == prevProp.VerificationSequence {
 		v.Logger.Debugf("Proposing proposal %d with verification sequence of %d and %d commit signatures",
 			v.ProposalSequence, verificationSeq, len(prevSigs))
 		return v.updateBlacklistMetadata(metadata, prevSigs, prevProp.Metadata)
 	}
 
-	if verificationSeq != prevProp.VerificationSequence {
-		v.Logger.Infof("Skipping updating blacklist due to verification sequence changing from %d to %d",
-			prevProp.VerificationSequence, verificationSeq)
-	}
-	if membershipChange {
-		v.Logger.Infof("Skipping updating blacklist due to membership change")
-	}
-
+	v.Logger.Infof("Skipping updating blacklist due to verification sequence changing from %d to %d",
+		prevProp.VerificationSequence, verificationSeq)
 	return metadata
 }
 

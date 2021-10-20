@@ -222,7 +222,6 @@ type ProposalMaker struct {
 	Comm               Comm
 	Verifier           api.Verifier
 	Signer             api.Signer
-	MembershipNotifier api.MembershipNotifier
 	State              State
 	InMsqQSize         int
 	ViewSequences      *atomic.Value
@@ -247,7 +246,6 @@ func (pm *ProposalMaker) NewProposer(leader, proposalSequence, viewNum, decision
 		Comm:               pm.Comm,
 		Verifier:           pm.Verifier,
 		Signer:             pm.Signer,
-		MembershipNotifier: pm.MembershipNotifier,
 		ProposalSequence:   proposalSequence,
 		DecisionsInView:    decisionsInView,
 		State:              pm.State,

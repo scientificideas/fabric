@@ -106,10 +106,7 @@ func (hm *HeartbeatMonitor) Close() {
 	if hm.closed() {
 		return
 	}
-	defer func() {
-		hm.lastHeartbeat = time.Time{}
-		hm.lastTick = time.Time{}
-	}()
+
 	defer hm.running.Wait()
 	close(hm.stopChan)
 }
