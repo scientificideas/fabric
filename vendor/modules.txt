@@ -22,7 +22,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20200624082633-5623f7133ae2 => gitlab.n-t.io/ntbc/consensus v0.0.0-20210215144729-4e12a0376705
+# github.com/SmartBFT-Go/consensus v0.0.0-20210818195719-19aa4c45f010 => gitlab.n-t.io/ntbc/consensus v0.0.0-20210215144729-4e12a0376705
 ## explicit
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
