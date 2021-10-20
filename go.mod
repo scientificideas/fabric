@@ -7,8 +7,6 @@ replace github.com/hyperledger/fabric => ./
 
 replace github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
 
-replace github.com/SmartBFT-Go/consensus => gitlab.n-t.io/ntbc/consensus v0.0.0-20210215144729-4e12a0376705
-
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 
@@ -19,7 +17,7 @@ require (
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/Shopify/sarama v1.20.1
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
-	github.com/SmartBFT-Go/consensus v0.0.0-20210818195719-19aa4c45f010
+	github.com/SmartBFT-Go/consensus v0.0.0-20211020091606-b76ea8c4ecdb
 	github.com/VictoriaMetrics/fastcache v1.5.7
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
@@ -35,7 +33,7 @@ require (
 	github.com/frankban/quicktest v1.9.0 // indirect
 	github.com/fsouza/go-dockerclient v1.4.1
 	github.com/go-kit/kit v0.8.0
-	github.com/golang/protobuf v1.3.5
+	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.2 // indirect
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.7.2
@@ -67,18 +65,20 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.1.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/sykesm/zap-logfmt v0.0.2
 	github.com/syndtr/goleveldb v1.0.1-0.20190625010220-02440ea7a285
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc
 	github.com/willf/bitset v1.1.10
 	gitlab.n-t.io/ntbc/consensus v0.0.0-20200305092142-48c132f58ce8 // indirect
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55
-	go.uber.org/zap v1.16.0
+	go.uber.org/tools v0.0.0-20190618225709-2cfd321de3ee // indirect
+	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
 	google.golang.org/grpc v1.31.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.3.0
+	honnef.co/go/tools v0.0.1-2019.2.3 // indirect
 )
