@@ -7,6 +7,8 @@ replace github.com/hyperledger/fabric => ./
 
 replace github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
 
+replace github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
+
 replace github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20211020141032-c6af054a2ba4
 
 // https://github.com/golang/go/issues/34610
@@ -44,9 +46,9 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hyperledger/fabric-amcl v0.0.0-20200128223036-d1aa2665426a
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20200128192331-2d899240a7ed
-	github.com/hyperledger/fabric-config v0.0.7
+	github.com/hyperledger/fabric-config v0.0.0-00010101000000-000000000000
 	github.com/hyperledger/fabric-lib-go v1.0.0
-	github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e
+	github.com/hyperledger/fabric-protos-go v0.0.0-20190919234611-2a87503ac7c9
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.0
 	github.com/magiconair/properties v1.8.1 // indirect

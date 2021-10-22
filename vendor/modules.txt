@@ -174,7 +174,7 @@ github.com/hyperledger/fabric-chaincode-go/pkg/statebased
 github.com/hyperledger/fabric-chaincode-go/shim
 github.com/hyperledger/fabric-chaincode-go/shim/internal
 github.com/hyperledger/fabric-chaincode-go/shimtest
-# github.com/hyperledger/fabric-config v0.0.7
+# github.com/hyperledger/fabric-config v0.0.0-00010101000000-000000000000 => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
 ## explicit
 github.com/hyperledger/fabric-config/configtx
 github.com/hyperledger/fabric-config/configtx/internal/policydsl
@@ -190,7 +190,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.0.0-20200424173316-dd554ba3746e => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
+# github.com/hyperledger/fabric-protos-go v0.0.0-20190919234611-2a87503ac7c9 => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
 ## explicit
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -544,5 +544,6 @@ gopkg.in/yaml.v2
 gopkg.in/yaml.v3
 # github.com/hyperledger/fabric => ./
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211020115310-530cb3512535
+# github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
 # github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20211020141032-c6af054a2ba4
 # golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380

@@ -37,8 +37,9 @@ func getPolicies(policies map[string]*cb.ConfigPolicy) (map[string]Policy, error
 			}
 
 			p[name] = Policy{
-				Type: ImplicitMetaPolicyType,
-				Rule: rule,
+				Type:      ImplicitMetaPolicyType,
+				Rule:      rule,
+				ModPolicy: policy.GetModPolicy(),
 			}
 		case cb.Policy_SIGNATURE:
 			sp := &cb.SignaturePolicyEnvelope{}
@@ -53,8 +54,9 @@ func getPolicies(policies map[string]*cb.ConfigPolicy) (map[string]Policy, error
 			}
 
 			p[name] = Policy{
-				Type: SignaturePolicyType,
-				Rule: rule,
+				Type:      SignaturePolicyType,
+				Rule:      rule,
+				ModPolicy: policy.GetModPolicy(),
 			}
 		default:
 			return nil, fmt.Errorf("unknown policy type: %v", policy.Policy.Type)
@@ -184,8 +186,7 @@ func signaturePolicyToString(sig *cb.SignaturePolicy, IDs []string) (string, err
 	}
 }
 
-// TODO: evaluate if modPolicy actually needs to be passed in if all callers pass AdminsPolicyKey.
-func setPolicies(cg *cb.ConfigGroup, policyMap map[string]Policy, modPolicy string) error {
+func setPolicies(cg *cb.ConfigGroup, policyMap map[string]Policy) error {
 	if policyMap == nil {
 		return errors.New("no policies defined")
 	}
@@ -202,8 +203,9 @@ func setPolicies(cg *cb.ConfigGroup, policyMap map[string]Policy, modPolicy stri
 		return errors.New("no Writers policy defined")
 	}
 
+	cg.Policies = make(map[string]*cb.ConfigPolicy)
 	for policyName, policy := range policyMap {
-		err := setPolicy(cg, modPolicy, policyName, policy)
+		err := setPolicy(cg, policyName, policy)
 		if err != nil {
 			return err
 		}
@@ -212,7 +214,7 @@ func setPolicies(cg *cb.ConfigGroup, policyMap map[string]Policy, modPolicy stri
 	return nil
 }
 
-func setPolicy(cg *cb.ConfigGroup, modPolicy, policyName string, policy Policy) error {
+func setPolicy(cg *cb.ConfigGroup, policyName string, policy Policy) error {
 	if cg.Policies == nil {
 		cg.Policies = make(map[string]*cb.ConfigPolicy)
 	}
@@ -229,8 +231,12 @@ func setPolicy(cg *cb.ConfigGroup, modPolicy, policyName string, policy Policy) 
 			return fmt.Errorf("marshaling implicit meta policy: %v", err)
 		}
 
+		if policy.ModPolicy == "" {
+			policy.ModPolicy = AdminsPolicyKey
+		}
+
 		cg.Policies[policyName] = &cb.ConfigPolicy{
-			ModPolicy: modPolicy,
+			ModPolicy: policy.ModPolicy,
 			Policy: &cb.Policy{
 				Type:  int32(cb.Policy_IMPLICIT_META),
 				Value: implicitMetaPolicy,
@@ -247,8 +253,12 @@ func setPolicy(cg *cb.ConfigGroup, modPolicy, policyName string, policy Policy) 
 			return fmt.Errorf("marshaling signature policy: %v", err)
 		}
 
+		if policy.ModPolicy == "" {
+			policy.ModPolicy = AdminsPolicyKey
+		}
+
 		cg.Policies[policyName] = &cb.ConfigPolicy{
-			ModPolicy: modPolicy,
+			ModPolicy: policy.ModPolicy,
 			Policy: &cb.Policy{
 				Type:  int32(cb.Policy_SIGNATURE),
 				Value: signaturePolicy,

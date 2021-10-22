@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package configtx
 
 import (
+	"errors"
 	"fmt"
 
 	cb "github.com/hyperledger/fabric-protos-go/common"
@@ -83,10 +84,27 @@ func (c *ChannelGroup) Policies() (map[string]Policy, error) {
 	return getPolicies(c.channelGroup.Policies)
 }
 
+// SetModPolicy sets the specified modification policy for the channel group.
+func (c *ChannelGroup) SetModPolicy(modPolicy string) error {
+	if modPolicy == "" {
+		return errors.New("non empty mod policy is required")
+	}
+
+	c.channelGroup.ModPolicy = modPolicy
+
+	return nil
+}
+
 // SetPolicy sets the specified policy in the channel group's config policy map.
-// If the policy already exist in current configuration, its value will be overwritten.
-func (c *ChannelGroup) SetPolicy(modPolicy, policyName string, policy Policy) error {
-	return setPolicy(c.channelGroup, modPolicy, policyName, policy)
+// If the policy already exists in current configuration, its value will be overwritten.
+func (c *ChannelGroup) SetPolicy(policyName string, policy Policy) error {
+	return setPolicy(c.channelGroup, policyName, policy)
+}
+
+// SetPolicies sets the specified policies in the channel group's config policy map.
+// If the policies already exist in current configuration, the values will be replaced with new policies.
+func (c *ChannelGroup) SetPolicies(policies map[string]Policy) error {
+	return setPolicies(c.channelGroup, policies)
 }
 
 // RemovePolicy removes an existing channel level policy.
@@ -112,7 +130,7 @@ func (c *ChannelGroup) Capabilities() ([]string, error) {
 }
 
 // AddCapability adds capability to the provided channel config.
-// If the provided capability already exist in current configuration, this action
+// If the provided capability already exists in current configuration, this action
 // will be a no-op.
 func (c *ChannelGroup) AddCapability(capability string) error {
 	capabilities, err := c.Capabilities()
