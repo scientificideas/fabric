@@ -9,8 +9,6 @@ replace github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fa
 
 replace github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
 
-replace github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20211020141032-c6af054a2ba4
-
 // https://github.com/golang/go/issues/34610
 replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 
@@ -21,7 +19,7 @@ require (
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/Shopify/sarama v1.20.1
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
-	github.com/SmartBFT-Go/consensus v0.0.0-20211020091606-b76ea8c4ecdb
+	github.com/SmartBFT-Go/consensus v0.0.0-20211022215507-76bdd3161df8
 	github.com/VictoriaMetrics/fastcache v1.5.7
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
