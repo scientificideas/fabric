@@ -20,6 +20,7 @@ import (
 
 const (
 	defaultRequestTimeout = 10 * time.Second // for unit tests only
+	defaultSubmitTimeout  = 5 * time.Second  // TODO: update value with a config
 )
 
 var (
@@ -153,7 +154,7 @@ func (rp *Pool) Submit(request []byte) error {
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
-		defaultRequestTimeout,
+		defaultSubmitTimeout,
 	)
 	defer cancel()
 
