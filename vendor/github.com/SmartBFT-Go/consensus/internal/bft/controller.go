@@ -6,8 +6,10 @@
 package bft
 
 import (
+	"fmt"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/SmartBFT-Go/consensus/pkg/api"
 	"github.com/SmartBFT-Go/consensus/pkg/types"
@@ -203,21 +205,32 @@ func (c *Controller) HandleRequest(sender uint64, req []byte) {
 		return
 	}
 	c.Logger.Debugf("Got request from %d", sender)
+
+	reqInfo.Caller = fmt.Sprintf("HandleRequest(sender=%d)", sender)
 	c.addRequest(reqInfo, req)
 }
 
 // SubmitRequest Submits a request to go through consensus.
 func (c *Controller) SubmitRequest(request []byte) error {
 	info := c.RequestInspector.RequestID(request)
+	info.Caller = "SubmitRequest"
 	return c.addRequest(info, request)
 }
 
 func (c *Controller) addRequest(info types.RequestInfo, request []byte) error {
-	err := c.RequestPool.Submit(request)
+	c.Logger.Infof("[controller] %s got request s% from %s", info.Caller, info.ID, info.ClientID)
+
+	var (
+		start   = time.Now()
+		err     = c.RequestPool.Submit(request)
+		elapsed = time.Since(start)
+	)
 	if err != nil {
 		c.Logger.Infof("Request %s was not submitted, error: %s", info, err)
 		return err
 	}
+
+	c.Logger.Infof("[controller] %s submitted request s% from %s, elapsed %s", info.Caller, info.ID, info.ClientID, elapsed)
 
 	c.Logger.Debugf("Request %s was submitted", info)
 
