@@ -143,6 +143,12 @@ func (rp *Pool) Submit(request []byte) error {
 		return errors.Errorf("pool closed, request rejected: %s", reqInfo)
 	}
 
+	// TODO: Allowing to submit requests smaller than 500K
+	if len(request) > 500*1024 {
+		// TODO: Fix by introducing library level variables to control size of incomming requests from the client
+		return errors.Errorf("cannot accept request larger than 0.5M, got %d bytes long request %s, rejecting", len(request), reqInfo)
+	}
+
 	rp.lock.RLock()
 	_, alreadyExists := rp.existMap[reqInfo]
 	rp.lock.RUnlock()
