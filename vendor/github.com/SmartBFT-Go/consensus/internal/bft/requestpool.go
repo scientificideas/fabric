@@ -20,11 +20,13 @@ import (
 
 const (
 	defaultRequestTimeout = 10 * time.Second // for unit tests only
-	defaultSubmitTimeout  = 5 * time.Second  // TODO: update value with a config
+	defaultMaxBytes       = 100 * 1024       // default max request size would be of size 100Kb
 )
 
 var (
 	ErrReqAlreadyExists = fmt.Errorf("request already exists")
+	ErrRequestTooBig    = fmt.Errorf("submitted request is too big")
+	ErrSubmitTimeout    = fmt.Errorf("timeout submitting to request pool")
 )
 
 //go:generate mockery -dir . -name RequestTimeoutHandler -case underscore -output ./mocks/
@@ -74,6 +76,8 @@ type PoolOptions struct {
 	ForwardTimeout    time.Duration
 	ComplainTimeout   time.Duration
 	AutoRemoveTimeout time.Duration
+	RequestMaxBytes   uint64
+	SubmitTimeout     time.Duration
 }
 
 // NewPool constructs new requests pool
@@ -86,6 +90,12 @@ func NewPool(log api.Logger, inspector api.RequestInspector, th RequestTimeoutHa
 	}
 	if options.AutoRemoveTimeout == 0 {
 		options.AutoRemoveTimeout = defaultRequestTimeout
+	}
+	if options.RequestMaxBytes == 0 {
+		options.RequestMaxBytes = defaultMaxBytes
+	}
+	if options.SubmitTimeout == 0 {
+		options.SubmitTimeout = defaultRequestTimeout
 	}
 
 	return &Pool{
@@ -143,10 +153,8 @@ func (rp *Pool) Submit(request []byte) error {
 		return errors.Errorf("pool closed, request rejected: %s", reqInfo)
 	}
 
-	// TODO: Allowing to submit requests smaller than 500K
-	if len(request) > 500*1024 {
-		// TODO: Fix by introducing library level variables to control size of incomming requests from the client
-		return errors.Errorf("cannot accept request larger than 0.5M, got %d bytes long request %s, rejecting", len(request), reqInfo)
+	if uint64(len(request)) > rp.options.RequestMaxBytes {
+		return ErrRequestTooBig
 	}
 
 	rp.lock.RLock()
@@ -158,12 +166,8 @@ func (rp *Pool) Submit(request []byte) error {
 		return ErrReqAlreadyExists
 	}
 
-	ctx, cancel := context.WithTimeout(
-		context.Background(),
-		defaultSubmitTimeout,
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), rp.options.SubmitTimeout)
 	defer cancel()
-
 	// do not wait for a semaphore with a lock, as it will prevent draining the pool.
 	if err := rp.semaphore.Acquire(ctx, 1); err != nil {
 		return errors.Wrapf(err, "acquiring semaphore for request: %s", reqInfo)

@@ -222,6 +222,8 @@ var genesisDefaults = TopLevel{
 				CollectTimeout:            types.DefaultConfig.CollectTimeout.String(),
 				SyncOnStart:               types.DefaultConfig.SyncOnStart,
 				SpeedUpViewChange:         types.DefaultConfig.SpeedUpViewChange,
+				RequestMaxBytes:           types.DefaultConfig.RequestMaxBytes,
+				RequestPoolSubmitTimeout:  types.DefaultConfig.RequestPoolSubmitTimeout.String(),
 			},
 		},
 	},

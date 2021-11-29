@@ -577,9 +577,7 @@ func init() {
 	proto.RegisterType((*DeliverResponse)(nil), "orderer.DeliverResponse")
 }
 
-func init() {
-	proto.RegisterFile("orderer/ab.proto", fileDescriptor_79fce58dd8d86d62)
-}
+func init() { proto.RegisterFile("orderer/ab.proto", fileDescriptor_79fce58dd8d86d62) }
 
 var fileDescriptor_79fce58dd8d86d62 = []byte{
 	// 658 bytes of a gzipped FileDescriptorProto
@@ -629,11 +627,11 @@ var fileDescriptor_79fce58dd8d86d62 = []byte{
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
-var _ grpc.ClientConnInterface
+var _ grpc.ClientConn
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
-const _ = grpc.SupportPackageIsVersion6
+const _ = grpc.SupportPackageIsVersion4
 
 // AtomicBroadcastClient is the client API for AtomicBroadcast service.
 //
@@ -646,10 +644,10 @@ type AtomicBroadcastClient interface {
 }
 
 type atomicBroadcastClient struct {
-	cc grpc.ClientConnInterface
+	cc *grpc.ClientConn
 }
 
-func NewAtomicBroadcastClient(cc grpc.ClientConnInterface) AtomicBroadcastClient {
+func NewAtomicBroadcastClient(cc *grpc.ClientConn) AtomicBroadcastClient {
 	return &atomicBroadcastClient{cc}
 }
 

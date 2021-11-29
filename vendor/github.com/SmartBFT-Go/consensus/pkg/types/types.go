@@ -41,7 +41,6 @@ type ViewAndSeq struct {
 type RequestInfo struct {
 	ClientID string
 	ID       string
-	Caller   string // TODO: for debug purpose only. needs to be removed
 }
 
 func (r *RequestInfo) String() string {
