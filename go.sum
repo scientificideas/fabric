@@ -19,6 +19,8 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWso
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/SmartBFT-Go/consensus v0.0.0-20211130000323-0048189aa293 h1:LByJIOeUOUP4okSDdhd+7+JlnSyt56eyZIZau6+b+rk=
 github.com/SmartBFT-Go/consensus v0.0.0-20211130000323-0048189aa293/go.mod h1:ZOD/ZiAdH9HpqdsJLlUTlbzYBr/qYEzyYx7wClbrH+w=
+github.com/SmartBFT-Go/consensus v0.0.0-20211130140239-cd1c0b5c2035 h1:sVGjgKAYnxWiyez/tnY7lVFRK2u7hdJ/m+xG+uqoPSI=
+github.com/SmartBFT-Go/consensus v0.0.0-20211130140239-cd1c0b5c2035/go.mod h1:ZOD/ZiAdH9HpqdsJLlUTlbzYBr/qYEzyYx7wClbrH+w=
 github.com/VictoriaMetrics/fastcache v1.5.7 h1:4y6y0G8PRzszQUYIQHHssv/jgPHAb5qQuuDNdCbyAgw=
 github.com/VictoriaMetrics/fastcache v1.5.7/go.mod h1:ptDBkNMQI4RtmVo8VS/XwRY6RoTu1dAWCbrk+6WsEM8=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=

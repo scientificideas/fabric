@@ -19,7 +19,7 @@ require (
 	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/Shopify/sarama v1.20.1
 	github.com/Shopify/toxiproxy v2.1.4+incompatible // indirect
-	github.com/SmartBFT-Go/consensus v0.0.0-20211130000323-0048189aa293
+	github.com/SmartBFT-Go/consensus v0.0.0-20211130140239-cd1c0b5c2035
 	github.com/VictoriaMetrics/fastcache v1.5.7
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
