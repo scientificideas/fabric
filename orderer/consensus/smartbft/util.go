@@ -197,6 +197,7 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 		return config, errors.New("config metadata options field is nil")
 	}
 
+	config.RequestMaxBytes = options.RequestMaxBytes
 	config.RequestBatchMaxCount = options.RequestBatchMaxCount
 	config.RequestBatchMaxBytes = options.RequestBatchMaxBytes
 	if config.RequestBatchMaxInterval, err = time.ParseDuration(options.RequestBatchMaxInterval); err != nil {
@@ -222,6 +223,10 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 	if config.LeaderHeartbeatTimeout, err = time.ParseDuration(options.LeaderHeartbeatTimeout); err != nil {
 		return config, errors.Wrap(err, "bad config metadata option LeaderHeartbeatTimeout")
 	}
+	if config.RequestPoolSubmitTimeout, err = time.ParseDuration(options.RequestPoolSubmitTimeout); err != nil {
+		return config, errors.Wrap(err, "bad config metadata option RequestPoolSubmitTimeout")
+	}
+
 	config.LeaderHeartbeatCount = options.LeaderHeartbeatCount
 	if config.CollectTimeout, err = time.ParseDuration(options.CollectTimeout); err != nil {
 		return config, errors.Wrap(err, "bad config metadata option CollectTimeout")
