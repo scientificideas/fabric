@@ -171,6 +171,26 @@ Profiles:{{ range .Profiles }}
       {{- end }}
       {{- if eq $w.Consensus.Type "smartbft" }}
       SmartBFT:
+        Options:
+          LeaderRotation: 0
+          DecisionsPerLeader: 0
+          RequestBatchMaxCount: 100
+          RequestBatchMaxBytes: 10485760
+          RequestBatchMaxInterval: 500ms
+          IncomingMessageBufferSize: 1000
+          RequestPoolSize: 100
+          RequestForwardTimeout: 2s
+          RequestComplainTimeout: 20s
+          RequestAutoRemoveTimeout: 3m
+          ViewChangeResendInterval: 5s
+          ViewChangeTimeout: 20s
+          LeaderHeartbeatTimeout: 1m
+          LeaderHeartbeatCount: 10
+          CollectTimeout: 1s
+          SyncOnStart: false
+          SpeedUpViewChange: false
+          RequestMaxBytes: 512000
+          RequestPoolSubmitTimeout: 5s
         Consenters:{{ range .Orderers }}{{ with $w.Orderer . }}
         - Host: 127.0.0.1
           Port: {{ $w.OrdererPort . "Cluster" }}
