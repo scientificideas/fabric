@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package deliverservice
 
 import (
-	"context"
 	"math"
 	"math/rand"
 	"reflect"
@@ -25,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var bftLogger = flogging.MustGetLogger("bftDeliveryClient")
@@ -664,27 +662,5 @@ func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 }
 
 func (c *bftDeliveryClient) defaultConnectionProducer(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
-	dialOpts := []grpc.DialOption{grpc.WithBlock()}
-	// set max send/recv msg sizes
-	dialOpts = append(dialOpts, grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(comm.MaxRecvMsgSize),
-		grpc.MaxCallSendMsgSize(comm.MaxSendMsgSize)))
-	// set the keepalive options
-	kaOpts := comm.DefaultKeepaliveOptions
-	if viper.IsSet("peer.keepalive.deliveryClient.interval") {
-		kaOpts.ClientInterval = viper.GetDuration("peer.keepalive.deliveryClient.interval")
-	}
-	if viper.IsSet("peer.keepalive.deliveryClient.timeout") {
-		kaOpts.ClientTimeout = viper.GetDuration("peer.keepalive.deliveryClient.timeout")
-	}
-	dialOpts = append(dialOpts, comm.ClientKeepaliveOptions(kaOpts)...)
-
-	if viper.GetBool("peer.tls.enabled") {
-		creds := credentials.NewClientTLSFromCert(endpoint.CertPool, "")
-		dialOpts = append(dialOpts, grpc.WithTransportCredentials(creds))
-	} else {
-		dialOpts = append(dialOpts, grpc.WithInsecure())
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
-	defer cancel()
-	return grpc.DialContext(ctx, endpoint.Address, dialOpts...)
+	return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
 }

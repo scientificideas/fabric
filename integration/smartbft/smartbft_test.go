@@ -65,6 +65,11 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 		client, err = docker.NewClientFromEnv()
 		Expect(err).NotTo(HaveOccurred())
+
+		network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
+		network.ClientAuthRequired = true
+		network.GenerateConfigTree()
+		network.Bootstrap()
 	})
 
 	AfterEach(func() {
@@ -88,10 +93,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 	Describe("smartbft network", func() {
 		It("smartbft multiple nodes stop start all nodes", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {
 				runner := network.OrdererRunner(orderer)
@@ -139,9 +140,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("querying the chaincode")
 			sess, err := network.PeerUserSession(peer, "User1", commands.ChaincodeQuery{
-				ChannelID: channel,
-				Name:      "mycc",
-				Ctor:      `{"Args":["query","a"]}`,
+				ChannelID:  channel,
+				Name:       "mycc",
+				Ctor:       `{"Args":["query","a"]}`,
+				ClientAuth: network.ClientAuthRequired,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
@@ -178,10 +180,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		})
 
 		It("smartbft assisted synchronization no rotation", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {
 				runner := network.OrdererRunner(orderer)
@@ -296,9 +294,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		})
 
 		It("smartbft autonomous synchronization", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
 			network.EventuallyTimeout = time.Minute * 2
 
 			var ordererRunners []*ginkgomon.Runner
@@ -404,10 +399,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		})
 
 		It("smartbft node addition and removal", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			network.EventuallyTimeout *= 2
 
 			var ordererRunners []*ginkgomon.Runner
@@ -688,10 +679,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		})
 
 		It("smartbft iterated addition and iterated removal", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			network.EventuallyTimeout *= 2
 
 			var ordererRunners []*ginkgomon.Runner
@@ -855,10 +842,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		})
 
 		It("smartbft multiple nodes view change", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			var ordererRunners []*ginkgomon.Runner
 			for _, orderer := range network.Orderers {
 				runner := network.OrdererRunner(orderer, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug")
@@ -921,6 +904,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 					network.PeerAddress(network.Peer("Org2", "peer0"), nwo.ListenPort),
 				},
 				WaitForEvent: false,
+				ClientAuth:   network.ClientAuthRequired,
 			})
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
@@ -932,14 +916,9 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("Waiting for circulating transaction to be re-proposed")
 			queryExpect(network, peer, channel, "x1", 100)
-
 		})
 
 		It("smartbft reconfiguration prevents blacklisting", func() {
-			network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
-			network.GenerateConfigTree()
-			network.Bootstrap()
-
 			network.EventuallyTimeout *= 2
 
 			var ordererRunners []*ginkgomon.Runner
@@ -1106,7 +1085,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Skipping verifying prev commits due to verification sequence advancing from 1 to 2 channel=testchannel1"))
 			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Skipping verifying prev commits due to verification sequence advancing from 1 to 2 channel=testchannel1"))
 		})
-
 	})
 })
 
@@ -1121,6 +1099,7 @@ func invokeQuery(network *nwo.Network, peer *nwo.Peer, orderer *nwo.Orderer, cha
 			network.PeerAddress(network.Peer("Org2", "peer0"), nwo.ListenPort),
 		},
 		WaitForEvent: true,
+		ClientAuth:   network.ClientAuthRequired,
 	})
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
@@ -1132,9 +1111,10 @@ func invokeQuery(network *nwo.Network, peer *nwo.Peer, orderer *nwo.Orderer, cha
 func queryExpect(network *nwo.Network, peer *nwo.Peer, channel string, key string, expectedBalance int) {
 	Eventually(func() string {
 		sess, err := network.PeerUserSession(peer, "User1", commands.ChaincodeQuery{
-			ChannelID: channel,
-			Name:      "mycc",
-			Ctor:      fmt.Sprintf(`{"Args":["query","%s"]}`, key),
+			ChannelID:  channel,
+			Name:       "mycc",
+			Ctor:       fmt.Sprintf(`{"Args":["query","%s"]}`, key),
+			ClientAuth: network.ClientAuthRequired,
 		})
 		Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit())
 		if sess.ExitCode() != 0 {
@@ -1169,6 +1149,7 @@ func waitForBlockReception(o *nwo.Orderer, submitter *nwo.Peer, network *nwo.Net
 		Block:      "newest",
 		OutputFile: "/dev/null",
 		Orderer:    network.OrdererAddress(o, nwo.ListenPort),
+		ClientAuth: network.ClientAuthRequired,
 	}
 	Eventually(func() string {
 		sess, err := network.OrdererAdminSession(o, submitter, c)
