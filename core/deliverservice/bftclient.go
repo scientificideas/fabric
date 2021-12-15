@@ -254,12 +254,14 @@ func (c *bftDeliveryClient) monitor() {
 func (c *bftDeliveryClient) updateEndpoints() {
 	bftLogger.Debugf("[%s] Entry", c.chainID)
 
+	ticker := time.NewTicker(bftBlockCensorshipTimeout / 100)
 	for !c.shouldStop() {
 		select {
 		case endpoints := <-c.updateEndpointsCh:
 			bftLogger.Debugf("[%s] Received endpoints: %d", c.chainID, len(endpoints))
 			c.UpdateEndpoints(endpoints)
-		default:
+		case <-c.stopChan:
+		case <-ticker.C:
 		}
 	}
 
