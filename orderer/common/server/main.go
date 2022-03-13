@@ -60,7 +60,7 @@ import (
 
 var logger = flogging.MustGetLogger("orderer.common.server")
 
-//command line flags
+// command line flags
 var (
 	app = kingpin.New("orderer", "Hyperledger Fabric orderer node")
 
@@ -539,6 +539,7 @@ func initializeClusterClientConfig(conf *localconfig.TopLevel) comm.ClientConfig
 	cc := comm.ClientConfig{
 		AsyncConnect: true,
 		KaOpts:       comm.DefaultKeepaliveOptions,
+		BaOpts:       comm.BackoffOptions{},
 		Timeout:      conf.General.Cluster.DialTimeout,
 		SecOpts:      comm.SecureOptions{},
 	}
@@ -587,6 +588,24 @@ func initializeClusterClientConfig(conf *localconfig.TopLevel) comm.ClientConfig
 		Certificate:       certBytes,
 		Key:               keyBytes,
 		UseTLS:            true,
+	}
+
+	if conf.General.Backoff.BaseDelay > 0 ||
+		conf.General.Backoff.Multiplier > 0 ||
+		conf.General.Backoff.MaxDelay > 0 {
+		cc.BaOpts = comm.DefaultBackoffOptions
+
+		if conf.General.Backoff.BaseDelay > time.Duration(0) {
+			cc.BaOpts.BaseDelay = conf.General.Backoff.BaseDelay
+		}
+
+		if conf.General.Backoff.Multiplier > 0 {
+			cc.BaOpts.Multiplier = conf.General.Backoff.Multiplier
+		}
+
+		if conf.General.Backoff.MaxDelay > time.Duration(0) {
+			cc.BaOpts.MaxDelay = conf.General.Backoff.MaxDelay
+		}
 	}
 
 	return cc
@@ -984,14 +1003,14 @@ func (mgr *caManager) updateTrustedRoots(
 	ordOrgMSPs := make(map[string]struct{})
 
 	if ac, ok := cm.ApplicationConfig(); ok {
-		//loop through app orgs and build map of MSPIDs
+		// loop through app orgs and build map of MSPIDs
 		for _, appOrg := range ac.Organizations() {
 			appOrgMSPs[appOrg.MSPID()] = struct{}{}
 		}
 	}
 
 	if ac, ok := cm.OrdererConfig(); ok {
-		//loop through orderer orgs and build map of MSPIDs
+		// loop through orderer orgs and build map of MSPIDs
 		for _, ordOrg := range ac.Organizations() {
 			ordOrgMSPs[ordOrg.MSPID()] = struct{}{}
 		}
@@ -999,7 +1018,7 @@ func (mgr *caManager) updateTrustedRoots(
 
 	if cc, ok := cm.ConsortiumsConfig(); ok {
 		for _, consortium := range cc.Consortiums() {
-			//loop through consortium orgs and build map of MSPIDs
+			// loop through consortium orgs and build map of MSPIDs
 			for _, consortiumOrg := range consortium.Organizations() {
 				appOrgMSPs[consortiumOrg.MSPID()] = struct{}{}
 			}

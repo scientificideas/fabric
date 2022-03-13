@@ -30,6 +30,11 @@ var (
 		ServerTimeout:     time.Duration(20) * time.Second, // 20 sec - gRPC default
 		ServerMinInterval: time.Duration(1) * time.Minute,  // match ClientInterval
 	}
+	DefaultBackoffOptions = BackoffOptions{
+		BaseDelay:  time.Second,
+		Multiplier: 1.6,
+		MaxDelay:   time.Minute * 2,
+	}
 	// strong TLS cipher suites
 	DefaultTLSCipherSuites = []uint16{
 		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
@@ -72,6 +77,8 @@ type ClientConfig struct {
 	SecOpts SecureOptions
 	// KaOpts defines the keepalive parameters
 	KaOpts KeepaliveOptions
+	// BackoffOpts defines the backoff parameters
+	BaOpts BackoffOptions
 	// Timeout specifies how long the client will block when attempting to
 	// establish a connection
 	Timeout time.Duration
@@ -130,6 +137,17 @@ type KeepaliveOptions struct {
 	// ServerMinInterval is the minimum permitted time between client pings.
 	// If clients send pings more frequently, the server will disconnect them
 	ServerMinInterval time.Duration
+}
+
+// BackoffOptions defines the configuration options for GRPC client.
+type BackoffOptions struct {
+	// BaseDelay is the amount of time to backoff after the first failure.
+	BaseDelay time.Duration
+	// Multiplier is the factor with which to multiply backoffs after a
+	// failed retry. Should ideally be greater than 1.
+	Multiplier float64
+	// MaxDelay is the upper bound of backoff delay.
+	MaxDelay time.Duration
 }
 
 type Metrics struct {
