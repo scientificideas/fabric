@@ -73,7 +73,7 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => ../../SmartBFT-Go/consensus
+	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
 	// develop
 	github.com/hyperledger/fabric => ./
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301

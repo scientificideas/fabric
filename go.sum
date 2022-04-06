@@ -241,6 +241,8 @@ github.com/prometheus/procfs v0.0.3 h1:CTwfnzjQ+8dS6MhHHu4YswVAD99sL2wjPqP+VkURm
 github.com/prometheus/procfs v0.0.3/go.mod h1:4A/X28fw3Fc593LaREMrKMqOKvUAntwMDaekg4FpcdQ=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a h1:9ZKAASQSHhDYGoxY8uLVpewe1GDZ2vu2Tr/vTdVAkFQ=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
+github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2 h1:cj1WqevHwaMwCsIvIrO54U7V67DdJficnTd7NJ6MiPo=
+github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2/go.mod h1:ZOD/ZiAdH9HpqdsJLlUTlbzYBr/qYEzyYx7wClbrH+w=
 github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301 h1:a7QmvZ4QPf5Oso0P1qFJzYaTvCCY9cBpuNecLwM83Ps=
 github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301/go.mod h1:oRoDuPEfKhgR090lbpU0IePLsCklDhe6cSwO2zHwTWQ=
 github.com/scientificideas/fabric-protos-go v0.0.0-20211129231519-47ba956498d8 h1:1tYuWQGKGGgekdw9+kM4zoJ+jbzz3b3AkjPzzd7xPik=
