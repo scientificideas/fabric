@@ -6,6 +6,7 @@
 package bft
 
 import (
+	"errors"
 	"sync"
 	"sync/atomic"
 
@@ -64,6 +65,8 @@ type Proposer interface {
 	Propose(proposal types.Proposal)
 	Start()
 	Abort()
+	Stopped() bool
+	GetLeaderID() uint64
 	GetMetadata() []byte
 	HandleMessage(sender uint64, m *protos.Message)
 }
@@ -149,6 +152,22 @@ func (c *Controller) latestSeq() uint64 {
 	}
 
 	return md.LatestSequence
+}
+
+func (c *Controller) currentViewStopped() bool {
+	c.currViewLock.RLock()
+	view := c.currView
+	c.currViewLock.RUnlock()
+
+	return view.Stopped()
+}
+
+func (c *Controller) currentViewLeader() uint64 {
+	c.currViewLock.RLock()
+	view := c.currView
+	c.currViewLock.RUnlock()
+
+	return view.GetLeaderID()
 }
 
 func (c *Controller) getCurrentViewNumber() uint64 {
@@ -365,10 +384,17 @@ func (c *Controller) startView(proposalSequence uint64) {
 }
 
 func (c *Controller) changeView(newViewNumber uint64, newProposalSequence uint64, newDecisionsInView uint64) {
-
 	latestView := c.getCurrentViewNumber()
 	if latestView > newViewNumber {
 		c.Logger.Debugf("Got view change to %d but already at %d", newViewNumber, latestView)
+		return
+	}
+
+	leader := c.currentViewLeader()
+	stopped := c.currentViewStopped()
+
+	if !stopped && latestView == newViewNumber && c.leaderID() == leader {
+		c.Logger.Debugf("Got view change to %d but view is already running", newViewNumber)
 		return
 	}
 
@@ -560,6 +586,17 @@ func (c *Controller) sync() (viewNum uint64, seq uint64, decisions uint64) {
 		c.close()
 		c.ViewChanger.close()
 	}
+
+	if len(syncResponse.RequestDel) != 0 {
+		c.RequestPool.Prune(func(bytes []byte) error {
+			return errors.New("Need all delete")
+		})
+
+		for i := range syncResponse.RequestDel {
+			_ = c.RequestPool.RemoveRequest(syncResponse.RequestDel[i])
+		}
+	}
+
 	decision := syncResponse.Latest
 	if decision.Proposal.Metadata == nil {
 		c.Logger.Infof("Synchronizer returned with proposal metadata nil")
@@ -872,7 +909,7 @@ type decision struct {
 	requests   []types.RequestInfo
 }
 
-//BroadcastConsensus broadcasts the message and informs the heartbeat monitor if necessary
+// BroadcastConsensus broadcasts the message and informs the heartbeat monitor if necessary
 func (c *Controller) BroadcastConsensus(m *protos.Message) {
 	for _, node := range c.NodesList {
 		// Do not send to yourself

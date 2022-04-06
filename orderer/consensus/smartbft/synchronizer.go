@@ -20,15 +20,16 @@ import (
 
 // Synchronizer implementation
 type Synchronizer struct {
-	lastReconfig    types.Reconfig
-	selfID          uint64
-	LatestConfig    func() (types.Configuration, []uint64)
-	BlockToDecision func(*cb.Block) *types.Decision
-	OnCommit        func(*cb.Block) types.Reconfig
-	Support         consensus.ConsenterSupport
-	BlockPuller     BlockPuller
-	ClusterSize     uint64
-	Logger          *flogging.FabricLogger
+	lastReconfig     types.Reconfig
+	selfID           uint64
+	LatestConfig     func() (types.Configuration, []uint64)
+	BlockToDecision  func(*cb.Block) *types.Decision
+	OnCommit         func(*cb.Block) types.Reconfig
+	Support          consensus.ConsenterSupport
+	RequestInspector *RequestInspector
+	BlockPuller      BlockPuller
+	ClusterSize      uint64
+	Logger           *flogging.FabricLogger
 }
 
 // Close closes the block puller connection
@@ -38,7 +39,7 @@ func (s *Synchronizer) Close() {
 
 // Sync synchronizes blocks and returns the response
 func (s *Synchronizer) Sync() types.SyncResponse {
-	decision, err := s.synchronize()
+	decision, reqInfo, err := s.synchronize()
 	if err != nil {
 		s.Logger.Warnf("Could not synchronize with remote peers due to %s, returning state from local ledger", err)
 		block := s.Support.Block(s.Support.Height() - 1)
@@ -50,6 +51,7 @@ func (s *Synchronizer) Sync() types.SyncResponse {
 				CurrentNodes:          nodes,
 				CurrentConfig:         config,
 			},
+			RequestDel: reqInfo,
 		}
 	}
 
@@ -64,6 +66,7 @@ func (s *Synchronizer) Sync() types.SyncResponse {
 			CurrentConfig:         s.lastReconfig.CurrentConfig,
 			CurrentNodes:          s.lastReconfig.CurrentNodes,
 		},
+		RequestDel: reqInfo,
 	}
 }
 
@@ -78,17 +81,17 @@ func (s *Synchronizer) getViewMetadataLastConfigSqnFromBlock(block *cb.Block) (*
 	return viewMetadata, lastConfigSqn
 }
 
-func (s *Synchronizer) synchronize() (*types.Decision, error) {
+func (s *Synchronizer) synchronize() (*types.Decision, []types.RequestInfo, error) {
 	defer s.BlockPuller.Close()
 	heightByEndpoint, err := s.BlockPuller.HeightsByEndpoints()
 	if err != nil {
-		return nil, errors.Wrap(err, "cannot get HeightsByEndpoints")
+		return nil, nil, errors.Wrap(err, "cannot get HeightsByEndpoints")
 	}
 
 	s.Logger.Infof("HeightsByEndpoints: %v", heightByEndpoint)
 
 	if len(heightByEndpoint) == 0 {
-		return nil, errors.New("no cluster members to synchronize with")
+		return nil, nil, errors.New("no cluster members to synchronize with")
 	}
 
 	var heights []uint64
@@ -99,7 +102,7 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 	targetHeight := s.computeTargetHeight(heights)
 	startHeight := s.Support.Height()
 	if startHeight >= targetHeight {
-		return nil, errors.Errorf("already at height of %d", targetHeight)
+		return nil, nil, errors.Errorf("already at height of %d", targetHeight)
 	}
 
 	targetSeq := targetHeight - 1
@@ -109,7 +112,11 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 
 	s.Logger.Debugf("Will fetch sequences [%d-%d]", seq, targetSeq)
 
-	var lastPulledBlock *cb.Block
+	var (
+		lastPulledBlock *cb.Block
+		res             []types.RequestInfo
+	)
+
 	for seq <= targetSeq {
 		block := s.BlockPuller.PullBlock(seq)
 		if block == nil {
@@ -122,6 +129,17 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 			s.Support.WriteBlock(block, nil)
 		}
 		s.Logger.Debugf("Fetched and committed block [%d] from cluster", seq)
+
+		if block.Data != nil {
+			for _, txn := range block.Data.Data {
+				req := s.RequestInspector.RequestID(txn)
+				if req.ID == "" && req.ClientID == "" {
+					continue
+				}
+				res = append(res, req)
+			}
+		}
+
 		lastPulledBlock = block
 
 		prevInLatestDecision := s.lastReconfig.InLatestDecision
@@ -132,7 +150,7 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 	}
 
 	if lastPulledBlock == nil {
-		return nil, errors.Errorf("failed pulling block %d", seq)
+		return nil, nil, errors.Errorf("failed pulling block %d", seq)
 	}
 
 	startSeq := startHeight
@@ -142,7 +160,7 @@ func (s *Synchronizer) synchronize() (*types.Decision, error) {
 	viewMetadata, lastConfigSqn := s.getViewMetadataLastConfigSqnFromBlock(lastPulledBlock)
 
 	s.Logger.Infof("Returning view metadata of %v, lastConfigSeq %d", viewMetadata, lastConfigSqn)
-	return s.BlockToDecision(lastPulledBlock), nil
+	return s.BlockToDecision(lastPulledBlock), res, nil
 }
 
 // computeTargetHeight compute the target height to synchronize to.

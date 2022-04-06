@@ -2,16 +2,6 @@ module github.com/hyperledger/fabric
 
 go 1.14
 
-// develop
-replace github.com/hyperledger/fabric => ./
-
-replace github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211129231519-47ba956498d8
-
-replace github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
-
-// https://github.com/golang/go/issues/34610
-replace golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
-
 require (
 	code.cloudfoundry.org/clock v1.0.0
 	github.com/DataDog/zstd v1.4.0 // indirect
@@ -80,4 +70,14 @@ require (
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.3.0
+)
+
+replace (
+	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
+	// develop
+	github.com/hyperledger/fabric => ./
+	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20211022173806-2db6d2f11301
+	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20211129231519-47ba956498d8
+	// https://github.com/golang/go/issues/34610
+	golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 )
