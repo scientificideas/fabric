@@ -21,7 +21,7 @@ import (
 // RPC sends a consensus and submits a request
 type RPC interface {
 	SendConsensus(dest uint64, msg *ab.ConsensusRequest) error
-	SendSubmit(dest uint64, request *ab.SubmitRequest) error
+	SendSubmit(dest uint64, request *ab.SubmitRequest, report func(error)) error
 }
 
 // Logger specifies the logger
@@ -67,7 +67,8 @@ func (e *Egress) SendTransaction(targetID uint64, request []byte) {
 		Channel: e.Channel,
 		Payload: env,
 	}
-	e.RPC.SendSubmit(targetID, msg)
+	report := func(err error) {}
+	e.RPC.SendSubmit(targetID, msg, report)
 }
 
 func bftMsgToClusterMsg(message *protos.Message, channel string) *ab.ConsensusRequest {

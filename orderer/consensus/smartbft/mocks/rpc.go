@@ -25,7 +25,7 @@ func (_m *RPC) SendConsensus(dest uint64, msg *orderer.ConsensusRequest) error {
 }
 
 // SendSubmit provides a mock function with given fields: dest, request
-func (_m *RPC) SendSubmit(dest uint64, request *orderer.SubmitRequest) error {
+func (_m *RPC) SendSubmit(dest uint64, request *orderer.SubmitRequest, report func(error)) error {
 	ret := _m.Called(dest, request)
 
 	var r0 error
