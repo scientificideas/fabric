@@ -311,7 +311,7 @@ Run the following command to deploy the smart contract to `mychannel`:
 
 .. code:: bash
 
-  ./network.sh deployCC -ccn ledger -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+  ./network.sh deployCC -ccn ledger -ccp ../asset-transfer-ledger-queries/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 
 Note that we are using the `-ccep` flag to deploy the smart contract with an endorsement policy of
 `"OR('Org1MSP.peer','Org2MSP.peer')"`. This allows either organization to create an asset without
@@ -517,7 +517,7 @@ previous example.
 
 A query that does not include all fields in the index will have to scan the full
 database instead. For example, the query below searches for the owner, without
-specifying the type of item owned. Since the ownerIndexDoc contains both
+specifying the type of item owned. Since the indexOwnerDoc contains both
 the ``owner`` and ``docType`` fields, this query will not be able to use the
 index.
 

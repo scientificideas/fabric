@@ -180,10 +180,10 @@ need to horizontally scroll to locate the information):
 * The Ordering Org CA, `ca_orderer`, is running in container `7b01f5454832`
 
 These containers all form a [Docker network](https://docs.docker.com/network/)
-called `net_test`. You can view the network with the `docker network` command:
+called `fabric_test`. You can view the network with the `docker network` command:
 
 ```
-$ docker network inspect net_test
+$ docker network inspect fabric_test
 
   [
       {
@@ -404,7 +404,7 @@ and approve the chaincode as administrators of both MagnetoCorp and DigiBank.
 administrator installs a copy of the `papercontract` onto a MagnetoCorp peer.*
 
 Smart contracts are the focus of application development, and are contained
-within a Hyperledger Fabric artifact called [chaincode](../chaincode.html). One
+within a Hyperledger Fabric artifact called [chaincode](../chaincode4ade.html). One
 or more smart contracts can be defined within a single chaincode, and installing
 a chaincode will allow them to be consumed by the different organizations in
 PaperNet. It means that only administrators need to worry about chaincode;
@@ -854,7 +854,7 @@ All the time, the underlying Fabric SDK handles the transaction endorsement,
 ordering and notification process, making the application's logic
 straightforward; the SDK uses a [gateway](../developapps/gateway.html) to
 abstract away network details and
-[connectionOptions](../developapps/connectoptions.html) to declare more advanced
+[connectionOptions](../developapps/connectionoptions.html) to declare more advanced
 processing strategies such as transaction retry.
 
 Let's now follow the lifecycle of MagnetoCorp 00001 by switching our emphasis

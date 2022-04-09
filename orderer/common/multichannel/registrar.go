@@ -32,6 +32,7 @@ import (
 	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
 	"github.com/hyperledger/fabric/orderer/common/types"
 	"github.com/hyperledger/fabric/orderer/consensus"
+	"github.com/hyperledger/fabric/orderer/consensus/etcdraft"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
@@ -73,16 +74,18 @@ type Registrar struct {
 // ConfigBlockOrPanic retrieves the last configuration block from the given ledger.
 // Panics on failure.
 func ConfigBlockOrPanic(reader blockledger.Reader) *cb.Block {
-	lastBlock := blockledger.GetBlock(reader, reader.Height()-1)
+	lastBlock, err := blockledger.GetBlockByNumber(reader, reader.Height()-1)
+	if err != nil {
+		logger.Panicw("Failed to retrieve block", "blockNum", reader.Height()-1, "error", err)
+	}
 	index, err := protoutil.GetLastConfigIndexFromBlock(lastBlock)
 	if err != nil {
-		logger.Panicf("Chain did not have appropriately encoded last config in its latest block: %s", err)
+		logger.Panicw("Chain did not have appropriately encoded last config in its latest block", "error", err)
 	}
-	configBlock := blockledger.GetBlock(reader, index)
-	if configBlock == nil {
-		logger.Panicf("Config block does not exist")
+	configBlock, err := blockledger.GetBlockByNumber(reader, index)
+	if err != nil {
+		logger.Panicw("Failed to retrieve config block", "blockNum", index, "error", err)
 	}
-
 	return configBlock
 }
 
@@ -137,7 +140,6 @@ func InitJoinBlockFileRepo(config *localconfig.TopLevel) (*filerepo.Repo, error)
 	return joinBlockFileRepo, nil
 }
 
-// Initialize consenter's channels
 func (r *Registrar) Initialize(consenters map[string]consensus.Consenter) {
 	r.init(consenters)
 
@@ -532,7 +534,10 @@ func (r *Registrar) CreateChain(chainName string) {
 	if chain != nil {
 		logger.Infof("A chain of type %T for channel %s already exists. "+
 			"Halting it.", chain.Chain, chainName)
+		r.lock.Lock()
 		chain.Halt()
+		delete(r.chains, chainName)
+		r.lock.Unlock()
 	}
 	r.newChain(configTx(lf))
 }
@@ -540,6 +545,20 @@ func (r *Registrar) CreateChain(chainName string) {
 func (r *Registrar) newChain(configtx *cb.Envelope) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
+
+	channelName, err := channelNameFromConfigTx(configtx)
+	if err != nil {
+		logger.Warnf("Failed extracting channel name: %v", err)
+		return
+	}
+
+	// fixes https://github.com/hyperledger/fabric/issues/2931
+	if existingChain, exists := r.chains[channelName]; exists {
+		if _, isRaftChain := existingChain.Chain.(*etcdraft.Chain); isRaftChain {
+			logger.Infof("Channel %s already created, skipping its creation", channelName)
+			return
+		}
+	}
 
 	cs := r.createNewChain(configtx)
 	cs.start()
@@ -1112,27 +1131,20 @@ func (r *Registrar) ReportConsensusRelationAndStatusMetrics(channelID string, re
 	r.channelParticipationMetrics.reportStatus(channelID, status)
 }
 
-func (r *Registrar) ApplyFilters(channel string, env *cb.Envelope) error {
-	r.lock.RLock()
-	cs, exists := r.chains[channel]
-	r.lock.RUnlock()
-
-	if !exists {
-		// This is for the system channel
-		return msgprocessor.CreateSystemChannelFilters(r.config, r, r.systemChannel, r.systemChannel.MetadataValidator).Apply(env)
+func channelNameFromConfigTx(configtx *cb.Envelope) (string, error) {
+	payload, err := protoutil.UnmarshalPayload(configtx.Payload)
+	if err != nil {
+		return "", errors.WithMessage(err, "error umarshaling envelope to payload")
 	}
 
-	return msgprocessor.CreateStandardChannelFilters(cs, r.config).Apply(env)
-}
-
-func (r *Registrar) ProposeConfigUpdate(channel string, configtx *cb.Envelope) (*cb.ConfigEnvelope, error) {
-	r.lock.RLock()
-	cs, exists := r.chains[channel]
-	r.lock.RUnlock()
-
-	if !exists {
-		return nil, errors.Errorf("channel %s doesn't exist", channel)
+	if payload.Header == nil {
+		return "", errors.New("missing channel header")
 	}
 
-	return cs.ProposeConfigUpdate(configtx)
+	chdr, err := protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
+	if err != nil {
+		return "", errors.WithMessage(err, "error unmarshalling channel header")
+	}
+
+	return chdr.ChannelId, nil
 }

@@ -44,6 +44,19 @@ type ReadWriter struct {
 		result1 blockledger.Iterator
 		result2 uint64
 	}
+	RetrieveBlockByNumberStub        func(uint64) (*common.Block, error)
+	retrieveBlockByNumberMutex       sync.RWMutex
+	retrieveBlockByNumberArgsForCall []struct {
+		arg1 uint64
+	}
+	retrieveBlockByNumberReturns struct {
+		result1 *common.Block
+		result2 error
+	}
+	retrieveBlockByNumberReturnsOnCall map[int]struct {
+		result1 *common.Block
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -226,6 +239,70 @@ func (fake *ReadWriter) IteratorReturnsOnCall(i int, result1 blockledger.Iterato
 	}{result1, result2}
 }
 
+func (fake *ReadWriter) RetrieveBlockByNumber(arg1 uint64) (*common.Block, error) {
+	fake.retrieveBlockByNumberMutex.Lock()
+	ret, specificReturn := fake.retrieveBlockByNumberReturnsOnCall[len(fake.retrieveBlockByNumberArgsForCall)]
+	fake.retrieveBlockByNumberArgsForCall = append(fake.retrieveBlockByNumberArgsForCall, struct {
+		arg1 uint64
+	}{arg1})
+	stub := fake.RetrieveBlockByNumberStub
+	fakeReturns := fake.retrieveBlockByNumberReturns
+	fake.recordInvocation("RetrieveBlockByNumber", []interface{}{arg1})
+	fake.retrieveBlockByNumberMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *ReadWriter) RetrieveBlockByNumberCallCount() int {
+	fake.retrieveBlockByNumberMutex.RLock()
+	defer fake.retrieveBlockByNumberMutex.RUnlock()
+	return len(fake.retrieveBlockByNumberArgsForCall)
+}
+
+func (fake *ReadWriter) RetrieveBlockByNumberCalls(stub func(uint64) (*common.Block, error)) {
+	fake.retrieveBlockByNumberMutex.Lock()
+	defer fake.retrieveBlockByNumberMutex.Unlock()
+	fake.RetrieveBlockByNumberStub = stub
+}
+
+func (fake *ReadWriter) RetrieveBlockByNumberArgsForCall(i int) uint64 {
+	fake.retrieveBlockByNumberMutex.RLock()
+	defer fake.retrieveBlockByNumberMutex.RUnlock()
+	argsForCall := fake.retrieveBlockByNumberArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *ReadWriter) RetrieveBlockByNumberReturns(result1 *common.Block, result2 error) {
+	fake.retrieveBlockByNumberMutex.Lock()
+	defer fake.retrieveBlockByNumberMutex.Unlock()
+	fake.RetrieveBlockByNumberStub = nil
+	fake.retrieveBlockByNumberReturns = struct {
+		result1 *common.Block
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *ReadWriter) RetrieveBlockByNumberReturnsOnCall(i int, result1 *common.Block, result2 error) {
+	fake.retrieveBlockByNumberMutex.Lock()
+	defer fake.retrieveBlockByNumberMutex.Unlock()
+	fake.RetrieveBlockByNumberStub = nil
+	if fake.retrieveBlockByNumberReturnsOnCall == nil {
+		fake.retrieveBlockByNumberReturnsOnCall = make(map[int]struct {
+			result1 *common.Block
+			result2 error
+		})
+	}
+	fake.retrieveBlockByNumberReturnsOnCall[i] = struct {
+		result1 *common.Block
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *ReadWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -235,6 +312,8 @@ func (fake *ReadWriter) Invocations() map[string][][]interface{} {
 	defer fake.heightMutex.RUnlock()
 	fake.iteratorMutex.RLock()
 	defer fake.iteratorMutex.RUnlock()
+	fake.retrieveBlockByNumberMutex.RLock()
+	defer fake.retrieveBlockByNumberMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

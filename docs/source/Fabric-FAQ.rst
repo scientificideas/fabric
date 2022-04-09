@@ -56,7 +56,12 @@ Security & Access Control
   Do the orderers see the transaction data?
 
 :Answer:
-  No, the orderers only order transactions, they do not open the transactions.
+  Orderers receive endorsed transactions that are submitted from application
+  clients. The endorsed payload contains the chaincode execution results
+  including the ReadSet and WriteSet information. The orderers only validate
+  the submitter's identity and order transactions, they do not open the
+  endorsed transactions.
+
   If you do not want the data to go through the orderers at all, then utilize
   the private data feature of Fabric.  Alternatively, you can hash or encrypt
   the data in the client application before calling chaincode. If you encrypt
@@ -194,33 +199,6 @@ Ordering Service
 
 :Answer:
   This is explicitly not supported.
-
-..
-
-:Question:
-  **What is the orderer system channel?**
-
-:Answer:
-  The orderer system channel (sometimes called ordering system channel) is the
-  channel the orderer is initially bootstrapped with. It is used to orchestrate
-  channel creation. The orderer system channel defines consortia and the initial
-  configuration for new channels. At channel creation time, the organization
-  definition in the consortium, the ``/Channel`` group's values and policies, as
-  well as the ``/Channel/Orderer`` group's values and policies, are all combined
-  to form the new initial channel definition.
-
-..
-
-:Question:
-  **If I update my application channel, should I update my orderer system
-  channel?**
-
-:Answer:
-  Once an application channel is created, it is managed independently of any
-  other channel (including the orderer system channel). Depending on the
-  modification, the change may or may not be desirable to port to other
-  channels. In general, MSP changes should be synchronized across all channels,
-  while policy changes are more likely to be specific to a particular channel.
 
 ..
 
