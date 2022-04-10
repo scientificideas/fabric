@@ -212,7 +212,7 @@ func (lf *ledgerFactory) GetOrCreate(chainID string) (cluster.LedgerWriter, erro
 	return interceptedLedger, nil
 }
 
-//go:generate mockery -dir . -name ChainReplicator -case underscore -output mocks
+//go:generate mockery --dir=. --name=ChainReplicator --case=underscore --output=mocks
 
 // ChainReplicator replicates chains
 type ChainReplicator interface {

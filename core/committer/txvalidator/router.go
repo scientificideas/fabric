@@ -11,7 +11,7 @@ import (
 	"github.com/hyperledger/fabric/common/channelconfig"
 )
 
-//go:generate mockery -dir . -name Validator -case underscore -output mocks
+//go:generate mockery --dir=. --name=Validator --case=underscore --output=mocks
 
 // Validator defines API to validate transactions in a block
 type Validator interface {
@@ -21,7 +21,7 @@ type Validator interface {
 	Validate(block *common.Block) error
 }
 
-//go:generate mockery -dir . -name CapabilityProvider -case underscore -output mocks
+//go:generate mockery --dir=. --name=CapabilityProvider --case=underscore --output=mocks
 
 // CapabilityProvider contains functions to retrieve capability information for a channel
 type CapabilityProvider interface {

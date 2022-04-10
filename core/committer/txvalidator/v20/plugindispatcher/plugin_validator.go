@@ -26,28 +26,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name Mapper -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Mapper --case=underscore --output=mocks/
 
 // Mapper is the local interface that used to generate mocks for foreign interface.
 type Mapper interface {
 	txvalidatorplugin.Mapper
 }
 
-//go:generate mockery -dir . -name PluginFactory -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PluginFactory --case=underscore --output=mocks/
 
 // PluginFactory is the local interface that used to generate mocks for foreign interface.
 type PluginFactory interface {
 	validation.PluginFactory
 }
 
-//go:generate mockery -dir . -name Plugin -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Plugin --case=underscore --output=mocks/
 
 // Plugin is the local interface that used to generate mocks for foreign interface.
 type Plugin interface {
 	validation.Plugin
 }
 
-//go:generate mockery -dir . -name QueryExecutorCreator -case underscore -output mocks/
+//go:generate mockery --dir=. --name=QueryExecutorCreator --case=underscore --output=mocks/
 
 // QueryExecutorCreator creates new query executors.
 type QueryExecutorCreator interface {
@@ -84,28 +84,28 @@ type PluginValidator struct {
 	CollectionResources
 }
 
-//go:generate mockery -dir . -name Capabilities -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Capabilities --case=underscore --output=mocks/
 
 // Capabilities is the local interface that used to generate mocks for foreign interface.
 type Capabilities interface {
 	vc.Capabilities
 }
 
-//go:generate mockery -dir . -name IdentityDeserializer -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityDeserializer --case=underscore --output=mocks/
 
 // IdentityDeserializer is the local interface that used to generate mocks for foreign interface.
 type IdentityDeserializer interface {
 	msp.IdentityDeserializer
 }
 
-//go:generate mockery -dir . -name ChannelPolicyManagerGetter -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ChannelPolicyManagerGetter --case=underscore --output=mocks/
 
 // ChannelPolicyManagerGetter is the local interface that used to generate mocks for foreign interface.
 type ChannelPolicyManagerGetter interface {
 	policies.ChannelPolicyManagerGetter
 }
 
-//go:generate mockery -dir . -name PolicyManager -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PolicyManager --case=underscore --output=mocks/
 
 type PolicyManager interface {
 	policies.Manager

@@ -29,7 +29,7 @@ type MetadataManager struct {
 	queryCreatorsByChannel map[string]QueryCreator
 }
 
-//go:generate mockery -dir . -name MetadataChangeListener -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=MetadataChangeListener --case=underscore --output=mocks/
 
 // MetadataChangeListener runs whenever there is a change to the metadata
 // of a chaincode in the context of a specific channel
@@ -46,7 +46,7 @@ func (handleMetadataUpdate HandleMetadataUpdateFunc) HandleMetadataUpdate(channe
 	handleMetadataUpdate(channel, chaincodes)
 }
 
-//go:generate mockery -dir . -name Enumerator -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=Enumerator --case=underscore  --output=mocks/
 
 // Enumerator enumerates chaincodes
 type Enumerator interface {
@@ -62,7 +62,7 @@ func (enumerate EnumerateFunc) Enumerate() ([]chaincode.InstalledChaincode, erro
 	return enumerate()
 }
 
-//go:generate mockery -dir . -name Query -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=Query --case=underscore  --output=mocks/
 
 // Query queries the state
 type Query interface {
@@ -73,7 +73,7 @@ type Query interface {
 	Done()
 }
 
-//go:generate mockery -dir . -name QueryCreator -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=QueryCreator --case=underscore  --output=mocks/
 
 // QueryCreator creates queries
 type QueryCreator interface {

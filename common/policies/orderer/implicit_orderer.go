@@ -31,12 +31,12 @@ type policyProvider struct {
 	consensusMetadata       []byte
 }
 
-//go:generate mockery -dir . -name IdentityDeserializerMock -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityDeserializerMock --case=underscore --output=mocks/
 type IdentityDeserializerMock interface {
 	msp.IdentityDeserializer
 }
 
-//go:generate mockery -dir . -name IdentityMock -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityMock --case=underscore --output=mocks/
 type IdentityMock interface {
 	msp.Identity
 }

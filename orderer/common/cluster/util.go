@@ -198,7 +198,7 @@ func (dialer *StandardDialer) Dial(endpointCriteria EndpointCriteria) (*grpc.Cli
 	return client.NewConnection(endpointCriteria.Endpoint)
 }
 
-//go:generate mockery -dir . -name BlockVerifier -case underscore -output ./mocks/
+//go:generate mockery --dir=. --name=BlockVerifier --case=underscore --output=./mocks/
 
 // BlockVerifier verifies block signatures.
 type BlockVerifier interface {
@@ -495,7 +495,7 @@ func globalEndpointsFromConfig(aggregatedTLSCerts [][]byte, bundle *channelconfi
 	return globalEndpoints
 }
 
-//go:generate mockery -dir . -name VerifierFactory -case underscore -output ./mocks/
+//go:generate mockery --dir=. --name=VerifierFactory --case=underscore --output=./mocks/
 
 // VerifierFactory creates BlockVerifiers.
 type VerifierFactory interface {
@@ -671,7 +671,7 @@ func (bv *BlockValidationPolicyVerifier) VerifyBlockSignature(sd []*protoutil.Si
 	return policy.EvaluateSignedData(sd)
 }
 
-//go:generate mockery -dir . -name BlockRetriever -case underscore -output ./mocks/
+//go:generate mockery --dir=. --name=BlockRetriever --case=underscore --output=./mocks/
 
 // BlockRetriever retrieves blocks
 type BlockRetriever interface {

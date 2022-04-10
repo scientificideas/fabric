@@ -4,9 +4,9 @@ package mock
 import (
 	"sync"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/core/common/ccprovider"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 type CCPackage struct {
@@ -50,15 +50,15 @@ type CCPackage struct {
 	getIdReturnsOnCall map[int]struct {
 		result1 []byte
 	}
-	GetPackageObjectStub        func() proto.Message
+	GetPackageObjectStub        func() protoiface.MessageV1
 	getPackageObjectMutex       sync.RWMutex
 	getPackageObjectArgsForCall []struct {
 	}
 	getPackageObjectReturns struct {
-		result1 proto.Message
+		result1 protoiface.MessageV1
 	}
 	getPackageObjectReturnsOnCall map[int]struct {
-		result1 proto.Message
+		result1 protoiface.MessageV1
 	}
 	InitFromBufferStub        func([]byte) (*ccprovider.ChaincodeData, error)
 	initFromBufferMutex       sync.RWMutex
@@ -310,7 +310,7 @@ func (fake *CCPackage) GetIdReturnsOnCall(i int, result1 []byte) {
 	}{result1}
 }
 
-func (fake *CCPackage) GetPackageObject() proto.Message {
+func (fake *CCPackage) GetPackageObject() protoiface.MessageV1 {
 	fake.getPackageObjectMutex.Lock()
 	ret, specificReturn := fake.getPackageObjectReturnsOnCall[len(fake.getPackageObjectArgsForCall)]
 	fake.getPackageObjectArgsForCall = append(fake.getPackageObjectArgsForCall, struct {
@@ -334,32 +334,32 @@ func (fake *CCPackage) GetPackageObjectCallCount() int {
 	return len(fake.getPackageObjectArgsForCall)
 }
 
-func (fake *CCPackage) GetPackageObjectCalls(stub func() proto.Message) {
+func (fake *CCPackage) GetPackageObjectCalls(stub func() protoiface.MessageV1) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = stub
 }
 
-func (fake *CCPackage) GetPackageObjectReturns(result1 proto.Message) {
+func (fake *CCPackage) GetPackageObjectReturns(result1 protoiface.MessageV1) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = nil
 	fake.getPackageObjectReturns = struct {
-		result1 proto.Message
+		result1 protoiface.MessageV1
 	}{result1}
 }
 
-func (fake *CCPackage) GetPackageObjectReturnsOnCall(i int, result1 proto.Message) {
+func (fake *CCPackage) GetPackageObjectReturnsOnCall(i int, result1 protoiface.MessageV1) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = nil
 	if fake.getPackageObjectReturnsOnCall == nil {
 		fake.getPackageObjectReturnsOnCall = make(map[int]struct {
-			result1 proto.Message
+			result1 protoiface.MessageV1
 		})
 	}
 	fake.getPackageObjectReturnsOnCall[i] = struct {
-		result1 proto.Message
+		result1 protoiface.MessageV1
 	}{result1}
 }
 

@@ -29,35 +29,35 @@ const AllowedCharsCollectionName = "[A-Za-z0-9_-]+"
 
 var validCollectionNameRegex = regexp.MustCompile(AllowedCharsCollectionName)
 
-//go:generate mockery -dir . -name Capabilities -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Capabilities --case=underscore --output=mocks/
 
 // Capabilities is the local interface that used to generate mocks for foreign interface.
 type Capabilities interface {
 	vc.Capabilities
 }
 
-//go:generate mockery -dir . -name StateFetcher -case underscore -output mocks/
+//go:generate mockery --dir=. --name=StateFetcher --case=underscore --output=mocks/
 
 // StateFetcher is the local interface that used to generate mocks for foreign interface.
 type StateFetcher interface {
 	vs.StateFetcher
 }
 
-//go:generate mockery -dir . -name IdentityDeserializer -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityDeserializer --case=underscore --output=mocks/
 
 // IdentityDeserializer is the local interface that used to generate mocks for foreign interface.
 type IdentityDeserializer interface {
 	vi.IdentityDeserializer
 }
 
-//go:generate mockery -dir . -name PolicyEvaluator -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PolicyEvaluator --case=underscore --output=mocks/
 
 // PolicyEvaluator is the local interface that used to generate mocks for foreign interface.
 type PolicyEvaluator interface {
 	vp.PolicyEvaluator
 }
 
-//go:generate mockery -dir . -name StateBasedValidator -case underscore -output mocks/
+//go:generate mockery --dir=. --name=StateBasedValidator --case=underscore --output=mocks/
 
 // noopTranslator implements statebased.PolicyTranslator
 // by performing no policy translation; this is okay because

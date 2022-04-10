@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name RWSetScanner -case underscore -output mocks/
+//go:generate mockery --dir=. --name=RWSetScanner --case=underscore --output=mocks/
 
 // RWSetScanner is the local interface used to generate mocks for foreign interface.
 type RWSetScanner interface {

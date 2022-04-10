@@ -24,16 +24,16 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name ReconciliationFetcher -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ReconciliationFetcher --case=underscore --output=mocks/
 
-//go:generate mockery -dir . -name MissingPvtDataTracker -case underscore -output mocks/
+//go:generate mockery --dir=. --name=MissingPvtDataTracker --case=underscore --output=mocks/
 
 // MissingPvtDataTracker is the local interface used to generate mocks for foreign interface.
 type MissingPvtDataTracker interface {
 	ledger.MissingPvtDataTracker
 }
 
-//go:generate mockery -dir . -name ConfigHistoryRetriever -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ConfigHistoryRetriever --case=underscore --output=mocks/
 
 // ConfigHistoryRetriever is the local interface used to generate mocks for foreign interface.
 type ConfigHistoryRetriever interface {

@@ -18,21 +18,21 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name LocalResponse -case underscore -output mocks/
+//go:generate mockery --dir=. --name=LocalResponse --case=underscore --output=mocks/
 
 // LocalResponse is the local interface used to generate mocks for foreign interface.
 type LocalResponse interface {
 	discoveryclient.LocalResponse
 }
 
-//go:generate mockery -dir . -name ChannelResponse -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ChannelResponse --case=underscore --output=mocks/
 
 // ChannelResponse is the local interface used to generate mocks for foreign interface.
 type ChannelResponse interface {
 	discoveryclient.ChannelResponse
 }
 
-//go:generate mockery -dir . -name ServiceResponse -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ServiceResponse --case=underscore --output=mocks/
 
 // ServiceResponse represents a response sent from the discovery service
 type ServiceResponse interface {

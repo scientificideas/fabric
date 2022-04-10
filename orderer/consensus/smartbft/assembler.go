@@ -18,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name Ledger -case underscore -output mocks
+//go:generate mockery --dir=. --name=Ledger --case=underscore --output=mocks
 
 // Ledger returns the height and a block with the given number
 type Ledger interface {

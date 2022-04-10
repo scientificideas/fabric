@@ -26,14 +26,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-//go:generate mockery -dir . -name Sequencer -case underscore -output mocks
+//go:generate mockery --dir=. --name=Sequencer --case=underscore --output=mocks
 
 // Sequencer returns sequences
 type Sequencer interface {
 	Sequence() uint64
 }
 
-//go:generate mockery -dir . -name ConsenterVerifier -case underscore -output mocks
+//go:generate mockery --dir=. --name=ConsenterVerifier --case=underscore --output=mocks
 
 // ConsenterVerifier is used to determine whether a signature from one of the consenters is valid
 type ConsenterVerifier interface {
@@ -41,7 +41,7 @@ type ConsenterVerifier interface {
 	Evaluate(signatureSet []*protoutil.SignedData) error
 }
 
-//go:generate mockery -dir . -name AccessController -case underscore -output mocks
+//go:generate mockery --dir=. --name=AccessController --case=underscore --output=mocks
 
 // AccessController is used to determine if a signature of a certain client is valid
 type AccessController interface {

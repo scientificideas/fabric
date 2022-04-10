@@ -52,7 +52,7 @@ type ChainGetter interface {
 // PolicyManagerRetriever is the policy manager retriever function
 type PolicyManagerRetriever func(channel string) policies.Manager
 
-//go:generate mockery -dir . -name InactiveChainRegistry -case underscore -output mocks
+//go:generate mockery --dir=. --name=InactiveChainRegistry --case=underscore --output=mocks
 
 // InactiveChainRegistry registers chains that are inactive
 type InactiveChainRegistry interface {

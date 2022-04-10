@@ -4,14 +4,14 @@ package mock
 import (
 	"sync"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 type Protobuf struct {
-	MarshalStub        func(proto.Message) ([]byte, error)
+	MarshalStub        func(protoiface.MessageV1) ([]byte, error)
 	marshalMutex       sync.RWMutex
 	marshalArgsForCall []struct {
-		arg1 proto.Message
+		arg1 protoiface.MessageV1
 	}
 	marshalReturns struct {
 		result1 []byte
@@ -21,11 +21,11 @@ type Protobuf struct {
 		result1 []byte
 		result2 error
 	}
-	UnmarshalStub        func([]byte, proto.Message) error
+	UnmarshalStub        func([]byte, protoiface.MessageV1) error
 	unmarshalMutex       sync.RWMutex
 	unmarshalArgsForCall []struct {
 		arg1 []byte
-		arg2 proto.Message
+		arg2 protoiface.MessageV1
 	}
 	unmarshalReturns struct {
 		result1 error
@@ -37,11 +37,11 @@ type Protobuf struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Protobuf) Marshal(arg1 proto.Message) ([]byte, error) {
+func (fake *Protobuf) Marshal(arg1 protoiface.MessageV1) ([]byte, error) {
 	fake.marshalMutex.Lock()
 	ret, specificReturn := fake.marshalReturnsOnCall[len(fake.marshalArgsForCall)]
 	fake.marshalArgsForCall = append(fake.marshalArgsForCall, struct {
-		arg1 proto.Message
+		arg1 protoiface.MessageV1
 	}{arg1})
 	stub := fake.MarshalStub
 	fakeReturns := fake.marshalReturns
@@ -62,13 +62,13 @@ func (fake *Protobuf) MarshalCallCount() int {
 	return len(fake.marshalArgsForCall)
 }
 
-func (fake *Protobuf) MarshalCalls(stub func(proto.Message) ([]byte, error)) {
+func (fake *Protobuf) MarshalCalls(stub func(protoiface.MessageV1) ([]byte, error)) {
 	fake.marshalMutex.Lock()
 	defer fake.marshalMutex.Unlock()
 	fake.MarshalStub = stub
 }
 
-func (fake *Protobuf) MarshalArgsForCall(i int) proto.Message {
+func (fake *Protobuf) MarshalArgsForCall(i int) protoiface.MessageV1 {
 	fake.marshalMutex.RLock()
 	defer fake.marshalMutex.RUnlock()
 	argsForCall := fake.marshalArgsForCall[i]
@@ -101,7 +101,7 @@ func (fake *Protobuf) MarshalReturnsOnCall(i int, result1 []byte, result2 error)
 	}{result1, result2}
 }
 
-func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 proto.Message) error {
+func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 protoiface.MessageV1) error {
 	var arg1Copy []byte
 	if arg1 != nil {
 		arg1Copy = make([]byte, len(arg1))
@@ -111,7 +111,7 @@ func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 proto.Message) error {
 	ret, specificReturn := fake.unmarshalReturnsOnCall[len(fake.unmarshalArgsForCall)]
 	fake.unmarshalArgsForCall = append(fake.unmarshalArgsForCall, struct {
 		arg1 []byte
-		arg2 proto.Message
+		arg2 protoiface.MessageV1
 	}{arg1Copy, arg2})
 	stub := fake.UnmarshalStub
 	fakeReturns := fake.unmarshalReturns
@@ -132,13 +132,13 @@ func (fake *Protobuf) UnmarshalCallCount() int {
 	return len(fake.unmarshalArgsForCall)
 }
 
-func (fake *Protobuf) UnmarshalCalls(stub func([]byte, proto.Message) error) {
+func (fake *Protobuf) UnmarshalCalls(stub func([]byte, protoiface.MessageV1) error) {
 	fake.unmarshalMutex.Lock()
 	defer fake.unmarshalMutex.Unlock()
 	fake.UnmarshalStub = stub
 }
 
-func (fake *Protobuf) UnmarshalArgsForCall(i int) ([]byte, proto.Message) {
+func (fake *Protobuf) UnmarshalArgsForCall(i int) ([]byte, protoiface.MessageV1) {
 	fake.unmarshalMutex.RLock()
 	defer fake.unmarshalMutex.RUnlock()
 	argsForCall := fake.unmarshalArgsForCall[i]

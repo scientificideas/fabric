@@ -5,16 +5,16 @@ import (
 	"context"
 	"sync"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/common/deliver"
+	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 type Inspector struct {
-	InspectStub        func(context.Context, proto.Message) error
+	InspectStub        func(context.Context, protoiface.MessageV1) error
 	inspectMutex       sync.RWMutex
 	inspectArgsForCall []struct {
 		arg1 context.Context
-		arg2 proto.Message
+		arg2 protoiface.MessageV1
 	}
 	inspectReturns struct {
 		result1 error
@@ -26,12 +26,12 @@ type Inspector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Inspector) Inspect(arg1 context.Context, arg2 proto.Message) error {
+func (fake *Inspector) Inspect(arg1 context.Context, arg2 protoiface.MessageV1) error {
 	fake.inspectMutex.Lock()
 	ret, specificReturn := fake.inspectReturnsOnCall[len(fake.inspectArgsForCall)]
 	fake.inspectArgsForCall = append(fake.inspectArgsForCall, struct {
 		arg1 context.Context
-		arg2 proto.Message
+		arg2 protoiface.MessageV1
 	}{arg1, arg2})
 	stub := fake.InspectStub
 	fakeReturns := fake.inspectReturns
@@ -52,13 +52,13 @@ func (fake *Inspector) InspectCallCount() int {
 	return len(fake.inspectArgsForCall)
 }
 
-func (fake *Inspector) InspectCalls(stub func(context.Context, proto.Message) error) {
+func (fake *Inspector) InspectCalls(stub func(context.Context, protoiface.MessageV1) error) {
 	fake.inspectMutex.Lock()
 	defer fake.inspectMutex.Unlock()
 	fake.InspectStub = stub
 }
 
-func (fake *Inspector) InspectArgsForCall(i int) (context.Context, proto.Message) {
+func (fake *Inspector) InspectArgsForCall(i int) (context.Context, protoiface.MessageV1) {
 	fake.inspectMutex.RLock()
 	defer fake.inspectMutex.RUnlock()
 	argsForCall := fake.inspectArgsForCall[i]

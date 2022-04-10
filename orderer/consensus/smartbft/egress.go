@@ -16,7 +16,7 @@ import (
 	"github.com/hyperledger/fabric/protoutil"
 )
 
-//go:generate mockery -dir . -name RPC -case underscore -output mocks
+//go:generate mockery --dir=. --name=RPC --case=underscore --output=mocks
 
 // RPC sends a consensus and submits a request
 type RPC interface {
