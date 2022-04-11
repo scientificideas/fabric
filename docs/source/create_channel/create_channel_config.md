@@ -17,7 +17,7 @@ You can use this tutorial to learn how to use the `configtx.yaml` file to build 
 
 Because different sections of the file work together to create the policies that govern the channel, we will discuss channel policies in [their own tutorial](channel_policies.html).
 
-Building off of the [Creating a channel tutorial](create_channel.html), we will use the `configtx.yaml` file that is used to deploy the Fabric test network as an example. Open a command terminal on your local machine and navigate to the `test-network` directory in your local clone of the Fabric samples:
+Building off of the [Creating a channel tutorial](create_channel_participation.html), we will use the `configtx.yaml` file that is used to deploy the Fabric test network as an example. Open a command terminal on your local machine and navigate to the `test-network` directory in your local clone of the Fabric samples:
 ```
 cd fabric-samples/test-network
 ```
@@ -58,14 +58,6 @@ You can see the part of `configtx.yaml` that defines Org1 of the test network be
           Endorsement:
               Type: Signature
               Rule: "OR('Org1MSP.peer')"
-
-      # leave this flag set to true.
-      AnchorPeers:
-          # AnchorPeers defines the location of peers which can be used
-          # for cross org gossip communication.  Note, this value is only
-          # encoded in the genesis block in the Application section context
-          - Host: peer0.org1.example.com
-            Port: 7051
   ```  
 
   - The `Name` field is an informal name used to identify the organization.
@@ -81,8 +73,6 @@ You can see the part of `configtx.yaml` that defines Org1 of the test network be
     The MSP folder that is used to create the channel MSP only contains public certificates. As a result, you can build the MSP folder locally, and then send the MSP to the organization that is creating the channel.
 
   - The `Policies` section is used to define a set of signature policies that reference the channel member. We will discuss these policies in more detail when we discuss [channel policies](channel_policies.html).
-
-  - The `AnchorPeers` field lists the anchor peers for an organization. Anchor peers are required in order to take advantage of features such as private data and service discovery. It is recommended that organizations select at least one anchor peer. While an organization can select their anchor peers on the channel for the first time using the `configtxgen` tool, it is recommended that each organization set anchor peers by using the `configtxlator` tool to [update the channel configuration](create_channel.html#set-anchor-peers). As a result, this field is not required.
 
 ## Capabilities
 
@@ -192,7 +182,7 @@ The `TwoOrgsChannel` provides the name of the consortium, `SampleConsortium`, ho
 
 ### SampleAppChannelEtcdRaft
 
-The `SampleAppChannelEtcdRaft` profile is provided for customers that prefer to create a channel without a system channel by using the `osnadmin CLI`. The major difference is that a consortium definition is no longer required. Check out the [Create a channel without a system channel](create_channel_participation.html) tutorial to learn more about how to use this profile.
+The `SampleAppChannelEtcdRaft` profile is provided for customers that prefer to create a channel without a system channel by using the `osnadmin CLI`. The major difference is that a consortium definition is no longer required. Check out the [Create a channel](create_channel_participation.html) tutorial to learn more about how to use this profile.
 
 ```
 SampleAppChannelEtcdRaft:

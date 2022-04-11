@@ -25,7 +25,7 @@ type osFileInfo interface {
 	os.FileInfo
 }
 
-//go:generate mockery -dir . -name MetadataProvider -case underscore -output mock/ -outpkg mock
+//go:generate mockery --dir=. --name=MetadataProvider --case=underscore --output=mock/ --outpkg=mock
 
 func TestPersistence(t *testing.T) {
 	RegisterFailHandler(Fail)

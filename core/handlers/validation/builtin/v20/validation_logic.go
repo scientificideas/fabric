@@ -25,21 +25,21 @@ import (
 
 var logger = flogging.MustGetLogger("vscc")
 
-//go:generate mockery -dir . -name IdentityDeserializer -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityDeserializer --case=underscore --output=mocks/
 
 // IdentityDeserializer is the local interface that used to generate mocks for foreign interface.
 type IdentityDeserializer interface {
 	vi.IdentityDeserializer
 }
 
-//go:generate mockery -dir . -name CollectionResources -case underscore -output mocks/
+//go:generate mockery --dir=. --name=CollectionResources --case=underscore --output=mocks/
 
 // CollectionResources is the local interface that used to generate mocks for foreign interface.
 type CollectionResources interface {
 	statebased.CollectionResources
 }
 
-//go:generate mockery -dir . -name StateBasedValidator -case underscore -output mocks/
+//go:generate mockery --dir=. --name=StateBasedValidator --case=underscore --output=mocks/
 
 // toApplicationPolicyTranslator implements statebased.PolicyTranslator
 // by translating SignaturePolicyEnvelope policies into ApplicationPolicy

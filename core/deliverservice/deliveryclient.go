@@ -172,20 +172,21 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		bp = bftBlocksprovider.NewBlocksProvider(chainID, bftClient, d.conf.Gossip, d.conf.CryptoSvc)
 	} else {
 		dc := &blocksprovider.Deliverer{
-			ChannelID:         chainID,
-			Gossip:            d.conf.Gossip,
-			Ledger:            ledgerInfo,
-			BlockVerifier:     d.conf.CryptoSvc,
-			Dialer:            dialer,
-			Orderers:          d.conf.OrdererSource,
-			DoneC:             make(chan struct{}),
-			Signer:            d.conf.Signer,
-			DeliverStreamer:   DeliverAdapter{},
-			Logger:            flogging.MustGetLogger("peer.blocksprovider").With("channel", chainID),
-			MaxRetryDelay:     d.conf.DeliverServiceConfig.ReConnectBackoffThreshold,
-			MaxRetryDuration:  d.conf.DeliverServiceConfig.ReconnectTotalTimeThreshold,
-			InitialRetryDelay: 100 * time.Millisecond,
-			YieldLeadership:   !d.conf.IsStaticLeader,
+			ChannelID:           chainID,
+			Gossip:              d.conf.Gossip,
+			Ledger:              ledgerInfo,
+			BlockVerifier:       d.conf.CryptoSvc,
+			Dialer:              dialer,
+			Orderers:            d.conf.OrdererSource,
+			DoneC:               make(chan struct{}),
+			Signer:              d.conf.Signer,
+			DeliverStreamer:     DeliverAdapter{},
+			Logger:              flogging.MustGetLogger("peer.blocksprovider").With("channel", chainID),
+			MaxRetryDelay:       d.conf.DeliverServiceConfig.ReConnectBackoffThreshold,
+			MaxRetryDuration:    d.conf.DeliverServiceConfig.ReconnectTotalTimeThreshold,
+			BlockGossipDisabled: !d.conf.DeliverServiceConfig.BlockGossipEnabled,
+			InitialRetryDelay:   100 * time.Millisecond,
+			YieldLeadership:     !d.conf.IsStaticLeader,
 		}
 
 		if d.conf.DeliverGRPCClient.MutualTLSRequired() {

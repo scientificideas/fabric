@@ -3,9 +3,8 @@
 This tutorial will demonstrate how an asset can be represented and traded between organizations in a Hyperledger Fabric blockchain channel, while keeping details of the asset and transaction private using private data.
 Each on-chain asset is a non-fungible token (NFT) that represents a specific asset having certain immutable metadata properties (such as size and color) with a unique owner. When the owner wants to sell the asset, both parties need to agree to the same price before the asset is transferred. The private asset transfer smart contract enforces that only the owner of the asset can transfer the asset. In the course of this tutorial, you will learn how Fabric features such as state based endorsement, private data, and access control come together to provide secured transactions that are both private and verifiable.
 
-This tutorial will deploy the [secured asset transfer sample](https://github.com/hyperledger/fabric-samples/tree/master/asset-transfer-secured-agreement/chaincode-go) to demonstrate how to transfer a private asset between two organizations without publicly sharing data. You should have completed the task
-[Install Samples, Binaries, and Docker Images](./install.html#install-samples-binaries-and-docker-images).
-
+This tutorial will deploy the [secured asset transfer sample](https://github.com/hyperledger/fabric-samples/tree/main/asset-transfer-secured-agreement/chaincode-go) to demonstrate how to transfer a private asset between two organizations without publicly sharing data. You should have completed the task
+[Install Samples, Binaries, and Docker Images](../install.html#install-samples-binaries-and-docker-images).
 
 ## Scenario requirements
 
@@ -67,7 +66,7 @@ After the two organizations have agreed to the same price, the asset owner can u
 
 ## Running the private asset transfer smart contract
 
-You can use the Fabric test network to run the private asset transfer smart contract. The test network contains two peer organizations, Org1 and Org1, that operate one peer each. In this tutorial, we will deploy the smart contract to a channel of the test network joined by both organizations. We will first create an asset that is owned by Org1. After the two organizations agree on the price, we will transfer the asset from Org1 to Org2.
+You can use the Fabric test network to run the private asset transfer smart contract. The test network contains two peer organizations, Org1 and Org2, that operate one peer each. In this tutorial, we will deploy the smart contract to a channel of the test network joined by both organizations. We will first create an asset that is owned by Org1. After the two organizations agree on the price, we will transfer the asset from Org1 to Org2.
 
 ## Deploy the test network
 
@@ -91,7 +90,7 @@ The script will deploy the nodes of the network and create a single channel name
 
 You can use the test network script to deploy the secured asset transfer smart contract to the channel. Run the following command to deploy the smart contract to `mychannel`:
 ```
-./network.sh deployCC -ccn secured -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
+./network.sh deployCC -ccn secured -ccp ../asset-transfer-secured-agreement/chaincode-go/ -ccl -go -ccep "OR('Org1MSP.peer','Org2MSP.peer')"
 ```
 
 Note that we are using the `-ccep` flag to deploy the smart contract with an endorsement policy of `"OR('Org1MSP.peer','Org2MSP.peer')"`. This allows either organization to create an asset without receiving an endorsement from the other organization.

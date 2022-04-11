@@ -16,21 +16,21 @@ import (
 	"github.com/hyperledger/fabric/msp"
 )
 
-//go:generate mockery -dir . -name GossipSupport -case underscore -output mocks/
+//go:generate mockery --dir=. --name=GossipSupport --case=underscore --output=mocks/
 
 // GossipSupport is the local interface used to generate mocks for foreign interface.
 type GossipSupport interface {
 	discovery.GossipSupport
 }
 
-//go:generate mockery -dir . -name ChannelPolicyManagerGetter -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=ChannelPolicyManagerGetter --case=underscore  --output=mocks/
 
 // ChannelPolicyManagerGetter is the local interface used to generate mocks for foreign interface.
 type ChannelPolicyManagerGetter interface {
 	acl.ChannelPolicyManagerGetter
 }
 
-//go:generate mockery -dir . -name PolicyManager -case underscore  -output mocks/
+//go:generate mockery --dir=. --name=PolicyManager --case=underscore  --output=mocks/
 
 type PolicyManager interface {
 	policies.Manager

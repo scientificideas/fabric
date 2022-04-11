@@ -20,6 +20,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-lib-go/healthz"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
@@ -164,7 +165,7 @@ func Main() {
 			logger.Panicf("Failed getting channel ID from clusterBootBlock: %s", err)
 		}
 
-		consensusTypeName := onboarding.ConsensusType(clusterBootBlock, cryptoProvider)
+		consensusTypeName := consensusType(clusterBootBlock, cryptoProvider)
 		logger.Infof("Starting with system channel: %s, consensus type: %s", sysChanID, consensusTypeName)
 		_, isClusterType = clusterTypes[consensusTypeName]
 	}
@@ -537,11 +538,13 @@ func configureClusterListener(conf *localconfig.TopLevel, generalConf comm.Serve
 
 func initializeClusterClientConfig(conf *localconfig.TopLevel) comm.ClientConfig {
 	cc := comm.ClientConfig{
-		AsyncConnect: true,
-		KaOpts:       comm.DefaultKeepaliveOptions,
-		BaOpts:       comm.BackoffOptions{},
-		Timeout:      conf.General.Cluster.DialTimeout,
-		SecOpts:      comm.SecureOptions{},
+		AsyncConnect:   true,
+		KaOpts:         comm.DefaultKeepaliveOptions,
+		BaOpts:         comm.BackoffOptions{},
+		Timeout:        conf.General.Cluster.DialTimeout,
+		SecOpts:        comm.SecureOptions{},
+		MaxRecvMsgSize: int(conf.General.MaxRecvMsgSize),
+		MaxSendMsgSize: int(conf.General.MaxSendMsgSize),
 	}
 
 	reuseGrpcListener := reuseListener(conf)
@@ -690,6 +693,8 @@ func initializeServerConfig(conf *localconfig.TopLevel, metricsProvider metrics.
 				grpclogging.WithLeveler(grpclogging.LevelerFunc(grpcLeveler)),
 			),
 		},
+		MaxRecvMsgSize: int(conf.General.MaxRecvMsgSize),
+		MaxSendMsgSize: int(conf.General.MaxSendMsgSize),
 	}
 }
 
@@ -736,8 +741,27 @@ func initializeBootstrapChannel(genesisBlock *cb.Block, lf blockledger.Factory) 
 }
 
 func isClusterType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) bool {
-	_, exists := clusterTypes[onboarding.ConsensusType(genesisBlock, bccsp)]
+	_, exists := clusterTypes[consensusType(genesisBlock, bccsp)]
 	return exists
+}
+
+func consensusType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) string {
+	if genesisBlock == nil || genesisBlock.Data == nil || len(genesisBlock.Data.Data) == 0 {
+		logger.Fatalf("Empty genesis block")
+	}
+	env := &cb.Envelope{}
+	if err := proto.Unmarshal(genesisBlock.Data.Data[0], env); err != nil {
+		logger.Fatalf("Failed to unmarshal the genesis block's envelope: %v", err)
+	}
+	bundle, err := channelconfig.NewBundleFromEnvelope(env, bccsp)
+	if err != nil {
+		logger.Fatalf("Failed creating bundle from the genesis block: %v", err)
+	}
+	ordConf, exists := bundle.OrdererConfig()
+	if !exists {
+		logger.Fatalf("Orderer config doesn't exist in bundle derived from genesis block")
+	}
+	return ordConf.ConsensusType()
 }
 
 func initializeGrpcServer(conf *localconfig.TopLevel, serverConfig comm.ServerConfig) *comm.GRPCServer {
@@ -805,13 +829,14 @@ func initializeMultichannelRegistrar(
 	dpmr := &DynamicPolicyManagerRegistry{}
 	callbacks = append(callbacks, dpmr.Update)
 	registrar := multichannel.NewRegistrar(*conf, lf, signer, metricsProvider, bccsp, clusterDialer, callbacks...)
-	consenters := map[string]consensus.Consenter{}
-	var icr etcdraft.InactiveChainRegistry
 
+	consenters := map[string]consensus.Consenter{}
+
+	var icr etcdraft.InactiveChainRegistry
 	if conf.General.BootstrapMethod == "file" || conf.General.BootstrapMethod == "none" {
 		if bootstrapBlock != nil && isClusterType(bootstrapBlock, bccsp) {
 			// with a system channel
-			consenterType := onboarding.ConsensusType(bootstrapBlock, bccsp)
+			consenterType := consensusType(bootstrapBlock, bccsp)
 			switch consenterType {
 			case "etcdraft":
 				etcdConsenter := initializeEtcdraftConsenter(consenters, conf, lf, clusterDialer, bootstrapBlock, repInitiator, srvConf, srv, registrar, metricsProvider, bccsp)
@@ -830,7 +855,7 @@ func initializeMultichannelRegistrar(
 			// search a join block for a system channel
 			bootstrapBlock := initSystemChannelWithJoinBlock(conf, bccsp, lf)
 			if bootstrapBlock != nil {
-				consenterType = onboarding.ConsensusType(bootstrapBlock, bccsp)
+				consenterType = consensusType(bootstrapBlock, bccsp)
 			} else {
 				// load consensus type from orderer config
 				var consensusConfig localconfig.Consensus

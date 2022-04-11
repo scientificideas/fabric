@@ -17,7 +17,7 @@ In this topic, we're going to cover:
 
 Before you make a documentation change, you might like to connect with other
 people working on the Fabric documentation. Your [Linux Foundation
-account](./contributing.html#getting-a-linux-foundation-account) will give you
+account](./CONTRIBUTING.html#getting-a-linux-foundation-account) will give you
 access to many different resources to help you connect with other contributors
 to the documentation.
 
@@ -59,7 +59,7 @@ wiki](https://wiki.hyperledger.org/display/fabric/Documentation+Working+Group).
 
 Each of the international languages has a welcoming workgroup that you are
 encouraged to join. View the [list of international
-workgroups](https://wiki.hyperledger.org/display/fabric/International+groups).
+workgroups](https://wiki.hyperledger.org/display/I18N/International+groups).
 See what your favorite workgroup is doing, and get connected with them.
 Each workgroup has a list of members and their contact information.
 
@@ -67,7 +67,7 @@ Each workgroup has a list of members and their contact information.
 
 Hyperledger Fabric has many other collaboration mechanisms such as mailing
 lists, contributor meetings and maintainer meetings. Find out about these and
-more [here](./contributing.html).
+more [here](./CONTRIBUTING.html).
 
 Good luck getting started and thanks for your contribution.
 

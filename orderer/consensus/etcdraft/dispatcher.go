@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name MessageReceiver -case underscore -output mocks
+//go:generate mockery --dir=. --name=MessageReceiver --case=underscore --output=mocks
 
 // MessageReceiver receives messages
 type MessageReceiver interface {
@@ -23,7 +23,7 @@ type MessageReceiver interface {
 	Submit(req *orderer.SubmitRequest, sender uint64) error
 }
 
-//go:generate mockery -dir . -name ReceiverGetter -case underscore -output mocks
+//go:generate mockery --dir=. --name=ReceiverGetter --case=underscore --output=mocks
 
 // ReceiverGetter obtains instances of MessageReceiver given a channel ID
 type ReceiverGetter interface {

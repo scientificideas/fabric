@@ -18,7 +18,7 @@ import (
 
 const bftHeaderWrongStatusThreshold = 10
 
-//go:generate mockery -dir . -name HeaderStreamClient -case underscore -output mocks/
+//go:generate mockery --dir=. --name=HeaderStreamClient --case=underscore --output=mocks/
 
 // HeaderStreamClient defines the interface for a deliver client
 type HeaderStreamClient interface {

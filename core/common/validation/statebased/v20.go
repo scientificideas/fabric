@@ -68,8 +68,8 @@ type CollectionResources interface {
 	CollectionValidationInfo(chaincodeName, collectionName string, state s.State) (args []byte, unexpectedErr error, validationErr error)
 }
 
-//go:generate mockery -dir . -name CollectionResources -case underscore -output mocks/
-//go:generate mockery -dir . -name KeyLevelValidationParameterManager -case underscore -output mocks/
+//go:generate mockery --dir=. --name=CollectionResources --case=underscore --output=mocks/
+//go:generate mockery --dir=. --name=KeyLevelValidationParameterManager --case=underscore --output=mocks/
 
 type policyCheckerV20 struct {
 	someEPChecked bool

@@ -587,7 +587,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			invokeQuery(network, peer, network.Orderers[4], channel, 70)
 			invokeQuery(network, peer, network.Orderers[4], channel, 60)
 			By("Making sure the previous leader synchronizes")
-			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Synchronized to view 0 and sequence 6 with verification sequence 2 channel=testchannel1"))
+			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Replicated decisions from view 0 and seq 4 up to view 0 and sequence 6 with verification sequence 2 channel=testchannel1"))
 			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Starting view with number 0, sequence 7, and decisions 6 channel=testchannel1"))
 			By("Invoking again")
 			invokeQuery(network, peer, network.Orderers[4], channel, 50)

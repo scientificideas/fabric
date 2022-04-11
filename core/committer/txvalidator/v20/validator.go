@@ -75,31 +75,31 @@ type Dispatcher interface {
 	Dispatch(seq int, payload *common.Payload, envBytes []byte, block *common.Block) (error, peer.TxValidationCode)
 }
 
-//go:generate mockery -dir . -name ChannelResources -case underscore -output mocks/
-//go:generate mockery -dir . -name LedgerResources -case underscore -output mocks/
-//go:generate mockery -dir . -name Dispatcher -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ChannelResources --case=underscore --output=mocks/
+//go:generate mockery --dir=. --name=LedgerResources --case=underscore --output=mocks/
+//go:generate mockery --dir=. --name=Dispatcher --case=underscore --output=mocks/
 
-//go:generate mockery -dir . -name QueryExecutor -case underscore -output mocks/
+//go:generate mockery --dir=. --name=QueryExecutor --case=underscore --output=mocks/
 
 // QueryExecutor is the local interface that used to generate mocks for foreign interface.
 type QueryExecutor interface {
 	ledger.QueryExecutor
 }
 
-//go:generate mockery -dir . -name ChannelPolicyManagerGetter -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ChannelPolicyManagerGetter --case=underscore --output=mocks/
 
 // ChannelPolicyManagerGetter is the local interface that used to generate mocks for foreign interface.
 type ChannelPolicyManagerGetter interface {
 	policies.ChannelPolicyManagerGetter
 }
 
-//go:generate mockery -dir . -name PolicyManager -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PolicyManager --case=underscore --output=mocks/
 
 type PolicyManager interface {
 	policies.Manager
 }
 
-//go:generate mockery -dir plugindispatcher/ -name CollectionResources -case underscore -output mocks/
+//go:generate mockery --dir=plugindispatcher/ --name=CollectionResources --case=underscore --output=mocks/
 
 // TxValidator is the implementation of Validator interface, keeps
 // reference to the ledger to enable tx simulation

@@ -30,7 +30,7 @@ create a new language workgroup.
 It's much easier to translate, maintain, and manage a language repository if you
 collaborate with other translators. Start this process by adding a new workgroup
 to the [list of international
-workgroups](https://wiki.hyperledger.org/display/fabric/International+groups),
+workgroups](https://wiki.hyperledger.org/display/I18N/International+groups),
 using one of the existing workgroup pages as an exemplar.
 
 Document how your workgroup will collaborate; meetings, chat and mailing lists
@@ -148,7 +148,7 @@ Before your new language can be published to the documentation website, you must
 translate the following topics.  These topics help users and translators of your
 new language get started.
 
-* [Fabric front page](https://hyperledger-fabric.readthedocs.io/zh_CN/{BRANCH_DOC}/)
+* [Fabric front page](https://hyperledger-fabric.readthedocs.io/en/{BRANCH_DOC}/)
 
   This is your advert! Thanks to you, users can now see that the documentation
   is available in their language. It might not be complete yet, but its clear

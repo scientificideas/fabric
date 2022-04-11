@@ -138,7 +138,7 @@ Next, let's deploy the chaincode by calling the ``./network.sh`` script with the
 
 .. code:: bash
 
-  ./network.sh deployCC -ccn basic -ccl javascript
+  ./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript
 
 .. note:: Behind the scenes, this script uses the chaincode lifecycle to package, install,
           query installed chaincode, approve chaincode for both Org1 and Org2, and finally commit the chaincode.
@@ -293,7 +293,7 @@ to interact with the blockchain network. The section of the application code is 
 
   // in a real application this would be done only when a new user was required to be added
   // and would be part of an administrative flow
-  await registerUser(caClient, wallet, userId, 'org1.department1');
+  await registerAndEnrollUser(caClient, wallet, mspOrg1, org1UserId, 'org1.department1');
 
 Similar to the admin enrollment, this function uses a CSR to register and enroll ``appUser`` and
 store its credentials alongside those of ``admin`` in the wallet. We now have

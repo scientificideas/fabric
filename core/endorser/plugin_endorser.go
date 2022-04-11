@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name TransientStoreRetriever -case underscore -output mocks/
+//go:generate mockery --dir=. --name=TransientStoreRetriever --case=underscore --output=mocks/
 
 // TransientStoreRetriever retrieves transient stores
 type TransientStoreRetriever interface {
@@ -25,7 +25,7 @@ type TransientStoreRetriever interface {
 	StoreForChannel(channel string) *transientstore.Store
 }
 
-//go:generate mockery -dir . -name ChannelStateRetriever -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ChannelStateRetriever --case=underscore --output=mocks/
 
 // ChannelStateRetriever retrieves Channel state
 type ChannelStateRetriever interface {
@@ -33,7 +33,7 @@ type ChannelStateRetriever interface {
 	NewQueryCreator(channel string) (QueryCreator, error)
 }
 
-//go:generate mockery -dir . -name PluginMapper -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PluginMapper --case=underscore --output=mocks/
 
 // PluginMapper maps plugin names to their corresponding factories
 type PluginMapper interface {

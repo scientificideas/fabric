@@ -82,7 +82,7 @@ type distributorImpl struct {
 	metrics        *metrics.PrivdataMetrics
 }
 
-//go:generate mockery -dir . -name CollectionAccessFactory -case underscore -output ./mocks/
+//go:generate mockery --dir=. --name=CollectionAccessFactory --case=underscore --output=./mocks/
 
 // CollectionAccessFactory an interface to generate collection access policy
 type CollectionAccessFactory interface {
@@ -90,7 +90,7 @@ type CollectionAccessFactory interface {
 	AccessPolicy(config *peer.CollectionConfig, chainID string) (privdata.CollectionAccessPolicy, error)
 }
 
-//go:generate mockery -dir . -name CollectionAccessPolicy -case underscore -output ./mocks/
+//go:generate mockery --dir=. --name=CollectionAccessPolicy --case=underscore --output=./mocks/
 
 type CollectionAccessPolicy interface {
 	privdata.CollectionAccessPolicy

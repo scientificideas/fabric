@@ -112,7 +112,7 @@ localMspId: SampleOrg
 # modification that might corrupt the peer operations.
 fileSystemPath: /var/hyperledger/production
 ```
-- **`fileSystemPath`**: (Default value should be overridden.) This is the path to the ledger and installed chaincodes on the local filesystem of the peer. It can be an absolute path or relative to `FABRIC_CFG_PATH`. It defaults to `/var/hyperledger/production`. The user running the peer needs to own and have write access to this directory. **The best practice is to store this data in persistent storage**. This prevents the ledger and any installed chaincodes from being lost if your peer containers are destroyed for some reason.
+- **`fileSystemPath`**: (Default value should be overridden.) This is the path to the ledger and installed chaincodes on the local filesystem of the peer. It can be an absolute path or relative to `FABRIC_CFG_PATH`. It defaults to `/var/hyperledger/production`. The user running the peer needs to own and have write access to this directory. **The best practice is to store this data in persistent storage**. This prevents the ledger and any installed chaincodes from being lost if your peer containers are destroyed for some reason. Note that ledger snapshots will be written to  `ledger.snapshots.rootDir`, described in the [ledger.* section](#ledger).
 
 ## peer.gossip.*
 
@@ -384,7 +384,7 @@ In the unlikely case where two peers are running on the same node, you need to m
 - **`operations.listenAddress:`** (Required when using the operations service.) Specify the address and port of the operations server.
 - **`operations.tls.cert.file*:`** (Required when using the operations service). Can be the same file as the `peer.tls.cert.file`.
 - **`operations.tls.key.file*:`** (Required when using the operations service). Can be the same file as the `peer.tls.key.file`.
-- **`operations.tls.clientAuthRequired*:`** (Required when using the operations service). Must be set tp `true` to enable mutual TLS between the client and the server.
+- **`operations.tls.clientAuthRequired*:`** (Required when using the operations service). Must be set to `true` to enable mutual TLS between the client and the server.
 - **`operations.tls.clientRootCAs.files*:`** (Required when using the operations service). Similar to the [peer.tls.clientRootCAs.files](#tls), it contains a list of client root CA certificates that can be used to verify client certificates. If the client enrolled with the peer organization CA, then this value is the peer organization root CA cert.
 
 ## metrics.*

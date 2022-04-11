@@ -30,7 +30,7 @@ const (
 	defaultTimeout = time.Second * 10
 )
 
-//go:generate mockery -dir . -name Stub -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Stub --case=underscore --output=mocks/
 
 // Stub represents the remote discovery service
 type Stub interface {
@@ -38,7 +38,7 @@ type Stub interface {
 	Send(server string, conf common.Config, req *discovery.Request) (ServiceResponse, error)
 }
 
-//go:generate mockery -dir . -name ResponseParser -case underscore -output mocks/
+//go:generate mockery --dir=. --name=ResponseParser --case=underscore --output=mocks/
 
 // ResponseParser parses responses sent from the server
 type ResponseParser interface {
@@ -46,7 +46,7 @@ type ResponseParser interface {
 	ParseResponse(channel string, response ServiceResponse) error
 }
 
-//go:generate mockery -dir . -name CommandRegistrar -case underscore -output mocks/
+//go:generate mockery --dir=. --name=CommandRegistrar --case=underscore --output=mocks/
 
 // CommandRegistrar registers commands
 type CommandRegistrar interface {

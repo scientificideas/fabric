@@ -15,6 +15,7 @@ import (
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/viperutil"
 	coreconfig "github.com/hyperledger/fabric/core/config"
+	"github.com/hyperledger/fabric/internal/pkg/comm"
 )
 
 var logger = flogging.MustGetLogger("localconfig")
@@ -50,6 +51,8 @@ type General struct {
 	LocalMSPID        string
 	BCCSP             *bccsp.FactoryOpts
 	Authentication    Authentication
+	MaxRecvMsgSize    int32
+	MaxSendMsgSize    int32
 }
 
 type Cluster struct {
@@ -253,6 +256,8 @@ var Defaults = TopLevel{
 		Authentication: Authentication{
 			TimeWindow: time.Duration(15 * time.Minute),
 		},
+		MaxRecvMsgSize: comm.DefaultMaxRecvMsgSize,
+		MaxSendMsgSize: comm.DefaultMaxSendMsgSize,
 	},
 	FileLedger: FileLedger{
 		Location: "/var/hyperledger/production/orderer",
@@ -502,6 +507,12 @@ func (c *TopLevel) completeInitialization(configDir string) {
 		case c.Admin.TLS.Enabled && !c.Admin.TLS.ClientAuthRequired:
 			logger.Panic("Admin.TLS.ClientAuthRequired must be set to true if Admin.TLS.Enabled is set to true")
 
+		case c.General.MaxRecvMsgSize == 0:
+			logger.Infof("General.MaxRecvMsgSize is unset, setting to %v", Defaults.General.MaxRecvMsgSize)
+			c.General.MaxRecvMsgSize = Defaults.General.MaxRecvMsgSize
+		case c.General.MaxSendMsgSize == 0:
+			logger.Infof("General.MaxSendMsgSize is unset, setting to %v", Defaults.General.MaxSendMsgSize)
+			c.General.MaxSendMsgSize = Defaults.General.MaxSendMsgSize
 		default:
 			return
 		}

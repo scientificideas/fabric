@@ -73,7 +73,7 @@ type CollectionAndLifecycleResources interface {
 	CollectionValidationInfo(channelID, chaincodeName, collectionName string, state s.State) (args []byte, unexpectedErr error, validationErr error)
 }
 
-//go:generate mockery -dir . -name LifecycleResources -case underscore -output mocks/
+//go:generate mockery --dir=. --name=LifecycleResources --case=underscore --output=mocks/
 
 var logger = flogging.MustGetLogger("committer.txvalidator")
 

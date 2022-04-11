@@ -24,28 +24,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate mockery -dir . -name Mapper -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Mapper --case=underscore --output=mocks/
 
 // Mapper local interface use to generate mock for foreign interface.
 type Mapper interface {
 	vp.Mapper
 }
 
-//go:generate mockery -dir . -name PluginFactory -case underscore -output mocks/
+//go:generate mockery --dir=. --name=PluginFactory --case=underscore --output=mocks/
 
 // PluginFactory local interface used to generate mock for foreign interface.
 type PluginFactory interface {
 	validation.PluginFactory
 }
 
-//go:generate mockery -dir . -name Plugin -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Plugin --case=underscore --output=mocks/
 
 // Plugin local interface used to generate mock for foreign interface.
 type Plugin interface {
 	validation.Plugin
 }
 
-//go:generate mockery -dir . -name QueryExecutorCreator -case underscore -output mocks/
+//go:generate mockery --dir=. --name=QueryExecutorCreator --case=underscore --output=mocks/
 
 // QueryExecutorCreator creates new query executors
 type QueryExecutorCreator interface {
@@ -80,14 +80,14 @@ type PluginValidator struct {
 	capabilities vc.Capabilities
 }
 
-//go:generate mockery -dir . -name Capabilities -case underscore -output mocks/
+//go:generate mockery --dir=. --name=Capabilities --case=underscore --output=mocks/
 
 // Capabilities local interface used to generate mock for foreign interface.
 type Capabilities interface {
 	vc.Capabilities
 }
 
-//go:generate mockery -dir . -name IdentityDeserializer -case underscore -output mocks/
+//go:generate mockery --dir=. --name=IdentityDeserializer --case=underscore --output=mocks/
 
 // IdentityDeserializer local interface used to generate mock for foreign interface.
 type IdentityDeserializer interface {
