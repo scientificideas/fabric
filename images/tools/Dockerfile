@@ -26,7 +26,8 @@ RUN apk add --no-cache \
 	bash \
 	git \
 	jq \
-	tzdata;
+	tzdata \
+	softhsm;
 ENV FABRIC_CFG_PATH /etc/hyperledger/fabric
 VOLUME /etc/hyperledger/fabric
 COPY --from=tools /go/src/github.com/hyperledger/fabric/build/bin /usr/local/bin
