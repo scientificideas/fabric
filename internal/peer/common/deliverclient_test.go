@@ -9,6 +9,9 @@ package common
 import (
 	"errors"
 	"fmt"
+	"sync"
+	"testing"
+
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/core/config/configtest"
@@ -18,8 +21,6 @@ import (
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
-	"sync"
-	"testing"
 )
 
 //go:generate counterfeiter -o mock/signer_serializer.go --fake-name SignerSerializer . signerSerializer
