@@ -58,19 +58,19 @@ require (
 	github.com/tedsuo/ifrit v0.0.0-20180802180643-bea94bb476cc
 	github.com/willf/bitset v1.1.10
 	go.etcd.io/etcd v0.5.0-alpha.5.0.20181228115726-23731bf9ba55
-	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
 	google.golang.org/grpc v1.33.2
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.4.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 
 replace (
 	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
+	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	github.com/hyperledger/fabric => ./
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
@@ -78,5 +78,4 @@ replace (
 	github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
 	// https://github.com/golang/go/issues/34610
 	golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
-	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 )
