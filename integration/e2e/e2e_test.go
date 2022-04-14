@@ -158,10 +158,31 @@ var _ = Describe("EndToEnd", func() {
 
 			By("setting up the channel")
 			network.CreateAndJoinChannel(orderer, "testchannel")
-			cl := channelparticipation.List(network, orderer)
-			channelparticipation.ChannelListMatcher(cl, []string{"testchannel"}, []string{"systemchannel"}...)
-
 			nwo.EnableCapabilities(network, "testchannel", "Application", "V2_0", orderer, network.Peer("Org1", "peer0"), network.Peer("Org2", "peer0"))
+
+			By("listing channels with osnadmin")
+			tlsdir := network.OrdererLocalTLSDir(orderer)
+			sess, err := network.Osnadmin(commands.ChannelList{
+				OrdererAddress: network.OrdererAddress(orderer, nwo.AdminPort),
+				CAFile:         filepath.Join(tlsdir, "ca.crt"),
+				ClientCert:     filepath.Join(tlsdir, "server.crt"),
+				ClientKey:      filepath.Join(tlsdir, "server.key"),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess).Should(gexec.Exit(0))
+			var channelList channelparticipation.ChannelList
+			err = json.Unmarshal(sess.Out.Contents(), &channelList)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(channelList).To(Equal(channelparticipation.ChannelList{
+				SystemChannel: &channelparticipation.ChannelInfoShort{
+					Name: "systemchannel",
+					URL:  "/participation/v1/channels/systemchannel",
+				},
+				Channels: []channelparticipation.ChannelInfoShort{{
+					Name: "testchannel",
+					URL:  "/participation/v1/channels/testchannel",
+				}},
+			}))
 
 			By("attempting to install unsupported chaincode without docker")
 			badCC := chaincode
@@ -170,7 +191,7 @@ var _ = Describe("EndToEnd", func() {
 			badCC.PackageFile = filepath.Join(testDir, "unsupported-type.tar.gz")
 			nwo.PackageChaincodeBinary(badCC)
 			badCC.SetPackageIDFromPackageFile()
-			sess, err := network.PeerAdminSession(
+			sess, err = network.PeerAdminSession(
 				network.Peer("Org1", "peer0"),
 				commands.ChaincodeInstall{
 					PackageFile: badCC.PackageFile,
@@ -213,11 +234,11 @@ var _ = Describe("EndToEnd", func() {
 		})
 	})
 
-	Describe("basic kafka network with 2 orgs", func() {
+	Describe("basic etcdraft network with docker chaincode builds", func() {
 		BeforeEach(func() {
-			network = nwo.New(nwo.BasicKafka(), testDir, client, StartPort(), components)
-			network.MetricsProvider = "prometheus"
+			network = nwo.New(nwo.MultiChannelEtcdRaft(), testDir, client, StartPort(), components)
 			network.Consensus.ChannelParticipationEnabled = true
+			network.MetricsProvider = "prometheus"
 			network.GenerateConfigTree()
 			network.Bootstrap()
 
@@ -226,13 +247,13 @@ var _ = Describe("EndToEnd", func() {
 			Eventually(process.Ready(), network.EventuallyTimeout).Should(BeClosed())
 		})
 
-		It("executes a basic kafka network with 2 orgs (using docker chaincode builds)", func() {
+		It("builds and executes transactions with docker chaincode", func() {
 			chaincodePath, err := filepath.Abs("../chaincode/module")
 			Expect(err).NotTo(HaveOccurred())
 
 			// use these two variants of the same chaincode to ensure we test
 			// the golang docker build for both module and gopath chaincode
-			chaincode = nwo.Chaincode{
+			chaincode := nwo.Chaincode{
 				Name:            "mycc",
 				Version:         "0.0",
 				Path:            chaincodePath,
@@ -291,6 +312,7 @@ var _ = Describe("EndToEnd", func() {
 
 			RunQueryInvokeQuery(network, orderer, network.Peer("Org1", "peer0"), "testchannel")
 
+			By("evaluating the operations endpoint and prometheus metrics")
 			CheckPeerOperationEndpoints(network, network.Peer("Org2", "peer0"))
 			CheckOrdererOperationEndpoints(network, orderer)
 
@@ -341,7 +363,7 @@ var _ = Describe("EndToEnd", func() {
 		})
 	})
 
-	Describe("basic single node etcdraft network", func() {
+	Describe("basic single node etcdraft network with static leader", func() {
 		var (
 			peerRunners    []*ginkgomon.Runner
 			processes      map[string]ifrit.Process

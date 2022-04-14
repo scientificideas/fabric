@@ -33,11 +33,9 @@ import (
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/core/ledger/cceventmgmt"
 	"github.com/hyperledger/fabric/core/peer"
-	"github.com/hyperledger/fabric/core/policy"
 	"github.com/hyperledger/fabric/core/scc"
 	"github.com/hyperledger/fabric/internal/ccmetadata"
 	"github.com/hyperledger/fabric/msp"
-	"github.com/hyperledger/fabric/msp/mgmt"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
@@ -136,6 +134,9 @@ type ChaincodeBuilder interface {
 // MSPsIDGetter is used to get the MSP IDs for a channel.
 type MSPIDsGetter func(string) []string
 
+// IDMSPManagerGetters used to get the MSP Manager for a channel.
+type MSPManagerGetter func(string) msp.MSPManager
+
 //---------- the LSCC -----------------
 
 // SCC implements chaincode lifecycle and policies around it
@@ -149,15 +150,13 @@ type SCC struct {
 	// to access other parts of the system
 	SCCProvider sysccprovider.SystemChaincodeProvider
 
-	// PolicyChecker is the interface used to perform
-	// access control
-	PolicyChecker policy.PolicyChecker
-
 	// Support provides the implementation of several
 	// static functions
 	Support FilesystemSupport
 
 	GetMSPIDs MSPIDsGetter
+
+	GetMSPManager MSPManagerGetter
 
 	BuildRegistry *container.BuildRegistry
 
@@ -340,7 +339,7 @@ func (lscc *SCC) ValidationInfo(channelID, chaincodeName string, qe ledger.Simpl
 	return
 }
 
-//create the chaincode on the given chain
+// create the chaincode on the given chain
 func (lscc *SCC) putChaincodeData(stub shim.ChaincodeStubInterface, cd *ccprovider.ChaincodeData) error {
 	cdbytes, err := proto.Marshal(cd)
 	if err != nil {
@@ -466,7 +465,7 @@ func (lscc *SCC) putChaincodeCollectionData(stub shim.ChaincodeStubInterface, cd
 		return errors.Errorf("invalid collection configuration supplied for chaincode %s:%s", cd.Name, cd.Version)
 	}
 
-	mspmgr := mgmt.GetManagerForChain(stub.GetChannelID())
+	mspmgr := lscc.GetMSPManager(stub.GetChannelID())
 	if mspmgr == nil {
 		return fmt.Errorf("could not get MSP manager for channel %s", stub.GetChannelID())
 	}
@@ -500,7 +499,7 @@ func (lscc *SCC) getChaincodeCollectionData(stub shim.ChaincodeStubInterface, ch
 	return shim.Success(collectionsConfigBytes)
 }
 
-//checks for existence of chaincode on the given channel
+// checks for existence of chaincode on the given channel
 func (lscc *SCC) getCCInstance(stub shim.ChaincodeStubInterface, ccname string) ([]byte, error) {
 	cdbytes, err := stub.GetState(ccname)
 	if err != nil {
@@ -513,7 +512,7 @@ func (lscc *SCC) getCCInstance(stub shim.ChaincodeStubInterface, ccname string) 
 	return cdbytes, nil
 }
 
-//gets the cd out of the bytes
+// gets the cd out of the bytes
 func (lscc *SCC) getChaincodeData(ccname string, cdbytes []byte) (*ccprovider.ChaincodeData, error) {
 	cd := &ccprovider.ChaincodeData{}
 	err := proto.Unmarshal(cdbytes, cd)
@@ -521,7 +520,7 @@ func (lscc *SCC) getChaincodeData(ccname string, cdbytes []byte) (*ccprovider.Ch
 		return nil, MarshallErr(ccname)
 	}
 
-	//this should not happen but still a sanity check is not a bad thing
+	// this should not happen but still a sanity check is not a bad thing
 	if cd.Name != ccname {
 		return nil, ChaincodeMismatchErr(fmt.Sprintf("%s!=%s", ccname, cd.Name))
 	}
@@ -529,7 +528,7 @@ func (lscc *SCC) getChaincodeData(ccname string, cdbytes []byte) (*ccprovider.Ch
 	return cd, nil
 }
 
-//checks for existence of chaincode on the given chain
+// checks for existence of chaincode on the given chain
 func (lscc *SCC) getCCCode(ccname string, cdbytes []byte) (*pb.ChaincodeDeploymentSpec, []byte, error) {
 	cd, err := lscc.getChaincodeData(ccname, cdbytes)
 	if err != nil {
@@ -541,14 +540,14 @@ func (lscc *SCC) getCCCode(ccname string, cdbytes []byte) (*pb.ChaincodeDeployme
 		return nil, nil, InvalidDeploymentSpecErr(err.Error())
 	}
 
-	//this is the big test and the reason every launch should go through
-	//getChaincode call. We validate the chaincode entry against the
-	//the chaincode in FS
+	// this is the big test and the reason every launch should go through
+	// getChaincode call. We validate the chaincode entry against the
+	// the chaincode in FS
 	if err = ccpack.ValidateCC(cd); err != nil {
 		return nil, nil, InvalidCCOnFSError(err.Error())
 	}
 
-	//these are guaranteed to be non-nil because we got a valid ccpack
+	// these are guaranteed to be non-nil because we got a valid ccpack
 	depspec := ccpack.GetDepSpec()
 	depspecbytes := ccpack.GetDepSpecBytes()
 
@@ -559,7 +558,6 @@ func (lscc *SCC) getCCCode(ccname string, cdbytes []byte) (*pb.ChaincodeDeployme
 func (lscc *SCC) getChaincodes(stub shim.ChaincodeStubInterface) pb.Response {
 	// get all rows from LSCC
 	itr, err := stub.GetStateByRange("", "")
-
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -742,7 +740,8 @@ func (lscc *SCC) executeInstall(stub shim.ChaincodeStubInterface, ccbytes []byte
 	chaincodeDefinition := &cceventmgmt.ChaincodeDefinition{
 		Name:    ccpack.GetChaincodeData().Name,
 		Version: ccpack.GetChaincodeData().Version,
-		Hash:    ccpack.GetId()} // Note - The chaincode 'id' is the hash of chaincode's (CodeHash || MetaDataHash), aka fingerprint
+		Hash:    ccpack.GetId(),
+	} // Note - The chaincode 'id' is the hash of chaincode's (CodeHash || MetaDataHash), aka fingerprint
 
 	// HandleChaincodeInstall will apply any statedb artifacts (e.g. couchdb indexes) to
 	// any channel's statedb where the chaincode is already instantiated
@@ -770,7 +769,6 @@ func (lscc *SCC) executeDeployOrUpgrade(
 	policy, escc, vscc, collectionConfigBytes []byte,
 	function string,
 ) (*ccprovider.ChaincodeData, error) {
-
 	chaincodeName := cds.ChaincodeSpec.ChaincodeId.Name
 	chaincodeVersion := cds.ChaincodeSpec.ChaincodeId.Version
 
@@ -815,14 +813,14 @@ func (lscc *SCC) executeDeploy(
 	ccpackfs ccprovider.CCPackage,
 	collectionConfigBytes []byte,
 ) (*ccprovider.ChaincodeData, error) {
-	//just test for existence of the chaincode in the LSCC
+	// just test for existence of the chaincode in the LSCC
 	chaincodeName := cds.ChaincodeSpec.ChaincodeId.Name
 	_, err := lscc.getCCInstance(stub, chaincodeName)
 	if err == nil {
 		return nil, ExistsErr(chaincodeName)
 	}
 
-	//retain chaincode specific data and fill channel specific ones
+	// retain chaincode specific data and fill channel specific ones
 	cdfs.Escc = string(escc)
 	cdfs.Vscc = string(vscc)
 	cdfs.Policy = policy
@@ -857,7 +855,6 @@ func (lscc *SCC) executeDeploy(
 
 // executeUpgrade implements the "upgrade" Invoke transaction.
 func (lscc *SCC) executeUpgrade(stub shim.ChaincodeStubInterface, chainName string, cds *pb.ChaincodeDeploymentSpec, policy []byte, escc []byte, vscc []byte, cdfs *ccprovider.ChaincodeData, ccpackfs ccprovider.CCPackage, collectionConfigBytes []byte) (*ccprovider.ChaincodeData, error) {
-
 	chaincodeName := cds.ChaincodeSpec.ChaincodeId.Name
 
 	// check for existence of chaincode instance only (it has to exist on the channel)
@@ -868,18 +865,18 @@ func (lscc *SCC) executeUpgrade(stub shim.ChaincodeStubInterface, chainName stri
 		return nil, NotFoundErr(chaincodeName)
 	}
 
-	//we need the cd to compare the version
+	// we need the cd to compare the version
 	cdLedger, err := lscc.getChaincodeData(chaincodeName, cdbytes)
 	if err != nil {
 		return nil, err
 	}
 
-	//do not upgrade if same version
+	// do not upgrade if same version
 	if cdLedger.Version == cds.ChaincodeSpec.ChaincodeId.Version {
 		return nil, IdenticalVersionErr(chaincodeName)
 	}
 
-	//do not upgrade if instantiation policy is violated
+	// do not upgrade if instantiation policy is violated
 	if cdLedger.InstantiationPolicy == nil {
 		return nil, InstantiationPolicyMissing("")
 	}
@@ -893,7 +890,7 @@ func (lscc *SCC) executeUpgrade(stub shim.ChaincodeStubInterface, chainName stri
 		return nil, err
 	}
 
-	//retain chaincode specific data and fill channel specific ones
+	// retain chaincode specific data and fill channel specific ones
 	cdfs.Escc = string(escc)
 	cdfs.Vscc = string(vscc)
 	cdfs.Policy = policy
@@ -937,7 +934,7 @@ func (lscc *SCC) executeUpgrade(stub shim.ChaincodeStubInterface, chainName stri
 
 //-------------- the chaincode stub interface implementation ----------
 
-//Init is mostly useless for SCC
+// Init is mostly useless for SCC
 func (lscc *SCC) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Success(nil)
 }
@@ -1016,7 +1013,7 @@ func (lscc *SCC) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		cds := &pb.ChaincodeDeploymentSpec{}
 		err := proto.Unmarshal(depSpec, cds)
 		if err != nil {
-			return shim.Error(fmt.Sprintf("error unmarshaling ChaincodeDeploymentSpec: %s", err))
+			return shim.Error(fmt.Sprintf("error unmarshalling ChaincodeDeploymentSpec: %s", err))
 		}
 
 		// optional arguments here (they can each be nil and may or may not be present)

@@ -70,8 +70,7 @@ type Reconciler struct {
 
 // NoOpReconciler non functional reconciler to be used
 // in case reconciliation has been disabled
-type NoOpReconciler struct {
-}
+type NoOpReconciler struct{}
 
 func (*NoOpReconciler) Start() {
 	// do nothing
@@ -120,7 +119,6 @@ func (r *Reconciler) run() {
 			r.logger.Debug("Start reconcile missing private info")
 			if err := r.reconcile(); err != nil {
 				r.logger.Error("Failed to reconcile missing private info, error: ", err.Error())
-				break
 			}
 		}
 	}

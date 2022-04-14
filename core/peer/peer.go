@@ -16,8 +16,6 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/channelconfig"
-	cc "github.com/hyperledger/fabric/common/config"
-	"github.com/hyperledger/fabric/common/configtx"
 	"github.com/hyperledger/fabric/common/deliver"
 	"github.com/hyperledger/fabric/common/flogging"
 	commonledger "github.com/hyperledger/fabric/common/ledger"
@@ -36,7 +34,6 @@ import (
 	"github.com/hyperledger/fabric/core/ledger/ledgermgmt"
 	"github.com/hyperledger/fabric/core/transientstore"
 	"github.com/hyperledger/fabric/gossip/api"
-	gossipprivdata "github.com/hyperledger/fabric/gossip/privdata"
 	gossipservice "github.com/hyperledger/fabric/gossip/service"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
@@ -55,12 +52,6 @@ type CollectionInfoShim struct {
 
 func (cis *CollectionInfoShim) CollectionValidationInfo(chaincodeName, collectionName string, validationState validation.State) ([]byte, error, error) {
 	return cis.CollectionAndLifecycleResources.CollectionValidationInfo(cis.ChannelID, chaincodeName, collectionName, validationState)
-}
-
-type gossipSupport struct {
-	channelconfig.Application
-	configtx.Validator
-	channelconfig.Channel
 }
 
 func ConfigBlockFromLedger(ledger ledger.PeerLedger) (*common.Block, error) {
@@ -152,30 +143,6 @@ func (flbs fileLedgerBlockStore) RetrieveBlocks(startBlockNumber uint64) (common
 
 func (flbs fileLedgerBlockStore) Shutdown() {}
 
-// NewConfigSupport returns
-func NewConfigSupport(peer *Peer) cc.Manager {
-	return &configSupport{
-		peer: peer,
-	}
-}
-
-type configSupport struct {
-	peer *Peer
-}
-
-// GetChannelConfig returns an instance of a object that represents
-// current channel configuration tree of the specified channel. The
-// ConfigProto method of the returned object can be used to get the
-// proto representing the channel configuration.
-func (c *configSupport) GetChannelConfig(cid string) cc.Config {
-	channel := c.peer.Channel(cid)
-	if channel == nil {
-		peerLogger.Errorf("[channel %s] channel not associated with this peer", cid)
-		return nil
-	}
-	return channel.Resources().ConfigtxValidator()
-}
-
 // A Peer holds references to subsystems and channels associated with a Fabric peer.
 type Peer struct {
 	ServerConfig             comm.ServerConfig
@@ -197,6 +164,14 @@ type Peer struct {
 	// channels is a map of channelID to channel
 	mutex    sync.RWMutex
 	channels map[string]*Channel
+
+	configCallbacks []channelconfig.BundleActor
+}
+
+// AddConfigCallbacks adds one or more BundleActor functions to list of callbacks that
+// get invoked when a channel configuration update event is received via gossip.
+func (p *Peer) AddConfigCallbacks(callbacks ...channelconfig.BundleActor) {
+	p.configCallbacks = append(p.configCallbacks, callbacks...)
 }
 
 func (p *Peer) openStore(cid string) (*transientstore.Store, error) {
@@ -321,13 +296,13 @@ func (p *Peer) createChannel(
 	gossipCallbackWrapper := func(bundle *channelconfig.Bundle) {
 		ac, ok := bundle.ApplicationConfig()
 		if !ok {
-			// TODO, handle a missing ApplicationConfig more gracefully
 			ac = nil
 		}
-		gossipEventer.ProcessConfigUpdate(&gossipSupport{
-			Validator:   bundle.ConfigtxValidator(),
-			Application: ac,
-			Channel:     bundle.ChannelConfig(),
+		gossipEventer.ProcessConfigUpdate(gossipservice.ConfigUpdate{
+			ChannelID:        bundle.ConfigtxValidator().ChannelID(),
+			Organizations:    ac.Organizations(),
+			OrdererAddresses: bundle.ChannelConfig().OrdererAddresses(),
+			Sequence:         bundle.ConfigtxValidator().Sequence(),
 		})
 		p.GossipService.SuspectPeers(func(identity api.PeerIdentityType) bool {
 			// TODO: this is a place-holder that would somehow make the MSP layer suspect
@@ -375,13 +350,18 @@ func (p *Peer) createChannel(
 		cryptoProvider: p.CryptoProvider,
 	}
 
-	channel.bundleSource = channelconfig.NewBundleSource(
-		bundle,
+	callbacks := []channelconfig.BundleActor{
 		ordererSourceCallback,
 		gossipCallbackWrapper,
 		trustedRootsCallbackWrapper,
 		mspCallback,
 		channel.bundleUpdate,
+	}
+	callbacks = append(callbacks, p.configCallbacks...)
+
+	channel.bundleSource = channelconfig.NewBundleSource(
+		bundle,
+		callbacks...,
 	)
 
 	committer := committer.NewLedgerCommitter(l)
@@ -420,15 +400,16 @@ func (p *Peer) createChannel(
 	}
 	channel.store = store
 
-	simpleCollectionStore := privdata.NewSimpleCollectionStore(l, deployedCCInfoProvider)
+	var idDeserializerFactory privdata.IdentityDeserializerFactoryFunc = func(channelID string) msp.IdentityDeserializer {
+		return p.Channel(channelID).MSPManager()
+	}
+	simpleCollectionStore := privdata.NewSimpleCollectionStore(l, deployedCCInfoProvider, idDeserializerFactory)
 	p.GossipService.InitializeChannel(bundle.ConfigtxValidator().ChannelID(), ordererSource, store, gossipservice.Support{
-		Validator:       validator,
-		Committer:       committer,
-		CollectionStore: simpleCollectionStore,
-		IdDeserializeFactory: gossipprivdata.IdentityDeserializerFactoryFunc(func(chainID string) msp.IdentityDeserializer {
-			return mspmgmt.GetManagerForChain(chainID)
-		}),
-		CapabilityProvider: channel,
+		Validator:            validator,
+		Committer:            committer,
+		CollectionStore:      simpleCollectionStore,
+		IdDeserializeFactory: idDeserializerFactory,
+		CapabilityProvider:   channel,
 	})
 
 	p.mutex.Lock()

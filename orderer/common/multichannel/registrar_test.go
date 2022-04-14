@@ -172,7 +172,7 @@ func TestConfigTx(t *testing.T) {
 }
 
 func TestNewRegistrar(t *testing.T) {
-	//system channel
+	// system channel
 	confSys := genesisconfig.Load(genesisconfig.SampleInsecureSoloProfile, configtest.GetDevConfigDir())
 	genesisBlockSys := encoder.New(confSys).GenesisBlock()
 
@@ -257,7 +257,8 @@ func TestNewRegistrar(t *testing.T) {
 			t,
 			types.ChannelList{
 				SystemChannel: &types.ChannelInfoShort{Name: "testchannelid", URL: ""},
-				Channels:      nil},
+				Channels:      nil,
+			},
 			list,
 		)
 
@@ -349,7 +350,8 @@ func TestRegistrar_Initialize(t *testing.T) {
 		require.Equal(t,
 			types.ChannelList{
 				SystemChannel: &types.ChannelInfoShort{Name: "my-sys-channel", URL: ""},
-				Channels:      nil},
+				Channels:      nil,
+			},
 			list,
 		)
 
@@ -362,7 +364,7 @@ func TestRegistrar_Initialize(t *testing.T) {
 	})
 
 	t.Run("Correct flow without system channel - etcdraft.Chain", func(t *testing.T) {
-		//TODO
+		// TODO
 		tmpdir, err := ioutil.TempDir("", "registrar_test-")
 		require.NoError(t, err)
 		defer os.RemoveAll(tmpdir)
@@ -401,7 +403,7 @@ func TestRegistrar_Initialize(t *testing.T) {
 	})
 
 	t.Run("Correct flow without system channel - follower.Chain", func(t *testing.T) {
-		//TODO
+		// TODO
 		tmpdir, err := ioutil.TempDir("", "registrar_test-")
 		require.NoError(t, err)
 		defer os.RemoveAll(tmpdir)
@@ -441,7 +443,7 @@ func TestRegistrar_Initialize(t *testing.T) {
 	})
 
 	t.Run("Correct flow without system channel - follower.Chain with join block", func(t *testing.T) {
-		//TODO
+		// TODO
 		tmpdir, err := ioutil.TempDir("", "registrar_test-")
 		require.NoError(t, err)
 		defer os.RemoveAll(tmpdir)
@@ -577,18 +579,18 @@ type joinBlock struct {
 
 func createJoinBlockFileRepoDirWithBlocks(t *testing.T, tmpdir string, joinBlocks ...*joinBlock) {
 	joinBlockRepoPath := filepath.Join(tmpdir, "pendingops", "join")
-	err := os.MkdirAll(joinBlockRepoPath, 0755)
+	err := os.MkdirAll(joinBlockRepoPath, 0o755)
 	require.NoError(t, err)
 	for _, jb := range joinBlocks {
 		blockBytes, err := proto.Marshal(jb.block)
 		require.NoError(t, err)
-		err = ioutil.WriteFile(filepath.Join(joinBlockRepoPath, fmt.Sprintf("%s.join", jb.channel)), blockBytes, 0600)
+		err = ioutil.WriteFile(filepath.Join(joinBlockRepoPath, fmt.Sprintf("%s.join", jb.channel)), blockBytes, 0o600)
 		require.NoError(t, err)
 	}
 }
 
 func TestCreateChain(t *testing.T) {
-	//system channel
+	// system channel
 	confSys := genesisconfig.Load(genesisconfig.SampleInsecureSoloProfile, configtest.GetDevConfigDir())
 	genesisBlockSys := encoder.New(confSys).GenesisBlock()
 
@@ -627,7 +629,8 @@ func TestCreateChain(t *testing.T) {
 			t,
 			types.ChannelList{
 				SystemChannel: &types.ChannelInfoShort{Name: "testchannelid", URL: ""},
-				Channels:      []types.ChannelInfoShort{{Name: "mychannel", URL: ""}}},
+				Channels:      []types.ChannelInfoShort{{Name: "mychannel", URL: ""}},
+			},
 			list,
 		)
 
@@ -1315,7 +1318,7 @@ func TestRegistrar_JoinChannel(t *testing.T) {
 		consenter.IsChannelMemberReturns(false, nil)
 		require.Equal(t, uint64(2), cs.Height())
 
-		//Now halt and switch, as if the orderer was evicted
+		// Now halt and switch, as if the orderer was evicted
 		cs.Halt()
 		require.NotPanics(t, func() { registrar.SwitchChainToFollower("my-raft-channel") })
 		// Now the follower is in the followers map, the chain is gone
@@ -1621,7 +1624,7 @@ func TestRegistrar_RemoveChannel(t *testing.T) {
 		require.NotNil(t, registrar.GetChain("channel-im-not-a-member-of"))
 		require.Contains(t, ledgerFactory.ChannelIDs(), "channel-im-not-a-member-of")
 		consenter.IsChannelMemberStub = func(b *cb.Block) (bool, error) {
-			if bytes.Compare(b.Header.DataHash, genesisBlockAppRaft.Header.DataHash) == 0 {
+			if bytes.Equal(b.Header.DataHash, genesisBlockAppRaft.Header.DataHash) {
 				return true, nil
 			}
 			return false, nil
@@ -1682,7 +1685,7 @@ func TestRegistrar_RemoveChannel(t *testing.T) {
 		require.Contains(t, ledgerFactory.ChannelIDs(), "channel-im-not-a-member-of")
 		consenter.IsChannelMemberStub = func(b *cb.Block) (bool, error) {
 			os.RemoveAll(filepath.Join(tmpdir, "pendingops", "remove"))
-			if bytes.Compare(b.Header.DataHash, genesisBlockAppRaft.Header.DataHash) == 0 {
+			if bytes.Equal(b.Header.DataHash, genesisBlockAppRaft.Header.DataHash) {
 				return true, nil
 			}
 			return false, nil
@@ -1783,7 +1786,8 @@ func TestRegistrar_RemoveChannel(t *testing.T) {
 		require.Equal(t, channelInfo, types.ChannelInfo{
 			Name:              "my-raft-channel",
 			ConsensusRelation: types.ConsensusRelationConsenter,
-			Status:            types.StatusFailed})
+			Status:            types.StatusFailed,
+		})
 	})
 }
 
@@ -1792,13 +1796,13 @@ func generateCertificates(t *testing.T, confAppRaft *genesisconfig.Profile, tlsC
 		srvC, err := tlsCA.NewServerCertKeyPair(c.Host)
 		require.NoError(t, err)
 		srvP := path.Join(certDir, fmt.Sprintf("server%d.crt", i))
-		err = ioutil.WriteFile(srvP, srvC.Cert, 0644)
+		err = ioutil.WriteFile(srvP, srvC.Cert, 0o644)
 		require.NoError(t, err)
 
 		clnC, err := tlsCA.NewClientCertKeyPair()
 		require.NoError(t, err)
 		clnP := path.Join(certDir, fmt.Sprintf("client%d.crt", i))
-		err = ioutil.WriteFile(clnP, clnC.Cert, 0644)
+		err = ioutil.WriteFile(clnP, clnC.Cert, 0o644)
 		require.NoError(t, err)
 
 		c.ServerTlsCert = []byte(srvP)

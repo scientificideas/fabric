@@ -73,7 +73,7 @@ func (s *DiscoverySupport) Config(channel string) (*discovery.ConfigResult, erro
 	if globalOrderers != nil {
 		ordererAddressesConfig := &common.OrdererAddresses{}
 		if err := proto.Unmarshal(globalOrderers.Value, ordererAddressesConfig); err != nil {
-			return nil, errors.Wrap(err, "failed unmarshaling orderer addresses")
+			return nil, errors.Wrap(err, "failed unmarshalling orderer addresses")
 		}
 		globalEndpoints = ordererAddressesConfig.Addresses
 	}
@@ -88,7 +88,6 @@ func (s *DiscoverySupport) Config(channel string) (*discovery.ConfigResult, erro
 		return nil, errors.WithStack(err)
 	}
 	return res, nil
-
 }
 
 func computeOrdererEndpoints(ordererGrp map[string]*common.ConfigGroup, globalOrdererAddresses []string) (map[string]*discovery.Endpoints, error) {
@@ -168,7 +167,7 @@ func perOrgEndpointsByMSPID(ordererGrp map[string]*common.ConfigGroup) (map[stri
 		if perOrgAddresses := group.Values[channelconfig.EndpointsKey]; perOrgAddresses != nil {
 			ordererEndpoints := &common.OrdererAddresses{}
 			if err := proto.Unmarshal(perOrgAddresses.Value, ordererEndpoints); err != nil {
-				return nil, errors.Wrap(err, "failed unmarshaling orderer addresses")
+				return nil, errors.Wrap(err, "failed unmarshalling orderer addresses")
 			}
 			// Override the mapping because this orderer org config contains org-specific endpoints.
 			res[fabricConfig.Name] = ordererEndpoints.Addresses

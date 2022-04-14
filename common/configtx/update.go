@@ -62,7 +62,6 @@ func validateModPolicy(modPolicy string) error {
 		}
 	}
 	return nil
-
 }
 
 func (vi *ValidatorImpl) verifyDeltaSet(deltaSet map[string]comparable, signedData []*protoutil.SignedData) error {
@@ -95,6 +94,7 @@ func (vi *ValidatorImpl) verifyDeltaSet(deltaSet map[string]comparable, signedDa
 
 		// Ensure the policy is satisfied
 		if err := policy.EvaluateSignedData(signedData); err != nil {
+			logger.Warnw("policy not satisfied for channel configuration update", "key", key, "policy", policy, "signingIdenties", protoutil.LogMessageForSerializedIdentities(signedData))
 			return errors.Wrapf(err, "policy for %s not satisfied", key)
 		}
 	}

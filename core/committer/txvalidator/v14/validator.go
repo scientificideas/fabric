@@ -63,7 +63,7 @@ type ChannelResources interface {
 // and vscc execution, in order to increase
 // testability of TxValidator
 type vsccValidator interface {
-	VSCCValidateTx(seq int, payload *common.Payload, envBytes []byte, block *common.Block) (error, peer.TxValidationCode)
+	VSCCValidateTx(seq int, payload *common.Payload, envBytes []byte, block *common.Block) (peer.TxValidationCode, error)
 }
 
 // implementation of Validator interface, keeps
@@ -344,7 +344,7 @@ func (v *TxValidator) validateTx(req *blockValidationRequest, results chan<- *bl
 
 			// Validate tx with vscc and policy
 			logger.Debug("Validating transaction vscc tx validate")
-			err, cde := v.Vscc.VSCCValidateTx(tIdx, payload, d, block)
+			cde, err := v.Vscc.VSCCValidateTx(tIdx, payload, d, block)
 			if err != nil {
 				logger.Errorf("VSCCValidateTx for transaction txId = %s returned error: %s", txID, err)
 				switch err.(type) {
@@ -448,13 +448,11 @@ func (v *TxValidator) validateTx(req *blockValidationRequest, results chan<- *bl
 // the function returns nil if it has ensured that there is no such duplicate, such
 // that its consumer can proceed with the transaction processing
 func (v *TxValidator) checkTxIdDupsLedger(tIdx int, chdr *common.ChannelHeader, ldgr ledger.PeerLedger) *blockValidationResult {
-
 	// Retrieve the transaction identifier of the input header
 	txID := chdr.TxId
 
 	// Look for a transaction with the same identifier inside the ledger
 	exists, err := ldgr.TxIDExists(txID)
-
 	if err != nil {
 		logger.Errorf("Ledger failure while attempting to detect duplicate status for txid %s: %s", txID, err)
 		return &blockValidationResult{

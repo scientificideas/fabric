@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -116,7 +117,40 @@ func TestGetPayloads(t *testing.T) {
 	_, _, err = protoutil.GetPayloads(txAction)
 	require.Error(t, err, "Expected error with malformed transaction action payload")
 	t.Logf("error6 [%s]", err)
+}
 
+func TestDeduplicateEndorsements(t *testing.T) {
+	signID := &fakes.SignerSerializer{}
+	signID.SerializeReturns([]byte("signer"), nil)
+	signerBytes, err := signID.Serialize()
+	require.NoError(t, err, "Unexpected error serializing signing identity")
+
+	proposal := &pb.Proposal{
+		Header: protoutil.MarshalOrPanic(&cb.Header{
+			ChannelHeader: protoutil.MarshalOrPanic(&cb.ChannelHeader{
+				Extension: protoutil.MarshalOrPanic(&pb.ChaincodeHeaderExtension{}),
+			}),
+			SignatureHeader: protoutil.MarshalOrPanic(&cb.SignatureHeader{
+				Creator: signerBytes,
+			}),
+		}),
+	}
+	responses := []*pb.ProposalResponse{
+		{Payload: []byte("payload"), Endorsement: &pb.Endorsement{Endorser: []byte{5, 4, 3}}, Response: &pb.Response{Status: int32(200)}},
+		{Payload: []byte("payload"), Endorsement: &pb.Endorsement{Endorser: []byte{5, 4, 3}}, Response: &pb.Response{Status: int32(200)}},
+	}
+
+	transaction, err := protoutil.CreateSignedTx(proposal, signID, responses...)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(transaction, transaction), "got: %#v, want: %#v", transaction, transaction)
+
+	pl := protoutil.UnmarshalPayloadOrPanic(transaction.Payload)
+	tx, err := protoutil.UnmarshalTransaction(pl.Data)
+	require.NoError(t, err)
+	ccap, err := protoutil.UnmarshalChaincodeActionPayload(tx.Actions[0].Payload)
+	require.NoError(t, err)
+	require.Len(t, ccap.Action.Endorsements, 1)
+	require.Equal(t, []byte{5, 4, 3}, ccap.Action.Endorsements[0].Endorser)
 }
 
 func TestCreateSignedTx(t *testing.T) {
@@ -156,14 +190,6 @@ func TestCreateSignedTx(t *testing.T) {
 		responses     []*pb.ProposalResponse
 		expectedError string
 	}{
-		// good responses, but different payloads
-		{
-			[]*pb.ProposalResponse{
-				{Payload: []byte("payload"), Response: &pb.Response{Status: int32(200)}},
-				{Payload: []byte("payload2"), Response: &pb.Response{Status: int32(200)}},
-			},
-			"ProposalResponsePayloads do not match",
-		},
 		// good response followed by bad response
 		{
 			[]*pb.ProposalResponse{
@@ -184,6 +210,16 @@ func TestCreateSignedTx(t *testing.T) {
 	for i, nonMatchingTest := range nonMatchingTests {
 		_, err = protoutil.CreateSignedTx(prop, signID, nonMatchingTest.responses...)
 		require.EqualErrorf(t, err, nonMatchingTest.expectedError, "Expected non-matching response error '%v' for test %d", nonMatchingTest.expectedError, i)
+	}
+
+	// good responses, but different payloads
+	responses = []*pb.ProposalResponse{
+		{Payload: []byte("payload"), Response: &pb.Response{Status: int32(200)}},
+		{Payload: []byte("payload2"), Response: &pb.Response{Status: int32(200)}},
+	}
+	_, err = protoutil.CreateSignedTx(prop, signID, responses...)
+	if err == nil || strings.HasPrefix(err.Error(), "ProposalResponsePayloads do not match (base64):") == false {
+		require.FailNow(t, "Error is expected when response payloads do not match")
 	}
 
 	// no endorsement
@@ -231,7 +267,11 @@ func TestCreateSignedTx(t *testing.T) {
 	prop.Header = []byte("bad header")
 	_, err = protoutil.CreateSignedTx(prop, signID, responses...)
 	require.Error(t, err, "Expected error with malformed proposal header")
+}
 
+func TestCreateSignedTxNoSigner(t *testing.T) {
+	_, err := protoutil.CreateSignedTx(nil, nil, &pb.ProposalResponse{})
+	require.ErrorContains(t, err, "signer is required when creating a signed transaction")
 }
 
 func TestCreateSignedTxStatus(t *testing.T) {
@@ -363,7 +403,6 @@ func TestGetSignedProposal(t *testing.T) {
 	require.Error(t, err, "Expected error with nil proposal")
 	_, err = protoutil.GetSignedProposal(prop, nil)
 	require.Error(t, err, "Expected error with nil signing identity")
-
 }
 
 func TestMockSignedEndorserProposalOrPanic(t *testing.T) {
@@ -493,9 +532,9 @@ func TestCreateProposalResponseFailure(t *testing.T) {
 	require.Equal(t, int32(502), prespFailure.Response.Status)
 	// drilldown into the response to find the chaincode response
 	pRespPayload, err := protoutil.UnmarshalProposalResponsePayload(prespFailure.Payload)
-	require.NoError(t, err, "Error while unmarshaling proposal response payload: %s", err)
+	require.NoError(t, err, "Error while unmarshalling proposal response payload: %s", err)
 	ca, err := protoutil.UnmarshalChaincodeAction(pRespPayload.Extension)
-	require.NoError(t, err, "Error while unmarshaling chaincode action: %s", err)
+	require.NoError(t, err, "Error while unmarshalling chaincode action: %s", err)
 
 	require.Equal(t, int32(502), ca.Response.Status)
 	require.Equal(t, "Invalid function name", string(ca.Response.Payload))
@@ -516,7 +555,6 @@ func TestGetorComputeTxIDFromEnvelope(t *testing.T) {
 		actualTxID, err := protoutil.GetOrComputeTxIDFromEnvelope(envelopeBytes)
 		require.Nil(t, err)
 		require.Equal(t, "709184f9d24f6ade8fcd4d6521a6eef295fef6c2e67216c58b68ac15e8946492", actualTxID)
-
 	})
 }
 
@@ -546,5 +584,4 @@ func createSampleTxEnvelopeBytes(txID string) []byte {
 		Payload: payloadBytes,
 	}
 	return protoutil.MarshalOrPanic(envelope)
-
 }

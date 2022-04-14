@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package mgmt
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hyperledger/fabric/bccsp"
@@ -53,14 +55,6 @@ func TestGetIdentityDeserializer(t *testing.T) {
 	require.NotNil(t, ids)
 }
 
-func TestGetLocalSigningIdentityOrPanic(t *testing.T) {
-	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
-	require.NoError(t, err)
-
-	sid := GetLocalSigningIdentityOrPanic(cryptoProvider)
-	require.NotNil(t, sid)
-}
-
 func TestUpdateLocalMspCache(t *testing.T) {
 	// reset localMsp to force it to be initialized on the first call
 	localMsp = nil
@@ -88,17 +82,15 @@ func TestNewMSPMgmtMgr(t *testing.T) {
 	cryptoProvider, err := LoadMSPSetupForTesting()
 	require.Nil(t, err)
 
-	// test for nonexistent channel
-	mspMgmtMgr := GetManagerForChain("fake")
-
-	id := GetLocalSigningIdentityOrPanic(cryptoProvider)
+	id, err := GetLocalMSP(cryptoProvider).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	require.NotNil(t, id)
 
 	serializedID, err := id.Serialize()
-	if err != nil {
-		t.Fatalf("Serialize should have succeeded, got err %s", err)
-		return
-	}
+	require.NoError(t, err)
+
+	// test for nonexistent channel
+	mspMgmtMgr := GetManagerForChain("fake")
 
 	idBack, err := mspMgmtMgr.DeserializeIdentity(serializedID)
 	require.Error(t, err)
@@ -107,15 +99,6 @@ func TestNewMSPMgmtMgr(t *testing.T) {
 
 	// test for existing channel
 	mspMgmtMgr = GetManagerForChain("testchannelid")
-
-	id = GetLocalSigningIdentityOrPanic(cryptoProvider)
-	require.NotNil(t, id)
-
-	serializedID, err = id.Serialize()
-	if err != nil {
-		t.Fatalf("Serialize should have succeeded, got err %s", err)
-		return
-	}
 
 	idBack, err = mspMgmtMgr.DeserializeIdentity(serializedID)
 	require.NoError(t, err)
@@ -142,4 +125,40 @@ func LoadMSPSetupForTesting() (bccsp.BCCSP, error) {
 	}
 
 	return cryptoProvider, nil
+}
+
+func TestLocalMSP(t *testing.T) {
+	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
+	require.NoError(t, err)
+
+	mspDir := configtest.GetDevMspDir()
+	conf, err := msp.GetLocalMspConfig(mspDir, nil, "SampleOrg")
+	require.NoError(t, err, "failed to get local MSP config")
+	err = GetLocalMSP(cryptoProvider).Setup(conf)
+	require.NoError(t, err, "failed to setup local MSP")
+
+	_, err = GetLocalMSP(cryptoProvider).GetDefaultSigningIdentity()
+	require.NoError(t, err, "failed to get default signing identity")
+}
+
+func TestMain(m *testing.M) {
+	mspDir := configtest.GetDevMspDir()
+
+	testConf, err := msp.GetLocalMspConfig(mspDir, nil, "SampleOrg")
+	if err != nil {
+		fmt.Printf("Setup should have succeeded, got err %s instead", err)
+		os.Exit(-1)
+	}
+
+	cryptoProvider := factory.GetDefault()
+
+	err = GetLocalMSP(cryptoProvider).Setup(testConf)
+	if err != nil {
+		fmt.Printf("Setup for msp should have succeeded, got err %s instead", err)
+		os.Exit(-1)
+	}
+
+	XXXSetMSPManager("foo", msp.NewMSPManager())
+	retVal := m.Run()
+	os.Exit(retVal)
 }

@@ -19,7 +19,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset"
 	protosmsp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	protospeer "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp/sw"
 	commonerrors "github.com/hyperledger/fabric/common/errors"
 	"github.com/hyperledger/fabric/common/policydsl"
@@ -48,7 +47,7 @@ import (
 
 func signedByAnyMember(ids []string) []byte {
 	p := policydsl.SignedByAnyMember(ids)
-	return protoutil.MarshalOrPanic(&protospeer.ApplicationPolicy{Type: &protospeer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: p}})
+	return protoutil.MarshalOrPanic(&peer.ApplicationPolicy{Type: &peer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: p}})
 }
 
 func v20Capabilities() *tmocks.ApplicationCapabilities {
@@ -78,7 +77,9 @@ func getProposalWithType(ccID string, pType common.HeaderType) (*peer.Proposal, 
 		ChaincodeSpec: &peer.ChaincodeSpec{
 			ChaincodeId: &peer.ChaincodeID{Name: ccID, Version: ccVersion},
 			Input:       &peer.ChaincodeInput{Args: [][]byte{[]byte("func")}},
-			Type:        peer.ChaincodeSpec_GOLANG}}
+			Type:        peer.ChaincodeSpec_GOLANG,
+		},
+	}
 
 	proposal, _, err := protoutil.CreateProposalFromCIS(pType, "testchannelid", cis, signerSerialized)
 	return proposal, err
@@ -393,6 +394,7 @@ func (fake *mockMSP) DeserializeIdentity(serializedIdentity []byte) (msp.Identit
 func (fake *mockMSP) IsWellFormed(identity *protosmsp.SerializedIdentity) error {
 	return nil
 }
+
 func (fake *mockMSP) Setup(config *protosmsp.MSPConfig) error {
 	return nil
 }
@@ -407,10 +409,6 @@ func (fake *mockMSP) GetType() msp.ProviderType {
 
 func (fake *mockMSP) GetIdentifier() (string, error) {
 	return fake.MspID, nil
-}
-
-func (fake *mockMSP) GetSigningIdentity(identifier *msp.IdentityIdentifier) (msp.SigningIdentity, error) {
-	return nil, nil
 }
 
 func (fake *mockMSP) GetDefaultSigningIdentity() (msp.SigningIdentity, error) {
@@ -461,7 +459,7 @@ func TestParallelValidation(t *testing.T) {
 	mgr := mgmt.GetManagerForChain("foochain")
 	mgr.Setup([]msp.MSP{msp1, msp2})
 
-	vpKey := protospeer.MetaDataKeys_VALIDATION_PARAMETER.String()
+	vpKey := peer.MetaDataKeys_VALIDATION_PARAMETER.String()
 	ccID := "mycc"
 
 	v, mockQE, _, mockCR := setupValidatorWithMspMgr(mgr, nil)
@@ -469,7 +467,7 @@ func TestParallelValidation(t *testing.T) {
 	mockCR.On("CollectionValidationInfo", ccID, "col1", mock.Anything).Return(nil, nil, nil)
 
 	policy := policydsl.SignedByMspPeer("Org1")
-	polBytes := protoutil.MarshalOrPanic(&protospeer.ApplicationPolicy{Type: &protospeer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: policy}})
+	polBytes := protoutil.MarshalOrPanic(&peer.ApplicationPolicy{Type: &peer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: policy}})
 	mockQE.On("GetState", "lscc", ccID).Return(protoutil.MarshalOrPanic(&ccp.ChaincodeData{
 		Name:    ccID,
 		Version: ccVersion,
@@ -928,7 +926,7 @@ func TestValidateTxWithStateBasedEndorsement(t *testing.T) {
 		Vscc:    "vscc",
 		Policy:  signedByAnyMember([]string{"SampleOrg"}),
 	}), nil)
-	mockQE.On("GetStateMetadata", ccID, "key").Return(map[string][]byte{peer.MetaDataKeys_VALIDATION_PARAMETER.String(): protoutil.MarshalOrPanic(&protospeer.ApplicationPolicy{Type: &protospeer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: policydsl.RejectAllPolicy}})}, nil)
+	mockQE.On("GetStateMetadata", ccID, "key").Return(map[string][]byte{peer.MetaDataKeys_VALIDATION_PARAMETER.String(): protoutil.MarshalOrPanic(&peer.ApplicationPolicy{Type: &peer.ApplicationPolicy_SignaturePolicy{SignaturePolicy: policydsl.RejectAllPolicy}})}, nil)
 
 	tx := getEnv(ccID, nil, createRWset(t, ccID), t)
 	b := &common.Block{Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(tx)}}, Header: &common.BlockHeader{Number: 3}}

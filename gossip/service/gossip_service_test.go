@@ -112,14 +112,20 @@ func TestInitGossipService(t *testing.T) {
 
 	err = msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err)
-	signer := mgmt.GetLocalSigningIdentityOrPanic(cryptoProvider)
 
-	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, &mocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
-	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
+	localMSP := mgmt.GetLocalMSP(cryptoProvider)
+	deserManager := peergossip.NewDeserializersManager(localMSP)
+	signer, err := localMSP.GetDefaultSigningIdentity()
 	require.NoError(t, err)
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{})
+	messageCryptoService := peergossip.NewMCS(
+		&mocks.ChannelPolicyManagerGetter{},
+		signer,
+		deserManager,
+		cryptoProvider,
+	)
+	secAdv := peergossip.NewSecurityAdvisor(deserManager)
+	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
 	require.NoError(t, err)
 
 	gossipService, err := New(
@@ -131,7 +137,6 @@ func TestInitGossipService(t *testing.T) {
 		secAdv,
 		nil,
 		comm.NewCredentialSupport(),
-		grpcClient,
 		gossipConfig,
 		&ServiceConfig{},
 		&privdata.PrivdataConfig{},
@@ -154,10 +159,10 @@ func TestJCMInterface(t *testing.T) {
 }
 
 func TestLeaderElectionWithDeliverClient(t *testing.T) {
-	//Test check if leader election works with mock deliver service instance
-	//Configuration set to use dynamic leader election
-	//10 peers started, added to channel and at the end we check if only for one peer
-	//mockDeliverService.StartDeliverForChannel was invoked
+	// Test check if leader election works with mock deliver service instance
+	// Configuration set to use dynamic leader election
+	// 10 peers started, added to channel and at the end we check if only for one peer
+	// mockDeliverService.StartDeliverForChannel was invoked
 
 	n := 10
 	serviceConfig := &ServiceConfig{
@@ -283,7 +288,6 @@ func TestWithStaticDeliverClientLeader(t *testing.T) {
 }
 
 func TestWithStaticDeliverClientNotLeader(t *testing.T) {
-
 	serviceConfig := &ServiceConfig{
 		UseLeaderElection:                false,
 		OrgLeader:                        false,
@@ -331,7 +335,6 @@ func TestWithStaticDeliverClientNotLeader(t *testing.T) {
 }
 
 func TestWithStaticDeliverClientBothStaticAndLeaderElection(t *testing.T) {
-
 	serviceConfig := &ServiceConfig{
 		UseLeaderElection:                true,
 		OrgLeader:                        true,
@@ -486,7 +489,7 @@ func TestLeaderElectionWithRealGossip(t *testing.T) {
 
 	logger.Warning("Starting leader election services")
 
-	//Starting leader election services
+	// Starting leader election services
 	services := make([]*electionService, n)
 
 	electionMetrics := gossipmetrics.NewGossipMetrics(&disabled.Provider{}).ElectionMetrics
@@ -507,7 +510,7 @@ func TestLeaderElectionWithRealGossip(t *testing.T) {
 			startsNum++
 		}
 	}
-	//Only leader should invoke callback function, so it is double check that only one leader exists
+	// Only leader should invoke callback function, so it is double check that only one leader exists
 	require.Equal(t, 1, startsNum, "Only for one peer callback function should be called - chanA")
 
 	// Adding some peers to new channel and creating leader election services for peers in new channel
@@ -548,8 +551,8 @@ func TestLeaderElectionWithRealGossip(t *testing.T) {
 	}
 	require.Equal(t, 1, startsNum, "Only for one peer callback function should be called - chanB")
 
-	//Stopping 2 gossip instances(peer 0 and peer 1), should init re-election
-	//Now peer 2 become leader for first channel and peer 3 for second channel
+	// Stopping 2 gossip instances(peer 0 and peer 1), should init re-election
+	// Now peer 2 become leader for first channel and peer 3 for second channel
 
 	logger.Warning("Killing 2 peers, initiation new leader election")
 
@@ -593,8 +596,7 @@ func (es *electionService) callback(isLeader bool) {
 	es.callbackInvokeCount = es.callbackInvokeCount + 1
 }
 
-type joinChanMsg struct {
-}
+type joinChanMsg struct{}
 
 // SequenceNumber returns the sequence number of the block this joinChanMsg
 // is derived from
@@ -761,7 +763,8 @@ func newGossipInstance(serviceConfig *ServiceConfig, port int, id int, gRPCServe
 	)
 	go gRPCServer.Start()
 
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(factory.GetDefault()))
+	localMSP := mgmt.GetLocalMSP(factory.GetDefault())
+	secAdv := peergossip.NewSecurityAdvisor(peergossip.NewDeserializersManager(localMSP))
 	gossipService := &GossipService{
 		mcs:             cryptoService,
 		gossipSvc:       gossip,
@@ -807,11 +810,9 @@ func getAvailablePort(t *testing.T) (endpoint string, ll net.Listener) {
 	return endpoint, ll
 }
 
-type naiveCryptoService struct {
-}
+type naiveCryptoService struct{}
 
-type orgCryptoService struct {
-}
+type orgCryptoService struct{}
 
 // OrgByPeerIdentity returns the OrgIdentityType
 // of a given peer identity
@@ -882,11 +883,8 @@ func TestInvalidInitialization(t *testing.T) {
 
 	mockSignerSerializer := &mocks.SignerSerializer{}
 	mockSignerSerializer.SerializeReturns(api.PeerIdentityType("peer-identity"), nil)
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
+	secAdv := peergossip.NewSecurityAdvisor(peergossip.NewDeserializersManager(mgmt.GetLocalMSP(cryptoProvider)))
 	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
-	require.NoError(t, err)
-
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{})
 	require.NoError(t, err)
 
 	gossipService, err := New(
@@ -898,7 +896,6 @@ func TestInvalidInitialization(t *testing.T) {
 		secAdv,
 		nil,
 		comm.NewCredentialSupport(),
-		grpcClient,
 		gossipConfig,
 		&ServiceConfig{},
 		&privdata.PrivdataConfig{},
@@ -929,11 +926,8 @@ func TestChannelConfig(t *testing.T) {
 
 	mockSignerSerializer := &mocks.SignerSerializer{}
 	mockSignerSerializer.SerializeReturns(api.PeerIdentityType(string(orgInChannelA)), nil)
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
+	secAdv := peergossip.NewSecurityAdvisor(peergossip.NewDeserializersManager(mgmt.GetLocalMSP(cryptoProvider)))
 	gossipConfig, err := gossip.GlobalConfig(endpoint, nil)
-	require.NoError(t, err)
-
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{})
 	require.NoError(t, err)
 
 	gossipService, err := New(
@@ -945,7 +939,6 @@ func TestChannelConfig(t *testing.T) {
 		secAdv,
 		nil,
 		nil,
-		grpcClient,
 		gossipConfig,
 		&ServiceConfig{},
 		&privdata.PrivdataConfig{},
@@ -967,9 +960,11 @@ func TestChannelConfig(t *testing.T) {
 
 	require.Equal(t, uint64(1), jcm.SequenceNumber())
 
-	mc := &mockConfig{
-		sequence: 1,
-		orgs: map[string]channelconfig.ApplicationOrg{
+	cu := ConfigUpdate{
+		Sequence:         1,
+		ChannelID:        "channel-id",
+		OrdererAddresses: []string{"localhost:7050"},
+		Organizations: map[string]channelconfig.ApplicationOrg{
 			string(orgInChannelA): &appGrp{
 				mspID:       string(orgInChannelA),
 				anchorPeers: []*peer.AnchorPeer{{Host: "localhost", Port: 2001}},
@@ -979,8 +974,8 @@ func TestChannelConfig(t *testing.T) {
 	gService.JoinChan(jcm, gossipcommon.ChannelID("A"))
 	// use mock secAdv so that gService.secAdv.OrgByPeerIdentity can return the matched identity
 	gService.secAdv = &secAdvMock{}
-	gService.updateAnchors(mc)
-	require.True(t, gService.amIinChannel(string(orgInChannelA), mc))
+	gService.updateAnchors(cu)
+	require.True(t, gService.amIinChannel(string(orgInChannelA), cu))
 	require.True(t, gService.anchorPeerTracker.IsAnchorPeer("localhost:2001"))
 	require.False(t, gService.anchorPeerTracker.IsAnchorPeer("localhost:5000"))
 }

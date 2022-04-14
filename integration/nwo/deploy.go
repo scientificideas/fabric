@@ -25,7 +25,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/onsi/gomega/gstruct"
+	"github.com/onsi/gomega/gstruct"
 )
 
 type Chaincode struct {
@@ -134,7 +134,7 @@ func PackageAndInstallChaincode(n *Network, chaincode Chaincode, peers ...*Peer)
 	// only create chaincode package if it doesn't already exist
 	if _, err := os.Stat(chaincode.PackageFile); os.IsNotExist(err) {
 		switch chaincode.Lang {
-		case "binary":
+		case "binary", "ccaas":
 			PackageChaincodeBinary(chaincode)
 		default:
 			PackageChaincode(n, chaincode, peers[0])
@@ -170,6 +170,15 @@ func PackageChaincodeLegacy(n *Network, chaincode Chaincode, peer *Peer) {
 	Eventually(sess, n.EventuallyTimeout).Should(gexec.Exit(0))
 }
 
+func CheckPackageID(n *Network, packageFile string, packageID string, peer *Peer) {
+	sess, err := n.PeerAdminSession(peer, commands.ChaincodeCalculatePackageID{
+		PackageFile: packageFile,
+		ClientAuth:  n.ClientAuthRequired,
+	})
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(sess, n.EventuallyTimeout).Should(gbytes.Say(fmt.Sprintf(`\Q%s\E`, packageID)))
+}
+
 func InstallChaincode(n *Network, chaincode Chaincode, peers ...*Peer) {
 	// Ensure 'jq' exists in path, because we need it to build chaincode
 	if _, err := exec.LookPath("jq"); err != nil {
@@ -189,6 +198,7 @@ func InstallChaincode(n *Network, chaincode Chaincode, peers ...*Peer) {
 		EventuallyWithOffset(1, sess, n.EventuallyTimeout).Should(gexec.Exit())
 
 		EnsureInstalled(n, chaincode.Label, chaincode.PackageID, p)
+		CheckPackageID(n, chaincode.PackageFile, chaincode.PackageID, p)
 	}
 }
 
@@ -255,7 +265,7 @@ func EnsureChaincodeApproved(n *Network, peer *Peer, channel, name, sequence str
 	sequenceInt, err := strconv.ParseInt(sequence, 10, 64)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(queryApproved(n, peer, channel, name, sequence), n.EventuallyTimeout).Should(
-		MatchFields(IgnoreExtras, Fields{
+		gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 			"Sequence": Equal(sequenceInt),
 		}),
 	)
@@ -263,11 +273,13 @@ func EnsureChaincodeApproved(n *Network, peer *Peer, channel, name, sequence str
 
 func CheckCommitReadinessUntilReady(n *Network, channel string, chaincode Chaincode, checkOrgs []*Organization, peers ...*Peer) {
 	for _, p := range peers {
-		keys := Keys{}
+		keys := gstruct.Keys{}
 		for _, org := range checkOrgs {
 			keys[org.MSPID] = BeTrue()
 		}
-		Eventually(checkCommitReadiness(n, p, channel, chaincode), n.EventuallyTimeout).Should(MatchKeys(IgnoreExtras, keys))
+		Eventually(checkCommitReadiness(n, p, channel, chaincode), n.EventuallyTimeout).Should(
+			gstruct.MatchKeys(gstruct.IgnoreExtras, keys),
+		)
 	}
 }
 
@@ -315,15 +327,15 @@ func EnsureChaincodeCommitted(n *Network, channel, name, version, sequence strin
 	for _, p := range peers {
 		sequenceInt, err := strconv.ParseInt(sequence, 10, 64)
 		Expect(err).NotTo(HaveOccurred())
-		approvedKeys := Keys{}
+		approvedKeys := gstruct.Keys{}
 		for _, org := range checkOrgs {
 			approvedKeys[org.MSPID] = BeTrue()
 		}
 		Eventually(listCommitted(n, p, channel, name), n.EventuallyTimeout).Should(
-			MatchFields(IgnoreExtras, Fields{
+			gstruct.MatchFields(gstruct.IgnoreExtras, gstruct.Fields{
 				"Version":   Equal(version),
 				"Sequence":  Equal(sequenceInt),
-				"Approvals": MatchKeys(IgnoreExtras, approvedKeys),
+				"Approvals": gstruct.MatchKeys(gstruct.IgnoreExtras, approvedKeys),
 			}),
 		)
 	}
@@ -415,8 +427,8 @@ func UpgradeChaincodeLegacy(n *Network, channel string, orderer *Orderer, chainc
 func EnsureInstalled(n *Network, label, packageID string, peers ...*Peer) {
 	for _, p := range peers {
 		Eventually(QueryInstalled(n, p), n.EventuallyTimeout).Should(
-			ContainElement(MatchFields(IgnoreExtras,
-				Fields{
+			ContainElement(gstruct.MatchFields(gstruct.IgnoreExtras,
+				gstruct.Fields{
 					"Label":     Equal(label),
 					"PackageId": Equal(packageID),
 				},
@@ -435,12 +447,12 @@ func QueryInstalledReferences(n *Network, channel, label, packageID string, chec
 	}
 
 	Expect(QueryInstalled(n, checkPeer)()).To(
-		ContainElement(MatchFields(IgnoreExtras,
-			Fields{
+		ContainElement(gstruct.MatchFields(gstruct.IgnoreExtras,
+			gstruct.Fields{
 				"Label":     Equal(label),
 				"PackageId": Equal(packageID),
-				"References": HaveKeyWithValue(channel, PointTo(MatchFields(IgnoreExtras,
-					Fields{
+				"References": HaveKeyWithValue(channel, gstruct.PointTo(gstruct.MatchFields(gstruct.IgnoreExtras,
+					gstruct.Fields{
 						"Chaincodes": ConsistOf(chaincodes),
 					},
 				))),
@@ -616,7 +628,7 @@ func GetLedgerHeight(n *Network, peer *Peer, channel string) int {
 	}
 
 	channelInfoStr := strings.TrimPrefix(string(sess.Buffer().Contents()[:]), "Blockchain info:")
-	var channelInfo = common.BlockchainInfo{}
+	channelInfo := common.BlockchainInfo{}
 	json.Unmarshal([]byte(channelInfoStr), &channelInfo)
 	return int(channelInfo.Height)
 }

@@ -47,7 +47,7 @@ var (
 // This implementation provides a key-value based data model
 type kvLedger struct {
 	ledgerID               string
-	bootSnapshotMetadata   *snapshotMetadata
+	bootSnapshotMetadata   *SnapshotMetadata
 	blockStore             *blkstorage.BlockStore
 	pvtdataStore           *pvtdatastorage.Store
 	txmgr                  *txmgr.LockBasedTxMgr
@@ -64,12 +64,15 @@ type kvLedger struct {
 	// reconciliation and may be updated during a regular block commit.
 	// Hence, we use atomic value to ensure consistent read.
 	isPvtstoreAheadOfBlkstore atomic.Value
+
+	commitNotifierLock sync.Mutex
+	commitNotifier     *commitNotifier
 }
 
 type lgrInitializer struct {
 	ledgerID                 string
 	initializingFromSnapshot bool
-	bootSnapshotMetadata     *snapshotMetadata
+	bootSnapshotMetadata     *SnapshotMetadata
 	blockStore               *blkstorage.BlockStore
 	pvtdataStore             *pvtdatastorage.Store
 	stateDB                  *privacyenabledstate.DB
@@ -157,7 +160,7 @@ func newKVLedger(initializer *lgrInitializer) (*kvLedger, error) {
 		}
 	}
 
-	//Recover both state DB and history DB if they are out of sync with block storage
+	// Recover both state DB and history DB if they are out of sync with block storage
 	if err := l.recoverDBs(); err != nil {
 		return nil, err
 	}
@@ -329,7 +332,7 @@ func (l *kvLedger) lastPersistedCommitHash() ([]byte, error) {
 	commitHash := &common.Metadata{}
 	err = proto.Unmarshal(block.Metadata.Metadata[common.BlockMetadataIndex_COMMIT_HASH], commitHash)
 	if err != nil {
-		return nil, errors.Wrap(err, "error unmarshaling last persisted commit hash")
+		return nil, errors.Wrap(err, "error unmarshalling last persisted commit hash")
 	}
 	return commitHash.Value, nil
 }
@@ -355,7 +358,7 @@ func (l *kvLedger) recoverDBs() error {
 }
 
 func (l *kvLedger) syncStateAndHistoryDBWithBlockstore() error {
-	//If there is no block in blockstorage, nothing to recover.
+	// If there is no block in blockstorage, nothing to recover.
 	info, _ := l.blockStore.GetBlockchainInfo()
 	if info.Height == 0 {
 		logger.Debug("Block storage is empty.")
@@ -464,8 +467,8 @@ func (l *kvLedger) filterYetToCommitBlocks(blocksPvtData map[uint64][]*ledger.Tx
 	return nil
 }
 
-//recommitLostBlocks retrieves blocks in specified range and commit the write set to either
-//state DB or history DB or both
+// recommitLostBlocks retrieves blocks in specified range and commit the write set to either
+// state DB or history DB or both
 func (l *kvLedger) recommitLostBlocks(firstBlockNum uint64, lastBlockNum uint64, recoverables ...recoverable) error {
 	logger.Infof("Recommitting lost blocks - firstBlockNum=%d, lastBlockNum=%d, recoverables=%#v", firstBlockNum, lastBlockNum, recoverables)
 	var err error
@@ -499,7 +502,7 @@ func (l *kvLedger) GetTransactionByID(txID string) (*peer.ProcessedTransaction, 
 	if err != nil {
 		return nil, err
 	}
-	txVResult, err := l.blockStore.RetrieveTxValidationCodeByTxID(txID)
+	txVResult, _, err := l.blockStore.RetrieveTxValidationCodeByTxID(txID)
 	if err != nil {
 		return nil, err
 	}
@@ -539,7 +542,7 @@ func (l *kvLedger) GetBlocksIterator(startBlockNumber uint64) (commonledger.Resu
 func (l *kvLedger) GetBlockByHash(blockHash []byte) (*common.Block, error) {
 	block, err := l.blockStore.RetrieveBlockByHash(blockHash)
 	l.blockAPIsRWLock.RLock()
-	l.blockAPIsRWLock.RUnlock()
+	l.blockAPIsRWLock.RUnlock() //lint:ignore SA2001 syncpoint
 	return block, err
 }
 
@@ -551,11 +554,12 @@ func (l *kvLedger) GetBlockByTxID(txID string) (*common.Block, error) {
 	return block, err
 }
 
-func (l *kvLedger) GetTxValidationCodeByTxID(txID string) (peer.TxValidationCode, error) {
+// GetTxValidationCodeByTxID returns transaction validation code and block number in which the transaction was committed
+func (l *kvLedger) GetTxValidationCodeByTxID(txID string) (peer.TxValidationCode, uint64, error) {
 	l.blockAPIsRWLock.RLock()
 	defer l.blockAPIsRWLock.RUnlock()
-	txValidationCode, err := l.blockStore.RetrieveTxValidationCodeByTxID(txID)
-	return txValidationCode, err
+	txValidationCode, blkNum, err := l.blockStore.RetrieveTxValidationCodeByTxID(txID)
+	return txValidationCode, blkNum, err
 }
 
 // NewTxSimulator returns new `ledger.TxSimulator`
@@ -675,12 +679,15 @@ func (l *kvLedger) commit(pvtdataAndBlock *ledger.BlockAndPvtData, commitOpts *l
 		elapsedCommitState/time.Millisecond,
 		l.commitHash,
 	)
+
 	l.updateBlockStats(
 		elapsedBlockProcessing,
 		elapsedBlockstorageAndPvtdataCommit,
 		elapsedCommitState,
 		txstatsInfo,
 	)
+
+	l.sendCommitNotification(blockNo, txstatsInfo)
 	return nil
 }
 
@@ -887,6 +894,73 @@ func (l *kvLedger) GetMissingPvtDataTracker() (ledger.MissingPvtDataTracker, err
 	return l, nil
 }
 
+type commitNotifier struct {
+	dataChannel chan *ledger.CommitNotification
+	doneChannel <-chan struct{}
+}
+
+// CommitNotificationsChannel returns a read-only channel on which ledger sends a `CommitNotification`
+// when a block is committed. The CommitNotification contains entries for the transactions from the committed block,
+// which are not malformed, carry a legitimate TxID, and in addition, are not marked as a duplicate transaction.
+// The consumer can close the 'done' channel to signal that the notifications are no longer needed. This will cause the
+// CommitNotifications channel to close. There is expected to be only one consumer at a time. The function returns error
+// if already a CommitNotification channel is active.
+func (l *kvLedger) CommitNotificationsChannel(done <-chan struct{}) (<-chan *ledger.CommitNotification, error) {
+	l.commitNotifierLock.Lock()
+	defer l.commitNotifierLock.Unlock()
+
+	if l.commitNotifier != nil {
+		return nil, errors.New("only one commit notifications channel is allowed at a time")
+	}
+
+	l.commitNotifier = &commitNotifier{
+		dataChannel: make(chan *ledger.CommitNotification, 10),
+		doneChannel: done,
+	}
+
+	return l.commitNotifier.dataChannel, nil
+}
+
+func (l *kvLedger) sendCommitNotification(blockNum uint64, txStatsInfo []*validation.TxStatInfo) {
+	l.commitNotifierLock.Lock()
+	defer l.commitNotifierLock.Unlock()
+
+	if l.commitNotifier == nil {
+		return
+	}
+
+	select {
+	case <-l.commitNotifier.doneChannel:
+		close(l.commitNotifier.dataChannel)
+		l.commitNotifier = nil
+	default:
+		txsByID := map[string]struct{}{}
+		txs := []*ledger.CommitNotificationTxInfo{}
+		for _, t := range txStatsInfo {
+			txID := t.TxIDFromChannelHeader
+			_, ok := txsByID[txID]
+
+			if txID == "" || ok {
+				continue
+			}
+			txsByID[txID] = struct{}{}
+
+			txs = append(txs, &ledger.CommitNotificationTxInfo{
+				TxType:             t.TxType,
+				TxID:               t.TxIDFromChannelHeader,
+				ValidationCode:     t.ValidationCode,
+				ChaincodeID:        t.ChaincodeID,
+				ChaincodeEventData: t.ChaincodeEventData,
+			})
+		}
+
+		l.commitNotifier.dataChannel <- &ledger.CommitNotification{
+			BlockNumber: blockNum,
+			TxsInfo:     txs,
+		}
+	}
+}
+
 // Close closes `KVLedger`.
 // Currently this function is only used by test code. The caller should make sure no in-progress commit
 // or snapshot generation before calling this function. Otherwise, the ledger may have unknown behavior
@@ -908,7 +982,7 @@ func (itr *blocksItr) Next() (commonledger.QueryResult, error) {
 		return nil, err
 	}
 	itr.blockAPIsRWLock.RLock()
-	itr.blockAPIsRWLock.RUnlock()
+	itr.blockAPIsRWLock.RUnlock() //lint:ignore SA2001 syncpoint
 	return block, nil
 }
 
@@ -1040,7 +1114,6 @@ func constructPvtdataMap(pvtdata []*ledger.TxPvtData) ledger.TxPvtDataMap {
 
 func constructPvtDataAndMissingData(blockAndPvtData *ledger.BlockAndPvtData) ([]*ledger.TxPvtData,
 	ledger.TxMissingPvtData) {
-
 	var pvtData []*ledger.TxPvtData
 	missingPvtData := make(ledger.TxMissingPvtData)
 

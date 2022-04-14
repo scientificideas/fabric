@@ -61,7 +61,8 @@ func TestRetrievePvtdata(t *testing.T) {
 	err := msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err, fmt.Sprintf("Failed to setup local msp for testing, got err %s", err))
 
-	identity := mspmgmt.GetLocalSigningIdentityOrPanic(factory.GetDefault())
+	identity, err := mspmgmt.GetLocalMSP(factory.GetDefault()).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	serializedID, err := identity.Serialize()
 	require.NoError(t, err, fmt.Sprintf("Serialize should have succeeded, got err %s", err))
 	data := []byte{1, 2, 3}
@@ -833,7 +834,8 @@ func TestRetrievePvtdataFailure(t *testing.T) {
 	err := msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err, fmt.Sprintf("Failed to setup local msp for testing, got err %s", err))
 
-	identity := mspmgmt.GetLocalSigningIdentityOrPanic(factory.GetDefault())
+	identity, err := mspmgmt.GetLocalMSP(factory.GetDefault()).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	serializedID, err := identity.Serialize()
 	require.NoError(t, err, fmt.Sprintf("Serialize should have succeeded, got err %s", err))
 	data := []byte{1, 2, 3}
@@ -892,7 +894,8 @@ func TestRetryFetchFromPeer(t *testing.T) {
 	err := msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err, fmt.Sprintf("Failed to setup local msp for testing, got err %s", err))
 
-	identity := mspmgmt.GetLocalSigningIdentityOrPanic(factory.GetDefault())
+	identity, err := mspmgmt.GetLocalMSP(factory.GetDefault()).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	serializedID, err := identity.Serialize()
 	require.NoError(t, err, fmt.Sprintf("Serialize should have succeeded, got err %s", err))
 	data := []byte{1, 2, 3}
@@ -986,7 +989,8 @@ func TestSkipPullingAllInvalidTransactions(t *testing.T) {
 	err := msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err, fmt.Sprintf("Failed to setup local msp for testing, got err %s", err))
 
-	identity := mspmgmt.GetLocalSigningIdentityOrPanic(factory.GetDefault())
+	identity, err := mspmgmt.GetLocalMSP(factory.GetDefault()).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	serializedID, err := identity.Serialize()
 	require.NoError(t, err, fmt.Sprintf("Serialize should have succeeded, got err %s", err))
 	data := []byte{1, 2, 3}
@@ -1087,7 +1091,8 @@ func TestRetrievedPvtdataPurgeBelowHeight(t *testing.T) {
 	err := msptesttools.LoadMSPSetupForTesting()
 	require.NoError(t, err, fmt.Sprintf("Failed to setup local msp for testing, got err %s", err))
 
-	identity := mspmgmt.GetLocalSigningIdentityOrPanic(factory.GetDefault())
+	identity, err := mspmgmt.GetLocalMSP(factory.GetDefault()).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 	serializedID, err := identity.Serialize()
 	require.NoError(t, err, fmt.Sprintf("Serialize should have succeeded, got err %s", err))
 	data := []byte{1, 2, 3}
@@ -1253,7 +1258,6 @@ func testRetrievePvtdataSuccess(t *testing.T,
 	expectedDigKeys []privdatacommon.DigKey,
 	pvtdataToRetrieve []*ledger.TxPvtdataInfo,
 	expectedBlockPvtdata *ledger.BlockPvtdata) {
-
 	fmt.Println("\n" + scenario)
 
 	tempdir, err := ioutil.TempDir("", "ts")
@@ -1292,7 +1296,6 @@ func testRetrievePvtdataFailure(t *testing.T,
 	expectedDigKeys []privdatacommon.DigKey,
 	pvtdataToRetrieve []*ledger.TxPvtdataInfo,
 	expectedErr string) {
-
 	fmt.Println("\n" + scenario)
 
 	tempdir, err := ioutil.TempDir("", "ts")
@@ -1320,7 +1323,6 @@ func setupPrivateDataProvider(t *testing.T,
 	storePvtdataOfInvalidTx, skipPullingInvalidTransactions bool, store *transientstore.Store,
 	rwSetsInCache, rwSetsInTransientStore, rwSetsInPeer []rwSet,
 	expectedDigKeys []privdatacommon.DigKey) *PvtdataProvider {
-
 	metrics := metrics.NewGossipMetrics(&disabled.Provider{}).PrivdataMetrics
 
 	idDeserializerFactory := IdentityDeserializerFactoryFunc(func(chainID string) msp.IdentityDeserializer {
@@ -1364,7 +1366,6 @@ func testPurged(t *testing.T,
 	retrievedPvtdata ledger.RetrievedPvtdata,
 	store *transientstore.Store,
 	txPvtdataInfo []*ledger.TxPvtdataInfo) {
-
 	retrievedPvtdata.Purge()
 	for _, pvtdata := range retrievedPvtdata.GetBlockPvtdata().PvtData {
 		func() {

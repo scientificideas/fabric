@@ -43,11 +43,6 @@ var (
 			SubmitRes: &orderer.SubmitResponse{},
 		},
 	}
-	submitResponse2 = &orderer.StepResponse{
-		Payload: &orderer.StepResponse_SubmitRes{
-			SubmitRes: &orderer.SubmitResponse{},
-		},
-	}
 	consensusRequest = &orderer.StepRequest{
 		Payload: &orderer.StepRequest_ConsensusRequest{
 			ConsensusRequest: &orderer.ConsensusRequest{
@@ -286,7 +281,7 @@ func TestExpirationWarningIngress(t *testing.T) {
 	defer srv.Stop()
 
 	clientConf := comm.ClientConfig{
-		Timeout: time.Second * 3,
+		DialTimeout: time.Second * 3,
 		SecOpts: comm.SecureOptions{
 			ServerRootCAs:     [][]byte{ca.CertBytes()},
 			UseTLS:            true,
@@ -296,10 +291,7 @@ func TestExpirationWarningIngress(t *testing.T) {
 		},
 	}
 
-	client, err := comm.NewGRPCClient(clientConf)
-	require.NoError(t, err)
-
-	conn, err := client.NewConnection(srv.Address())
+	conn, err := clientConf.Dial(srv.Address())
 	require.NoError(t, err)
 
 	cl := orderer.NewClusterClient(conn)

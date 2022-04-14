@@ -91,6 +91,11 @@ type ApplicationConfigRetriever interface {
 	GetApplicationConfig(cid string) (channelconfig.Application, bool)
 }
 
+const (
+	ErrorExecutionTimeout = "timeout expired while executing transaction"
+	ErrorStreamTerminated = "chaincode stream terminated"
+)
+
 // Handler implements the peer side of the chaincode stream.
 type Handler struct {
 	// Keepalive specifies the interval at which keep-alive messages are sent.
@@ -115,6 +120,8 @@ type Handler struct {
 	QueryResponseBuilder QueryResponseBuilder
 	// LedgerGetter is used to get the ledger associated with a channel
 	LedgerGetter LedgerGetter
+	// IDDeserializerFactory is provided to the private data collection store
+	IDDeserializerFactory privdata.IdentityDeserializerFactory
 	// DeployedCCInfoProvider is used to initialize the Collection Store
 	DeployedCCInfoProvider ledger.DeployedChaincodeInfoProvider
 	// UUIDGenerator is used to generate UUIDs
@@ -1178,10 +1185,10 @@ func (h *Handler) Execute(txParams *ccprovider.TransactionParams, namespace stri
 		// response is sent to user or calling chaincode. ChaincodeMessage_ERROR
 		// are typically treated as error
 	case <-time.After(timeout):
-		err = errors.New("timeout expired while executing transaction")
+		err = errors.New(ErrorExecutionTimeout)
 		h.Metrics.ExecuteTimeouts.With("chaincode", h.chaincodeID).Add(1)
 	case <-h.streamDone():
-		err = errors.New("chaincode stream terminated")
+		err = errors.New(ErrorStreamTerminated)
 	}
 
 	return ccresp, err
@@ -1203,6 +1210,7 @@ func (h *Handler) getCollectionStore(channelID string) privdata.CollectionStore 
 	return privdata.NewSimpleCollectionStore(
 		h.LedgerGetter.GetLedger(channelID),
 		h.DeployedCCInfoProvider,
+		h.IDDeserializerFactory,
 	)
 }
 

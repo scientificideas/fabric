@@ -8,12 +8,14 @@ package protoutil
 
 import (
 	"bytes"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
-	"github.com/hyperledger/fabric/common/util"
-	"github.com/pkg/errors"
+	"github.com/hyperledger/fabric-protos-go/msp"
 )
 
 // SignedData is used to represent the general triplet required to verify a signature
@@ -83,41 +85,32 @@ func EnvelopeAsSignedData(env *common.Envelope) ([]*SignedData, error) {
 	}}, nil
 }
 
-// SignatureSetFromBlock creates a signature set out of a block.
-func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte) ([]*SignedData, error) {
-	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
-		return nil, errors.New("no metadata in block")
-	}
-	metadata, err := GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
+// LogMessageForSerializedIdentity returns a string with seriealized identity information,
+// or a string indicating why the serialized identity information cannot be returned.
+// Any errors are intentially returned in the return strings so that the function can be used in single-line log messages with minimal clutter.
+func LogMessageForSerializedIdentity(serializedIdentity []byte) string {
+	id := &msp.SerializedIdentity{}
+	err := proto.Unmarshal(serializedIdentity, id)
 	if err != nil {
-		return nil, errors.Errorf("failed unmarshaling medatata for signatures: %v", err)
+		return fmt.Sprintf("Could not unmarshal serialized identity: %s", err)
 	}
-
-	var signatureSet []*SignedData
-	for _, metadataSignature := range metadata.Signatures {
-		identity := id2identities[metadataSignature.SignerId]
-		if len(metadataSignature.SignatureHeader) > 0 {
-			sigHdr, err := GetSignatureHeader(metadataSignature.SignatureHeader)
-			if err != nil {
-				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
-					block.Header.Number, err)
-			}
-			identity = sigHdr.Creator
-		} else {
-			metadataSignature.SignatureHeader = MarshalOrPanic(&common.SignatureHeader{
-				Creator: identity,
-				Nonce:   metadataSignature.Nonce,
-			})
-		}
-
-		signatureSet = append(signatureSet,
-			&SignedData{
-				Identity: identity,
-				Data: util.ConcatenateBytes(metadata.Value,
-					metadataSignature.SignatureHeader, BlockHeaderBytes(block.Header), metadataSignature.AuxiliaryInput),
-				Signature: metadataSignature.Signature,
-			},
-		)
+	pemBlock, _ := pem.Decode(id.IdBytes)
+	if pemBlock == nil {
+		// not all identities are certificates so simply log the serialized
+		// identity bytes
+		return fmt.Sprintf("serialized-identity=%x", serializedIdentity)
 	}
-	return signatureSet, nil
+	cert, err := x509.ParseCertificate(pemBlock.Bytes)
+	if err != nil {
+		return fmt.Sprintf("Could not parse certificate: %s", err)
+	}
+	return fmt.Sprintf("(mspid=%s subject=%s issuer=%s serialnumber=%d)", id.Mspid, cert.Subject, cert.Issuer, cert.SerialNumber)
+}
+
+func LogMessageForSerializedIdentities(signedData []*SignedData) (logMsg string) {
+	var identityMessages []string
+	for _, sd := range signedData {
+		identityMessages = append(identityMessages, LogMessageForSerializedIdentity(sd.Identity))
+	}
+	return strings.Join(identityMessages, ", ")
 }

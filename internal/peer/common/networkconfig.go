@@ -142,7 +142,7 @@ type MutualTLSConfig struct {
 	// Certfiles root certificates for TLS validation (Comma separated path list)
 	Path string `yaml:"path"`
 
-	//Client TLS information
+	// Client TLS information
 	Client TLSKeyPair `yaml:"client"`
 }
 
@@ -169,7 +169,7 @@ func GetConfig(fileName string) (*NetworkConfig, error) {
 	config := &NetworkConfig{}
 	err = yaml.Unmarshal([]byte(configData), &config)
 	if err != nil {
-		return nil, errors.Wrap(err, "error unmarshaling YAML")
+		return nil, errors.Wrap(err, "error unmarshalling YAML")
 	}
 
 	return config, nil

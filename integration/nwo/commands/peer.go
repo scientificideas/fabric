@@ -28,8 +28,7 @@ func (n NodeStart) Args() []string {
 	return args
 }
 
-type NodeReset struct {
-}
+type NodeReset struct{}
 
 func (n NodeReset) SessionName() string {
 	return "peer-node-reset"
@@ -84,6 +83,21 @@ func (n NodeResume) SessionName() string {
 func (n NodeResume) Args() []string {
 	return []string{
 		"node", "resume",
+		"--channelID", n.ChannelID,
+	}
+}
+
+type NodeUnjoin struct {
+	ChannelID string
+}
+
+func (n NodeUnjoin) SessionName() string {
+	return "peer-node-unjoin"
+}
+
+func (n NodeUnjoin) Args() []string {
+	return []string{
+		"node", "unjoin",
 		"--channelID", n.ChannelID,
 	}
 }
@@ -256,6 +270,28 @@ func (c ChaincodePackageLegacy) Args() []string {
 	}
 	if c.Lang != "" {
 		args = append(args, "--lang", c.Lang)
+	}
+
+	return args
+}
+
+type ChaincodeCalculatePackageID struct {
+	PackageFile string
+	ClientAuth  bool
+}
+
+func (c ChaincodeCalculatePackageID) SessionName() string {
+	return "peer-lifecycle-chaincode-calculatepackageid"
+}
+
+func (c ChaincodeCalculatePackageID) Args() []string {
+	args := []string{
+		"lifecycle", "chaincode", "calculatepackageid",
+		c.PackageFile,
+	}
+
+	if c.ClientAuth {
+		args = append(args, "--clientauth")
 	}
 
 	return args

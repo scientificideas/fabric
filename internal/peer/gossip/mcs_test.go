@@ -9,7 +9,6 @@ package gossip
 import (
 	"crypto/sha256"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"strings"
 	"testing"
@@ -91,7 +90,13 @@ func TestPKIidOfNil(t *testing.T) {
 	signer := &mocks.SignerSerializer{}
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
-	msgCryptoService := NewMCS(&mocks.ChannelPolicyManagerGetter{}, &mocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
+	localMSP := mgmt.GetLocalMSP(cryptoProvider)
+	msgCryptoService := NewMCS(
+		&mocks.ChannelPolicyManagerGetter{},
+		signer,
+		NewDeserializersManager(localMSP),
+		cryptoProvider,
+	)
 
 	pkid := msgCryptoService.GetPKIidOfCert(nil)
 	// Check pkid is not nil
@@ -147,11 +152,12 @@ func TestSign(t *testing.T) {
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
 
+	localMSP := mgmt.GetLocalMSP(cryptoProvider)
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetter{},
 		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
-		mgmt.NewDeserializersManager(cryptoProvider),
+		NewDeserializersManager(localMSP),
 		cryptoProvider,
 	)
 
@@ -342,7 +348,6 @@ func mockBlock(t *testing.T, channel string, seqNum uint64, localSigner *mocks.S
 
 	blockSignature := &common.MetadataSignature{
 		SignatureHeader: protoutil.MarshalOrPanic(shdr),
-		Nonce:           shdr.Nonce,
 	}
 
 	// Note, this value is intentionally nil, as this metadata is only about the signature, there is no additional metadata

@@ -65,13 +65,12 @@ func NewBlockPuller(support consensus.ConsenterSupport,
 	clusterConfig localconfig.Cluster,
 	bccsp bccsp.BCCSP,
 ) (BlockPuller, error) {
-
 	verifyBlockSequence := func(blocks []*common.Block, _ string) error {
 		return cluster.VerifyBlocksCFT(blocks, support)
 	}
 
 	stdDialer := &cluster.StandardDialer{
-		Config: baseDialer.Config.Clone(),
+		Config: baseDialer.Config,
 	}
 	stdDialer.Config.AsyncConnect = false
 	stdDialer.Config.SecOpts.VerifyCertificate = nil

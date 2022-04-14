@@ -47,7 +47,8 @@ func NewServerTransportCredentials(
 
 	return &serverCreds{
 		serverConfig: serverConfig,
-		logger:       logger}
+		logger:       logger,
+	}
 }
 
 // serverCreds is an implementation of grpc/credentials.TransportCredentials.
@@ -93,8 +94,7 @@ func (t *TLSConfig) SetClientCAs(certPool *x509.CertPool) {
 }
 
 // ClientHandShake is not implemented for `serverCreds`.
-func (sc *serverCreds) ClientHandshake(context.Context,
-	string, net.Conn) (net.Conn, credentials.AuthInfo, error) {
+func (sc *serverCreds) ClientHandshake(context.Context, string, net.Conn) (net.Conn, credentials.AuthInfo, error) {
 	return nil, nil, ErrClientHandshakeNotImplemented
 }
 
@@ -135,16 +135,11 @@ func (sc *serverCreds) OverrideServerName(string) error {
 }
 
 type DynamicClientCredentials struct {
-	TLSConfig  *tls.Config
-	TLSOptions []TLSOption
+	TLSConfig *tls.Config
 }
 
 func (dtc *DynamicClientCredentials) latestConfig() *tls.Config {
-	tlsConfigCopy := dtc.TLSConfig.Clone()
-	for _, tlsOption := range dtc.TLSOptions {
-		tlsOption(tlsConfigCopy)
-	}
-	return tlsConfigCopy
+	return dtc.TLSConfig.Clone()
 }
 
 func (dtc *DynamicClientCredentials) ClientHandshake(ctx context.Context, authority string, rawConn net.Conn) (net.Conn, credentials.AuthInfo, error) {

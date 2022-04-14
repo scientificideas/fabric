@@ -28,8 +28,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var logger = flogging.MustGetLogger("bccsp_p11")
-var regex = regexp.MustCompile(".*0xB.:\\sCKR.+")
+var (
+	logger              = flogging.MustGetLogger("bccsp_p11")
+	invalidSessionRegex = regexp.MustCompile(`.*0xB.:\sCKR.+`)
+)
 
 type Provider struct {
 	bccsp.BCCSP
@@ -290,12 +292,11 @@ func (csp *Provider) Verify(k bccsp.Key, signature, digest []byte, opts bccsp.Si
 		return false, errors.New("Invalid digest. Cannot be empty")
 	}
 
-	// Check key type
-	switch key := k.(type) {
-	case *ecdsaPrivateKey:
-		return csp.verifyECDSA(key.pub, signature, digest)
-	case *ecdsaPublicKey:
-		return csp.verifyECDSA(*key, signature, digest)
+	// key (k) will never be a pkcs11 key, do verify using the software implementation
+	// but validate it just in case
+	switch k.(type) {
+	case *ecdsaPrivateKey, *ecdsaPublicKey:
+		return false, errors.New("Unexpected pkcs11 key, expected software based key")
 	default:
 		return csp.BCCSP.Verify(k, signature, digest, opts)
 	}
@@ -419,7 +420,7 @@ func (csp *Provider) getECKey(ski []byte) (pubKey *ecdsa.PublicKey, isPriv bool,
 	curveOid := new(asn1.ObjectIdentifier)
 	_, err = asn1.Unmarshal(marshaledOid, curveOid)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed Unmarshaling Curve OID [%s]\n%s", err.Error(), hex.EncodeToString(marshaledOid))
+		return nil, false, fmt.Errorf("failed Unmarshalling Curve OID [%s]\n%s", err.Error(), hex.EncodeToString(marshaledOid))
 	}
 
 	curve := namedCurveFromOID(*curveOid)
@@ -428,7 +429,7 @@ func (csp *Provider) getECKey(ski []byte) (pubKey *ecdsa.PublicKey, isPriv bool,
 	}
 	x, y := elliptic.Unmarshal(curve, ecpt)
 	if x == nil {
-		return nil, false, fmt.Errorf("failed Unmarshaling Public Key")
+		return nil, false, fmt.Errorf("failed Unmarshalling Public Key")
 	}
 
 	pubKey = &ecdsa.PublicKey{Curve: curve, X: x, Y: y}
@@ -588,7 +589,7 @@ func (csp *Provider) generateECKey(curve asn1.ObjectIdentifier, ephemeral bool) 
 	}
 	x, y := elliptic.Unmarshal(nistCurve, ecpt)
 	if x == nil {
-		return nil, nil, fmt.Errorf("Failed Unmarshaling Public Key")
+		return nil, nil, fmt.Errorf("Failed Unmarshalling Public Key")
 	}
 
 	pubGoKey := &ecdsa.PublicKey{Curve: nistCurve, X: x, Y: y}
@@ -824,7 +825,7 @@ func (csp *Provider) ecPoint(session pkcs11.SessionHandle, key pkcs11.ObjectHand
 
 func (csp *Provider) handleSessionReturn(err error, session pkcs11.SessionHandle) {
 	if err != nil {
-		if regex.MatchString(err.Error()) {
+		if invalidSessionRegex.MatchString(err.Error()) {
 			logger.Infof("PKCS11 session invalidated, closing session: %v", err)
 			csp.closeSession(session)
 			return
@@ -879,8 +880,8 @@ func nextIDCtr() *big.Int {
 func FindPKCS11Lib() (lib, pin, label string) {
 	if lib = os.Getenv("PKCS11_LIB"); lib == "" {
 		possibilities := []string{
-			"/usr/lib/softhsm/libsofthsm2.so",                  //Debian
-			"/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so", //Ubuntu
+			"/usr/lib/softhsm/libsofthsm2.so",                  // Debian
+			"/usr/lib/x86_64-linux-gnu/softhsm/libsofthsm2.so", // Ubuntu
 		}
 		for _, path := range possibilities {
 			if _, err := os.Stat(path); !os.IsNotExist(err) {

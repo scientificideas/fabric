@@ -41,10 +41,12 @@ type CommitBatchPreparer struct {
 
 // TxStatInfo encapsulates information about a transaction
 type TxStatInfo struct {
-	ValidationCode peer.TxValidationCode
-	TxType         common.HeaderType
-	ChaincodeID    *peer.ChaincodeID
-	NumCollections int
+	TxIDFromChannelHeader string
+	ValidationCode        peer.TxValidationCode
+	TxType                common.HeaderType
+	ChaincodeID           *peer.ChaincodeID
+	ChaincodeEventData    []byte
+	NumCollections        int
 }
 
 // NewCommitBatchPreparer constructs a validator that internally manages statebased validator and in addition
@@ -124,7 +126,6 @@ func validateAndPreparePvtBatch(
 	pubAndHashUpdates *publicAndHashUpdates,
 	pvtdata map[uint64]*ledger.TxPvtData,
 ) (*privacyenabledstate.PvtUpdateBatch, error) {
-
 	pvtUpdates := privacyenabledstate.NewPvtUpdateBatch()
 	metadataUpdates := metadataUpdates{}
 	for _, tx := range blk.txs {
@@ -208,6 +209,7 @@ func preprocessProtoBlock(postOrderSimulatorProvider PostOrderSimulatorProvider,
 				chdr, err = protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
 			}
 		}
+		txStatInfo.TxIDFromChannelHeader = chdr.GetTxId()
 		if txsFilter.IsInvalid(txIndex) {
 			// Skipping invalid transaction
 			logger.Warningf("Channel [%s]: Block [%d] Transaction index [%d] TxId [%s]"+
@@ -233,6 +235,7 @@ func preprocessProtoBlock(postOrderSimulatorProvider PostOrderSimulatorProvider,
 				continue
 			}
 			txStatInfo.ChaincodeID = respPayload.ChaincodeId
+			txStatInfo.ChaincodeEventData = respPayload.Events
 			txRWSet = &rwsetutil.TxRwSet{}
 			if err = txRWSet.FromProtoBytes(respPayload.Results); err != nil {
 				txsFilter.SetFlag(txIndex, peer.TxValidationCode_INVALID_OTHER_REASON)
@@ -360,7 +363,6 @@ func incrementPvtdataVersionIfNeeded(
 	pvtUpdateBatch *privacyenabledstate.PvtUpdateBatch,
 	pubAndHashUpdates *publicAndHashUpdates,
 	db *privacyenabledstate.DB) error {
-
 	for collKey := range metadataUpdates {
 		ns, coll, key := collKey.ns, collKey.coll, collKey.key
 		keyHash := util.ComputeStringHash(key)

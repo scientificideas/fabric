@@ -27,9 +27,7 @@ import (
 )
 
 var _ = Describe("ChaincodeParameters", func() {
-	var (
-		lhs, rhs *lifecycle.ChaincodeParameters
-	)
+	var lhs, rhs *lifecycle.ChaincodeParameters
 
 	BeforeEach(func() {
 		lhs = &lifecycle.ChaincodeParameters{
@@ -394,7 +392,7 @@ var _ = Describe("ExternalFunctions", func() {
 
 			It("does not attempt to rebuild it itself", func() {
 				_, err := ef.InstallChaincode([]byte("cc-package"))
-				Expect(err).To(MatchError("chaincode already successfully installed"))
+				Expect(err).To(MatchError("chaincode already successfully installed (package ID 'fake-hash')"))
 				Expect(fakeChaincodeBuilder.BuildCallCount()).To(Equal(0))
 			})
 		})
@@ -1070,7 +1068,6 @@ var _ = Describe("ExternalFunctions", func() {
 				It("returns an error", func() {
 					_, err := ef.CheckCommitReadiness("my-channel", "cc-name", testDefinition, fakePublicState, []lifecycle.OpaqueState{fakeOrgStates[0], fakeOrgStates[1]})
 					Expect(err).To(MatchError(ContainSubstring("could not get channel config for channel 'my-channel'")))
-
 				})
 			})
 
@@ -1194,7 +1191,6 @@ var _ = Describe("ExternalFunctions", func() {
 		})
 
 		Context("when the next sequence is not defined and the sequence argument is not provided", func() {
-
 			It("returns the approved chaincode for the current sequence", func() {
 				cc, err := ef.QueryApprovedChaincodeDefinition("my-channel", "cc-name", 0, fakePublicState, fakeOrgStates[0])
 				Expect(err).NotTo(HaveOccurred())
@@ -1289,7 +1285,6 @@ var _ = Describe("ExternalFunctions", func() {
 		})
 
 		Context("when the requested sequence number is out of range", func() {
-
 			It("wraps and returns the error", func() {
 				cc, err := ef.QueryApprovedChaincodeDefinition("my-channel", "cc-name", 5, fakePublicState, fakeOrgStates[0])
 				Expect(err).To(MatchError("could not fetch approved chaincode definition (name: 'cc-name', sequence: '5') on channel 'my-channel'"))
@@ -1346,7 +1341,6 @@ var _ = Describe("ExternalFunctions", func() {
 		})
 
 		Context("when the requested cc parameters are found but the cc source is not found due to some inconsistency", func() {
-
 			BeforeEach(func() {
 				resources.Serializer.Serialize("namespaces", "cc-name#5", testDefinition.Parameters(), fakeOrgStates[0])
 			})

@@ -154,7 +154,7 @@ var _ = Describe("osnadmin", func() {
 					URL:  "/participation/v1/channels/fight-the-system",
 				},
 			}
-			checkOutput(output, exit, err, 200, expectedOutput)
+			checkStatusOutput(output, exit, err, 200, expectedOutput)
 		})
 
 		It("uses the channel participation API to list the details of a single channel", func() {
@@ -175,7 +175,7 @@ var _ = Describe("osnadmin", func() {
 				Status:            "carrot",
 				Height:            987,
 			}
-			checkOutput(output, exit, err, 200, expectedOutput)
+			checkStatusOutput(output, exit, err, 200, expectedOutput)
 		})
 
 		Context("when the channel does not exist", func() {
@@ -197,7 +197,7 @@ var _ = Describe("osnadmin", func() {
 				expectedOutput := types.ErrorResponse{
 					Error: "eat-your-peas",
 				}
-				checkOutput(output, exit, err, 404, expectedOutput)
+				checkStatusOutput(output, exit, err, 404, expectedOutput)
 			})
 		})
 
@@ -232,7 +232,7 @@ var _ = Describe("osnadmin", func() {
 						URL:  "/participation/v1/channels/fight-the-system",
 					},
 				}
-				checkOutput(output, exit, err, 200, expectedOutput)
+				checkStatusOutput(output, exit, err, 200, expectedOutput)
 			})
 
 			It("uses the channel participation API to list the details of a single channel", func() {
@@ -253,7 +253,7 @@ var _ = Describe("osnadmin", func() {
 					Status:            "carrot",
 					Height:            987,
 				}
-				checkOutput(output, exit, err, 200, expectedOutput)
+				checkStatusOutput(output, exit, err, 200, expectedOutput)
 			})
 		})
 	})
@@ -275,6 +275,23 @@ var _ = Describe("osnadmin", func() {
 			Expect(output).To(Equal("Status: 204\n"))
 		})
 
+		It("uses the channel participation API to remove a channel (without status)", func() {
+			args := []string{
+				"channel",
+				"remove",
+				"--orderer-address", ordererURL,
+				"--channelID", channelID,
+				"--ca-file", ordererCACert,
+				"--client-cert", clientCert,
+				"--client-key", clientKey,
+				"--no-status",
+			}
+			output, exit, err := executeForArgs(args)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(exit).To(Equal(0))
+			Expect(output).To(BeEmpty())
+		})
+
 		Context("when the channel does not exist", func() {
 			BeforeEach(func() {
 				mockChannelManagement.RemoveChannelReturns(types.ErrChannelNotExist)
@@ -294,7 +311,7 @@ var _ = Describe("osnadmin", func() {
 				expectedOutput := types.ErrorResponse{
 					Error: "cannot remove: channel does not exist",
 				}
-				checkOutput(output, exit, err, 404, expectedOutput)
+				checkStatusOutput(output, exit, err, 404, expectedOutput)
 			})
 		})
 
@@ -357,7 +374,7 @@ var _ = Describe("osnadmin", func() {
 				Status:            "orange",
 				Height:            123,
 			}
-			checkOutput(output, exit, err, 201, expectedOutput)
+			checkStatusOutput(output, exit, err, 201, expectedOutput)
 		})
 
 		Context("when the block is empty", func() {
@@ -443,7 +460,7 @@ var _ = Describe("osnadmin", func() {
 				expectedOutput := types.ErrorResponse{
 					Error: "invalid join block: block is not a config block",
 				}
-				checkOutput(output, exit, err, 400, expectedOutput)
+				checkStatusOutput(output, exit, err, 400, expectedOutput)
 			})
 		})
 
@@ -467,7 +484,26 @@ var _ = Describe("osnadmin", func() {
 				expectedOutput := types.ErrorResponse{
 					Error: "cannot join: channel already exists",
 				}
-				checkOutput(output, exit, err, 405, expectedOutput)
+				checkStatusOutput(output, exit, err, 405, expectedOutput)
+			})
+
+			It("returns 405 not allowed (without status)", func() {
+				args := []string{
+					"channel",
+					"join",
+					"--orderer-address", ordererURL,
+					"--channelID", channelID,
+					"--config-block", blockPath,
+					"--ca-file", ordererCACert,
+					"--client-cert", clientCert,
+					"--client-key", clientKey,
+					"--no-status",
+				}
+				output, exit, err := executeForArgs(args)
+				expectedOutput := types.ErrorResponse{
+					Error: "cannot join: channel already exists",
+				}
+				checkOutput(output, exit, err, expectedOutput)
 			})
 		})
 
@@ -492,7 +528,7 @@ var _ = Describe("osnadmin", func() {
 					Status:            "orange",
 					Height:            123,
 				}
-				checkOutput(output, exit, err, 201, expectedOutput)
+				checkStatusOutput(output, exit, err, 201, expectedOutput)
 			})
 		})
 	})
@@ -531,7 +567,19 @@ var _ = Describe("osnadmin", func() {
 				Status:            "orange",
 				Height:            123,
 			}
-			checkOutput(output, exit, err, 201, expectedOutput)
+			checkStatusOutput(output, exit, err, 201, expectedOutput)
+		})
+
+		Context("when an unknown flag is used", func() {
+			It("returns an error for long flags", func() {
+				_, _, err := executeForArgs([]string{"channel", "list", "--bad-flag"})
+				Expect(err).To(MatchError("unknown long flag '--bad-flag'"))
+			})
+
+			It("returns an error for short flags", func() {
+				_, _, err := executeForArgs([]string{"channel", "list", "-z"})
+				Expect(err).To(MatchError("unknown short flag '-z'"))
+			})
 		})
 
 		Context("when an unknown flag is used", func() {
@@ -582,7 +630,7 @@ var _ = Describe("osnadmin", func() {
 					"--client-key", clientKey,
 				}
 				output, exit, err := executeForArgs(args)
-				checkFlagError(output, exit, err, "adding ca-file PEM to cert pool: asn1: structure error")
+				checkFlagError(output, exit, err, "failed to add ca-file PEM to cert pool")
 			})
 		})
 
@@ -655,7 +703,7 @@ var _ = Describe("osnadmin", func() {
 				Channels:      nil,
 				SystemChannel: nil,
 			}
-			checkOutput(output, exit, err, 200, expectedOutput)
+			checkStatusOutput(output, exit, err, 200, expectedOutput)
 		})
 
 		Context("when the ca-file does not include the intermediate CA", func() {
@@ -678,12 +726,20 @@ var _ = Describe("osnadmin", func() {
 	})
 })
 
-func checkOutput(output string, exit int, err error, expectedStatus int, expectedOutput interface{}) {
+func checkStatusOutput(output string, exit int, err error, expectedStatus int, expectedOutput interface{}) {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(exit).To(Equal(0))
 	json, err := json.MarshalIndent(expectedOutput, "", "\t")
 	Expect(err).NotTo(HaveOccurred())
 	Expect(output).To(Equal(fmt.Sprintf("Status: %d\n%s\n", expectedStatus, string(json))))
+}
+
+func checkOutput(output string, exit int, err error, expectedOutput interface{}) {
+	Expect(err).NotTo(HaveOccurred())
+	Expect(exit).To(Equal(0))
+	json, err := json.MarshalIndent(expectedOutput, "", "\t")
+	Expect(err).NotTo(HaveOccurred())
+	Expect(output).To(Equal(string(json) + "\n"))
 }
 
 func checkFlagError(output string, exit int, err error, expectedError string) {
@@ -698,48 +754,42 @@ func checkCLIError(output string, exit int, err error, expectedError string) {
 	Expect(output).To(Equal(fmt.Sprintf("Error: %s\n", expectedError)))
 }
 
-func checkCLIErrorRegExp(output string, exit int, err error, expectedErrorRegExp string) {
-	Expect(err).NotTo(HaveOccurred())
-	Expect(exit).To(Equal(1))
-	Expect(output).To(MatchRegexp(fmt.Sprintf("Error: %s\n", expectedErrorRegExp)))
-}
-
 func generateCertificates(tempDir string) {
 	serverCA, err := tlsgen.NewCA()
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-ca.pem"), serverCA.CertBytes(), 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-ca.pem"), serverCA.CertBytes(), 0o640)
 	Expect(err).NotTo(HaveOccurred())
 	serverKeyPair, err := serverCA.NewServerCertKeyPair("127.0.0.1")
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-cert.pem"), serverKeyPair.Cert, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-cert.pem"), serverKeyPair.Cert, 0o640)
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-key.pem"), serverKeyPair.Key, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-key.pem"), serverKeyPair.Key, 0o640)
 	Expect(err).NotTo(HaveOccurred())
 
 	serverIntermediateCA, err := serverCA.NewIntermediateCA()
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-ca.pem"), serverIntermediateCA.CertBytes(), 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-ca.pem"), serverIntermediateCA.CertBytes(), 0o640)
 	Expect(err).NotTo(HaveOccurred())
 	serverIntermediateKeyPair, err := serverIntermediateCA.NewServerCertKeyPair("127.0.0.1")
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-cert.pem"), serverIntermediateKeyPair.Cert, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-cert.pem"), serverIntermediateKeyPair.Cert, 0o640)
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-key.pem"), serverIntermediateKeyPair.Key, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-intermediate-key.pem"), serverIntermediateKeyPair.Key, 0o640)
 	Expect(err).NotTo(HaveOccurred())
 
 	serverAndIntermediateCABytes := append(serverCA.CertBytes(), serverIntermediateCA.CertBytes()...)
-	err = ioutil.WriteFile(filepath.Join(tempDir, "server-ca+intermediate-ca.pem"), serverAndIntermediateCABytes, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "server-ca+intermediate-ca.pem"), serverAndIntermediateCABytes, 0o640)
 	Expect(err).NotTo(HaveOccurred())
 
 	clientCA, err := tlsgen.NewCA()
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "client-ca.pem"), clientCA.CertBytes(), 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "client-ca.pem"), clientCA.CertBytes(), 0o640)
 	Expect(err).NotTo(HaveOccurred())
 	clientKeyPair, err := clientCA.NewClientCertKeyPair()
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "client-cert.pem"), clientKeyPair.Cert, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "client-cert.pem"), clientKeyPair.Cert, 0o640)
 	Expect(err).NotTo(HaveOccurred())
-	err = ioutil.WriteFile(filepath.Join(tempDir, "client-key.pem"), clientKeyPair.Key, 0640)
+	err = ioutil.WriteFile(filepath.Join(tempDir, "client-key.pem"), clientKeyPair.Key, 0o640)
 	Expect(err).NotTo(HaveOccurred())
 }
 
@@ -790,7 +840,7 @@ func createBlockFile(tempDir string, configBlock *cb.Block) string {
 	blockBytes, err := proto.Marshal(configBlock)
 	Expect(err).NotTo(HaveOccurred())
 	blockPath := filepath.Join(tempDir, "block.pb")
-	err = ioutil.WriteFile(blockPath, blockBytes, 0644)
+	err = ioutil.WriteFile(blockPath, blockBytes, 0o644)
 	Expect(err).NotTo(HaveOccurred())
 	return blockPath
 }

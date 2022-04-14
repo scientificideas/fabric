@@ -78,7 +78,7 @@ If you look at the raw versions of the documentation, you will see that many top
 
 **When to bold?**
 
-Not too often. The best use of them is either as a summary or as a way of drawing attention to concepts you want to talk about. “A blockchain network contains a ledger, at least one chaincode, and peers”, especially if you’re going to be talking about those things in that paragraph. Avoid using them simply to emphasize a single word, as in something like "Blockchain networks **must** use propery security protocols".
+Not too often. The best use of them is either as a summary or as a way of drawing attention to concepts you want to talk about. “A blockchain network contains a ledger, at least one chaincode, and peers”, especially if you’re going to be talking about those things in that paragraph. Avoid using them simply to emphasize a single word, as in something like "Blockchain networks **must** use proper security protocols".
 
 **When to surround something in back tics `nnn`?**
 
@@ -231,7 +231,7 @@ Both file formats don't like when these things are done out of order. For exampl
   For other files, such as text or YAML files, use a direct link to the file in
   github for example:
 
-  [https://github.com/hyperledger/fabric/blob/master/docs/README.md](https://github.com/hyperledger/fabric/blob/master/docs/README.md)
+  [https://github.com/hyperledger/fabric/blob/main/docs/README.md](https://github.com/hyperledger/fabric/blob/main/docs/README.md)
 
   Relative links are unfortunately not working on github when browsing through a
   RST file.

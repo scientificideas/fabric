@@ -18,13 +18,15 @@ To learn how to use Fabric in production, see [Deploying a production network](d
 **Note:** These instructions have been verified to work against the
 latest stable Fabric Docker images and the pre-compiled setup utilities within the
 supplied tar file. If you run these commands with images or tools from the
-current master branch, it is possible that you will encounter errors.
+current main branch, it is possible that you will encounter errors.
 
 ## Before you begin
 
-Before you can run the test network, you need to clone the `fabric-samples`
-repository and download the Fabric images. Make sure that you have installed
-the [Prerequisites](prereqs.html) and [Installed the Samples, Binaries and Docker Images](install.html).
+Before you can run the test network, you need to install Fabric Samples in your
+environment. Follow the instructions on [getting_started](getting_started.html)
+to install the required software.
+
+**Note:** The test network has been successfully verified with Docker Desktop version 2.5.0.1 and is the recommended version at this time. Higher versions may not work.
 
 **Note:** The test network has been successfully verified with Docker Desktop version 2.5.0.1 and is the recommended version at this time. Higher versions may not work.
 
@@ -105,7 +107,7 @@ ordering node. No channel is created when you run `./network.sh up`, though we
 will get there in a [future step](#creating-a-channel). If the command completes
 successfully, you will see the logs of the nodes being created:
 ```
-Creating network "net_test" with the default driver
+Creating network "fabric_test" with the default driver
 Creating volume "net_orderer.example.com" with default driver
 Creating volume "net_peer0.org1.example.com" with default driver
 Creating volume "net_peer0.org2.example.com" with default driver
@@ -191,7 +193,7 @@ channel with the default name of `mychannel`:
 If the command was successful, you can see the following message printed in your
 logs:
 ```
-========= Channel successfully joined ===========
+Channel 'mychannel' joined
 ```
 
 You can also use the channel flag to create a channel with custom name. As an
@@ -206,6 +208,12 @@ the command below to create a second channel named `channel2`:
 ```
 ./network.sh createChannel -c channel2
 ```
+
+**NOTE:** Make sure the name of the channel applies the following restrictions:
+
+  - contains only lower case ASCII alphanumerics, dots '.', and dashes '-'
+  - is shorter than 250 characters
+  - starts with a letter
 
 If you want to bring up the network and create a channel in a single step, you
 can use the `up` and `createChannel` modes together:
@@ -292,13 +300,13 @@ export CORE_PEER_ADDRESS=localhost:7051
 The `CORE_PEER_TLS_ROOTCERT_FILE` and `CORE_PEER_MSPCONFIGPATH` environment
 variables point to the Org1 crypto material in the `organizations` folder.
 
-If you used `./network.sh deployCC -ccl go` to install and start the asset-transfer (basic) chaincode, you can invoke the `InitLedger` function of the (Go) chaincode to put an initial list of assets on the ledger (if using typescript or javascript `./network.sh deployCC -ccl javascript` for example, you will invoke the `InitLedger` function of the respective chaincodes).
+If you used `./network.sh deployCC -ccl go` to install and start the asset-transfer (basic) chaincode, you can invoke the `InitLedger` function of the (Go) chaincode to put an initial list of assets on the ledger (if using TypeScript or JavaScript `./network.sh deployCC -ccl javascript` for example, you will invoke the `InitLedger` function of the respective chaincodes).
 
-Run the following command to initialize the ledger with assets:
+Run the following command to initialize the ledger with assets. (Note the CLI does not access the Fabric Gateway peer, so each endorsing peer must be specified.)
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"InitLedger","Args":[]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"InitLedger","Args":[]}'
 ```
-If successful, you should see similar output to below:
+If successful, you should see output similar to the following example:
 ```
 -> INFO 001 Chaincode invoke successful. result: status:200
 ```
@@ -319,7 +327,7 @@ If successful, you should see the following output:
 ```
 Chaincodes are invoked when a network member wants to transfer or change an asset on the ledger. Use the following command to change the owner of an asset on the ledger by invoking the asset-transfer (basic) chaincode:
 ```
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile ${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses localhost:9051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt -c '{"function":"TransferAsset","Args":["asset6","Christopher"]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"TransferAsset","Args":["asset6","Christopher"]}'
 ```
 
 If the command is successful, you should see the following response:
@@ -377,13 +385,9 @@ local machine, you can use the tutorials to start developing your own solution:
 
 - Learn how to deploy your own smart contracts to the test network using the
 [Deploying a smart contract to a channel](deploy_chaincode.html) tutorial.
-- Visit the [Writing Your First Application](write_first_app.html) tutorial
+- Visit the [Running a Fabric Application](write_first_app.html) tutorial
 to learn how to use the APIs provided by the Fabric SDKs to invoke smart
 contracts from your client applications.
-- If you are ready to deploy a more complicated smart contract to the network, follow
-the [commercial paper tutorial](tutorial/commercial_paper.html) to explore a
-use case in which two organizations use a blockchain network to trade commercial
-paper.
 
 You can find the complete list of Fabric tutorials on the [tutorials](tutorials.html)
 page.
@@ -636,7 +640,7 @@ If you have any problems with the tutorial, review the following:
    Ensure that the file in question (**createChannel.sh** in this example) is
    encoded in the Unix format. This was most likely caused by not setting
    ``core.autocrlf`` to ``false`` in your Git configuration (see
-    [Windows extras](prereqs.html#windows-extras)). There are several ways of fixing this. If you have
+    [Windows](prereqs.html#windows)). There are several ways of fixing this. If you have
    access to the vim editor for instance, open the file:
    ```
    vim ./fabric-samples/test-network/scripts/createChannel.sh

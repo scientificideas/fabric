@@ -8,7 +8,6 @@ package deliverservice
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"sync"
@@ -73,10 +72,7 @@ type Config struct {
 	OrdererSource *orderers.ConnectionSource
 	// Signer is the identity used to sign requests.
 	Signer identity.SignerSerializer
-	// GRPC Client
-	DeliverGRPCClient *comm.GRPCClient
-	// Configuration values for deliver service.
-	// TODO: merge 2 Config struct
+	// DeliverServiceConfig is the configuration object.
 	DeliverServiceConfig *DeliverServiceConfig
 }
 
@@ -94,12 +90,13 @@ func NewDeliverService(conf *Config) DeliverService {
 
 // DialerAdapter implements the creation of a new gRPC connection
 type DialerAdapter struct {
-	Client *comm.GRPCClient
+	ClientConfig comm.ClientConfig
 }
 
-// Dial creates a new gRPC connection
-func (da DialerAdapter) Dial(address string, certPool *x509.CertPool) (*grpc.ClientConn, error) {
-	return da.Client.NewConnection(address, comm.CertPoolOverride(certPool))
+func (da DialerAdapter) Dial(address string, rootCerts [][]byte) (*grpc.ClientConn, error) {
+	cc := da.ClientConfig
+	cc.SecOpts.ServerRootCAs = rootCerts
+	return cc.Dial(address)
 }
 
 // DeliverAdapter implements the creation of a stream client
@@ -193,6 +190,14 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 			dc.TLSCertHash = util.ComputeSHA256(d.conf.DeliverGRPCClient.Certificate().Certificate[0])
 		}
 		bp = dc
+	}
+
+	if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
+		cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
+		if err != nil {
+			return fmt.Errorf("failed to access client TLS configuration: %w", err)
+		}
+		dc.TLSCertHash = util.ComputeSHA256(cert.Certificate[0])
 	}
 
 	d.blockProviders[chainID] = bp

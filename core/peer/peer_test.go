@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hyperledger/fabric/common/channelconfig"
+
 	"github.com/hyperledger/fabric-protos-go/common"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp/sw"
@@ -28,13 +30,11 @@ import (
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/core/ledger/ledgermgmt"
 	"github.com/hyperledger/fabric/core/ledger/ledgermgmt/ledgermgmttest"
-	"github.com/hyperledger/fabric/core/ledger/mock"
 	ledgermocks "github.com/hyperledger/fabric/core/ledger/mock"
 	"github.com/hyperledger/fabric/core/transientstore"
 	"github.com/hyperledger/fabric/gossip/gossip"
 	gossipmetrics "github.com/hyperledger/fabric/gossip/metrics"
 	"github.com/hyperledger/fabric/gossip/privdata"
-	"github.com/hyperledger/fabric/gossip/service"
 	gossipservice "github.com/hyperledger/fabric/gossip/service"
 	peergossip "github.com/hyperledger/fabric/internal/peer/gossip"
 	"github.com/hyperledger/fabric/internal/peer/gossip/mocks"
@@ -58,24 +58,19 @@ func NewTestPeer(t *testing.T) (*Peer, func()) {
 	// Initialize gossip service
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
-	signer := mgmt.GetLocalSigningIdentityOrPanic(cryptoProvider)
+	signer, err := mgmt.GetLocalMSP(cryptoProvider).GetDefaultSigningIdentity()
+	require.NoError(t, err)
 
-	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, &mocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
+	localMSP := mgmt.GetLocalMSP(cryptoProvider)
+	deserManager := peergossip.NewDeserializersManager(localMSP)
+	messageCryptoService := peergossip.NewMCS(
+		&mocks.ChannelPolicyManagerGetter{},
+		signer,
+		deserManager,
+		cryptoProvider,
+	)
+	secAdv := peergossip.NewSecurityAdvisor(deserManager)
 	defaultSecureDialOpts := func() []grpc.DialOption { return []grpc.DialOption{grpc.WithInsecure()} }
-	var defaultDeliverClientDialOpts []grpc.DialOption
-	defaultDeliverClientDialOpts = append(
-		defaultDeliverClientDialOpts,
-		grpc.WithBlock(),
-		grpc.WithDefaultCallOptions(
-			grpc.MaxCallRecvMsgSize(comm.DefaultMaxRecvMsgSize),
-			grpc.MaxCallSendMsgSize(comm.DefaultMaxSendMsgSize),
-		),
-	)
-	defaultDeliverClientDialOpts = append(
-		defaultDeliverClientDialOpts,
-		comm.ClientKeepaliveOptions(comm.DefaultKeepaliveOptions)...,
-	)
 	gossipConfig, err := gossip.GlobalConfig("localhost:0", nil)
 	require.NoError(t, err)
 
@@ -88,9 +83,8 @@ func NewTestPeer(t *testing.T) (*Peer, func()) {
 		secAdv,
 		defaultSecureDialOpts,
 		nil,
-		nil,
 		gossipConfig,
-		&service.ServiceConfig{},
+		&gossipservice.ServiceConfig{},
 		&privdata.PrivdataConfig{},
 		&deliverservice.DeliverServiceConfig{
 			ReConnectBackoffThreshold:   deliverservice.DefaultReConnectBackoffThreshold,
@@ -177,7 +171,7 @@ func TestCreateChannel(t *testing.T) {
 		t.FailNow()
 	}
 
-	err = peerInstance.CreateChannel(testChannelID, block, &mock.DeployedChaincodeInfoProvider{}, nil, nil)
+	err = peerInstance.CreateChannel(testChannelID, block, &ledgermocks.DeployedChaincodeInfoProvider{}, nil, nil)
 	if err != nil {
 		t.Fatalf("failed to create chain %s", err)
 	}
@@ -247,7 +241,7 @@ func TestCreateChannelBySnapshot(t *testing.T) {
 	defer os.Remove(tempdir)
 
 	snapshotDir := ledgermgmttest.CreateSnapshotWithGenesisBlock(t, tempdir, testChannelID, &ConfigTxProcessor{})
-	err = peerInstance.CreateChannelFromSnapshot(snapshotDir, &mock.DeployedChaincodeInfoProvider{}, nil, nil)
+	err = peerInstance.CreateChannelFromSnapshot(snapshotDir, &ledgermocks.DeployedChaincodeInfoProvider{}, nil, nil)
 	require.NoError(t, err)
 
 	expectedStatus := &pb.JoinBySnapshotStatus{InProgress: true, BootstrappingSnapshotDir: snapshotDir}
@@ -304,6 +298,42 @@ func TestDeliverSupportManager(t *testing.T) {
 	peerInstance.channels = map[string]*Channel{"testchain": {}}
 	chainSupport = manager.GetChain("testchain")
 	require.NotNil(t, chainSupport, "chain support should not be nil")
+}
+
+func TestConfigCallback(t *testing.T) {
+	peerInstance, cleanup := NewTestPeer(t)
+	defer cleanup()
+
+	var callbackInvoked bool
+	peerInstance.AddConfigCallbacks(func(bundle *channelconfig.Bundle) {
+		callbackInvoked = true
+		orderer, exists := bundle.OrdererConfig()
+		require.True(t, exists)
+		require.NotEmpty(t, orderer.Organizations()["SampleOrg"].Endpoints)
+	})
+
+	peerInstance.Initialize(
+		nil,
+		nil,
+		plugin.MapBasedMapper(map[string]validation.PluginFactory{}),
+		&ledgermocks.DeployedChaincodeInfoProvider{},
+		nil,
+		nil,
+		runtime.NumCPU(),
+	)
+
+	testChannelID := fmt.Sprintf("mytestchannelid-%d", rand.Int())
+	block, err := configtxtest.MakeGenesisBlock(testChannelID)
+	require.NoError(t, err)
+
+	// We expect the callback to be invoked when the channel is created
+	require.False(t, callbackInvoked)
+
+	err = peerInstance.CreateChannel(testChannelID, block, &ledgermocks.DeployedChaincodeInfoProvider{}, nil, nil)
+	require.NoError(t, err)
+
+	// the callback should have been invoked
+	require.True(t, callbackInvoked)
 }
 
 func constructLedgerMgrWithTestDefaults(ledgersDataDir string) (*ledgermgmt.LedgerMgr, error) {

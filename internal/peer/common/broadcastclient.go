@@ -12,7 +12,7 @@ import (
 )
 
 type BroadcastClient interface {
-	//Send data to orderer
+	// Send data to orderer
 	Send(env *cb.Envelope) error
 	Close() error
 }
@@ -46,7 +46,7 @@ func (s *BroadcastGRPCClient) getAck() error {
 	return nil
 }
 
-//Send data to orderer
+// Send data to orderer
 func (s *BroadcastGRPCClient) Send(env *cb.Envelope) error {
 	if err := s.Client.Send(env); err != nil {
 		return errors.WithMessage(err, "could not send to orderer node")

@@ -22,9 +22,7 @@ import (
 	"github.com/willf/bitset"
 )
 
-var (
-	logger = flogging.MustGetLogger("pvtdatastorage")
-)
+var logger = flogging.MustGetLogger("pvtdatastorage")
 
 // Provider provides handle to specific 'Store' that in turn manages
 // private write sets for a ledger
@@ -551,7 +549,7 @@ func (s *Store) getMissingData(group []byte, maxBlock int) (ledger.MissingPvtDat
 }
 
 // FetchBootKVHashes returns the KVHashes from the data that was loaded from a snapshot at the time of
-// bootstrapping. This funciton returns an error if the supplied blkNum is greater than the last block
+// bootstrapping. This function returns an error if the supplied blkNum is greater than the last block
 // number in the booting snapshot
 func (s *Store) FetchBootKVHashes(blkNum, txNum uint64, ns, coll string) (map[string][]byte, error) {
 	if s.bootsnapshotInfo.createdFromSnapshot && blkNum > s.bootsnapshotInfo.lastBlockInSnapshot {
@@ -837,7 +835,7 @@ func (c *collElgProcSync) notify() {
 	select {
 	case c.notification <- true:
 		logger.Debugf("Signaled to collection eligibility processing routine")
-	default: //noop
+	default: // noop
 		logger.Debugf("Previous signal still pending. Skipping new signal")
 	}
 }

@@ -28,8 +28,7 @@ are provided:
 -) "delep": delete the key-level endorsement policy for the state altogether
 -) "listorgs": list the orgs included in the state's endorsement policy
 */
-type EndorsementCC struct {
-}
+type EndorsementCC struct{}
 
 // Init callback
 func (cc *EndorsementCC) Init(stub shim.ChaincodeStubInterface) pb.Response {
@@ -228,6 +227,12 @@ func setVal(stub shim.ChaincodeStubInterface) pb.Response {
 	if string(args[1]) == "pub" {
 		err = stub.PutState("pub", args[2])
 	} else if string(args[1]) == "priv" {
+		err = stub.PutPrivateData("col", "priv", args[2])
+	} else if string(args[1]) == "both" {
+		err = stub.PutState("pub", args[2])
+		if err != nil {
+			return shim.Error(err.Error())
+		}
 		err = stub.PutPrivateData("col", "priv", args[2])
 	} else {
 		return shim.Error("Unknown key specified")

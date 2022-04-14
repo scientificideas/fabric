@@ -647,6 +647,17 @@ var _ = Describe("DiscoveryService", func() {
 		Expect(discovered[0].Layouts).To(HaveLen(1))
 		Expect(discovered[0].Layouts[0].QuantitiesByGroup).To(ConsistOf(uint32(1), uint32(1)))
 
+		By("discovering endorsers for Org1 implicit collection")
+		endorsers.Collection = "mycc:_implicit_org_Org1MSP"
+		de = discoverEndorsers(network, endorsers)
+		Eventually(endorsersByGroups(de), network.EventuallyTimeout).Should(ConsistOf(
+			ConsistOf(network.DiscoveredPeer(org1Peer0)),
+		))
+		discovered = de()
+		Expect(discovered).To(HaveLen(1))
+		Expect(discovered[0].Layouts).To(HaveLen(1))
+		Expect(discovered[0].Layouts[0].QuantitiesByGroup).To(ConsistOf(uint32(1)))
+
 		By("trying to discover endorsers as an org3 admin")
 		endorsers = commands.Endorsers{
 			UserCert:  network.PeerUserCert(org3Peer0, "Admin"),
@@ -744,7 +755,7 @@ func discoverConfiguration(n *nwo.Network, peer *nwo.Peer) *discovery.ConfigResu
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(sess, n.EventuallyTimeout).Should(gexec.Exit(0))
 
-	By("unmarshaling the response")
+	By("unmarshalling the response")
 	discoveredConfig := &discovery.ConfigResult{}
 	err = json.Unmarshal(sess.Out.Contents(), &discoveredConfig)
 	Expect(err).NotTo(HaveOccurred())
@@ -770,11 +781,11 @@ func verifyNoPendingSnapshotRequest(n *nwo.Network, peer *nwo.Peer, channelID st
 		ClientAuth:  n.ClientAuthRequired,
 		PeerAddress: n.PeerAddress(peer, nwo.ListenPort),
 	}
-	checkPending := func() []byte {
+	checkPending := func() string {
 		sess, err := n.PeerAdminSession(peer, cmd)
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(sess, n.EventuallyTimeout).Should(gexec.Exit(0))
-		return sess.Buffer().Contents()
+		return string(sess.Buffer().Contents())
 	}
 	Eventually(checkPending, n.EventuallyTimeout, 10*time.Second).Should(ContainSubstring("Successfully got pending snapshot requests: []\n"))
 }
@@ -783,7 +794,7 @@ func joinBySnapshot(n *nwo.Network, orderer *nwo.Orderer, peer *nwo.Peer, channe
 	n.JoinChannelBySnapshot(snapshotDir, peer)
 
 	By("calling JoinBySnapshotStatus until joinbysnapshot is completed")
-	checkStatus := func() []byte { return n.JoinBySnapshotStatus(peer) }
+	checkStatus := func() string { return n.JoinBySnapshotStatus(peer) }
 	Eventually(checkStatus, n.EventuallyTimeout, 10*time.Second).Should(ContainSubstring("No joinbysnapshot operation is in progress"))
 
 	By("waiting for the peer to have the same ledger height")

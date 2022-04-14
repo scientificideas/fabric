@@ -27,14 +27,13 @@ func TestStartDeliverForChannel(t *testing.T) {
 	fakeLedgerInfo := &fake.LedgerInfo{}
 	fakeLedgerInfo.LedgerHeightReturns(0, fmt.Errorf("fake-ledger-error"))
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS:            true,
-			RequireClientCert: true,
-			// The below certificates were taken from the peer TLS
-			// dir as output by cryptogen.
-			// They are server.crt and server.key respectively.
-			Certificate: []byte(`-----BEGIN CERTIFICATE-----
+	secOpts := comm.SecureOptions{
+		UseTLS:            true,
+		RequireClientCert: true,
+		// The below certificates were taken from the peer TLS
+		// dir as output by cryptogen.
+		// They are server.crt and server.key respectively.
+		Certificate: []byte(`-----BEGIN CERTIFICATE-----
 MIIChTCCAiygAwIBAgIQOrr7/tDzKhhCba04E6QVWzAKBggqhkjOPQQDAjB2MQsw
 CQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy
 YW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0GA1UEAxMWdGxz
@@ -50,20 +49,19 @@ cGVlcjCCFnBlZXIwLm9yZzEuZXhhbXBsZS5jb22CBXBlZXIwMAoGCCqGSM49BAMC
 A0cAMEQCIAiAGoYeKPMd3bqtixZji8q2zGzLmIzq83xdTJoZqm50AiAKleso2EVi
 2TwsekWGpMaCOI6JV1+ZONyti6vBChhUYg==
 -----END CERTIFICATE-----`),
-			Key: []byte(`-----BEGIN PRIVATE KEY-----
+		Key: []byte(`-----BEGIN PRIVATE KEY-----
 MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgxiyAFyD0Eg1NxjbS
 U2EKDLoTQr3WPK8z7WyeOSzr+GGhRANCAATGCWmkvGIBhJqyt0WytkkPFFQsYFvA
 eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 -----END PRIVATE KEY-----`,
-			),
-		},
-	})
-	require.NoError(t, err)
+		),
+	}
 
 	t.Run("Green Path With Mutual TLS", func(t *testing.T) {
 		ds := NewDeliverService(&Config{
-			DeliverGRPCClient:    grpcClient,
-			DeliverServiceConfig: &DeliverServiceConfig{},
+			DeliverServiceConfig: &DeliverServiceConfig{
+				SecOpts: secOpts,
+			},
 		}).(*deliverServiceImpl)
 
 		finalized := make(chan struct{})
@@ -84,20 +82,12 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 	})
 
 	t.Run("Green Path without mutual TLS", func(t *testing.T) {
-		grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-			SecOpts: comm.SecureOptions{
-				UseTLS: true,
-			},
-		})
-		require.NoError(t, err)
-
 		ds := NewDeliverService(&Config{
-			DeliverGRPCClient:    grpcClient,
 			DeliverServiceConfig: &DeliverServiceConfig{},
 		}).(*deliverServiceImpl)
 
 		finalized := make(chan struct{})
-		err = ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {
 			close(finalized)
 		})
 		require.NoError(t, err)
@@ -115,11 +105,10 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 
 	t.Run("Exists", func(t *testing.T) {
 		ds := NewDeliverService(&Config{
-			DeliverGRPCClient:    grpcClient,
 			DeliverServiceConfig: &DeliverServiceConfig{},
 		}).(*deliverServiceImpl)
 
-		err = ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
 		require.NoError(t, err)
 
 		err = ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
@@ -128,13 +117,12 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 
 	t.Run("Stopping", func(t *testing.T) {
 		ds := NewDeliverService(&Config{
-			DeliverGRPCClient:    grpcClient,
 			DeliverServiceConfig: &DeliverServiceConfig{},
 		}).(*deliverServiceImpl)
 
 		ds.Stop()
 
-		err = ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
 		require.EqualError(t, err, "Delivery service is stopping cannot join a new channel channel-id")
 	})
 }
@@ -224,5 +212,4 @@ func TestStop(t *testing.T) {
 			require.Fail(t, "block providers should te closed")
 		}
 	}
-
 }

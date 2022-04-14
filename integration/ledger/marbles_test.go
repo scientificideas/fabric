@@ -15,14 +15,14 @@ import (
 
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
-	"github.com/hyperledger/fabric/integration/runner"
+	"github.com/hyperledger/fabric/integration/nwo/runner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 )
 
-var _ bool = Describe("all shim APIs for non-private data", func() {
+var _ = Describe("all shim APIs for non-private data", func() {
 	var (
 		setup     *setup
 		helper    *marblesTestHelper
@@ -65,7 +65,7 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 		By("adding six marbles, marble-0 to marble-5")
 		for i := 0; i <= 5; i++ {
 			helper.invokeMarblesChaincode(ccName, peer, "initMarble", fmt.Sprintf("marble-%d", i), "blue", "35", "tom")
-			helper.waitUntilEqualLedgerHeight(height + i + 1)
+			helper.waitUntilAllPeersEqualLedgerHeight(height + i + 1)
 		}
 
 		By("getting marbles by range")
@@ -143,7 +143,7 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 
 	When("levelDB is used as stateDB", func() {
 		It("calls marbles APIs", func() {
-			peer := setup.network.Peer("org2", "peer0")
+			peer := setup.network.Peer("Org2", "peer0")
 
 			By("deploying new lifecycle chaincode")
 			nwo.EnableCapabilities(setup.network, setup.channelID, "Application", "V2_0", setup.orderer, setup.peers...)
@@ -155,16 +155,14 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 	})
 
 	When("CouchDB is used as stateDB", func() {
-		var (
-			couchProcess ifrit.Process
-		)
+		var couchProcess ifrit.Process
 
 		BeforeEach(func() {
 			By("stopping peers")
 			setup.stopPeers()
 
 			By("configuring a peer with couchdb")
-			// configure only one of the peers (org2, peer0) to use couchdb.
+			// configure only one of the peers (Org2, peer0) to use couchdb.
 			// Note that we do not support a channel with mixed DBs.
 			// However, for testing, it would be fine to use couchdb for one
 			// peer and sending all the couchdb related test queries to this peer
@@ -173,7 +171,7 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 			Eventually(couchProcess.Ready(), runner.DefaultStartTimeout).Should(BeClosed())
 			Consistently(couchProcess.Wait()).ShouldNot(Receive())
 			couchAddr := couchDB.Address()
-			peer := setup.network.Peer("org2", "peer0")
+			peer := setup.network.Peer("Org2", "peer0")
 			core := setup.network.ReadPeerConfig(peer)
 			core.Ledger.State.StateDatabase = "CouchDB"
 			core.Ledger.State.CouchDBConfig.CouchDBAddress = couchAddr
@@ -189,7 +187,7 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 		})
 
 		It("calls marbles APIs", func() {
-			peer := setup.network.Peer("org2", "peer0")
+			peer := setup.network.Peer("Org2", "peer0")
 
 			By("deploying new lifecycle chaincode")
 			nwo.EnableCapabilities(setup.network, setup.channelID, "Application", "V2_0", setup.orderer, setup.peers...)
@@ -206,7 +204,7 @@ var _ bool = Describe("all shim APIs for non-private data", func() {
 
 // marble is the struct to unmarshal the response bytes returned from getMarble API
 type marble struct {
-	ObjectType string `json:"docType"` //docType is "marble"
+	ObjectType string `json:"docType"` // docType is "marble"
 	Name       string `json:"name"`
 	Color      string `json:"color"`
 	Size       int    `json:"size"`
@@ -289,7 +287,6 @@ func (th *marblesTestHelper) assertMarbleExists(chaincodeName string, peer *nwo.
 	err = json.Unmarshal(sess.Out.Contents(), result)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(result).To(Equal(expectedResult))
-
 }
 
 // assertMarbleDoesNotExist asserts that the marble does not exist

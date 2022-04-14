@@ -78,7 +78,8 @@ func newIdentity(cert *x509.Certificate, pk bccsp.Key, msp *bccspmsp) (Identity,
 
 	id := &IdentityIdentifier{
 		Mspid: msp.name,
-		Id:    hex.EncodeToString(digest)}
+		Id:    hex.EncodeToString(digest),
+	}
 
 	return &identity{id: id, cert: cert, pk: pk, msp: msp}, nil
 }
@@ -181,14 +182,16 @@ func (id *identity) Verify(msg []byte, sig []byte) error {
 	}
 
 	if mspIdentityLogger.IsEnabledFor(zapcore.DebugLevel) {
-		mspIdentityLogger.Debugf("Verify: digest = %s", hex.Dump(digest))
-		mspIdentityLogger.Debugf("Verify: sig = %s", hex.Dump(sig))
+		mspIdentityLogger.Debugf("Verify: signer identity (certificate subject=%s issuer=%s serialnumber=%d)", id.cert.Subject, id.cert.Issuer, id.cert.SerialNumber)
+		// mspIdentityLogger.Debugf("Verify: digest = %s", hex.Dump(digest))
+		// mspIdentityLogger.Debugf("Verify: sig = %s", hex.Dump(sig))
 	}
 
 	valid, err := id.msp.bccsp.Verify(id.pk, sig, digest, nil)
 	if err != nil {
 		return errors.WithMessage(err, "could not determine the validity of the signature")
 	} else if !valid {
+		mspIdentityLogger.Warnf("The signature is invalid for (certificate subject=%s issuer=%s serialnumber=%d)", id.cert.Subject, id.cert.Issuer, id.cert.SerialNumber)
 		return errors.New("The signature is invalid")
 	}
 
@@ -220,7 +223,7 @@ func (id *identity) getHashOpt(hashFamily string) (bccsp.HashOpts, error) {
 	case bccsp.SHA3:
 		return bccsp.GetHashOpt(bccsp.SHA3_256)
 	}
-	return nil, errors.Errorf("hash familiy not recognized [%s]", hashFamily)
+	return nil, errors.Errorf("hash family not recognized [%s]", hashFamily)
 }
 
 type signingidentity struct {
@@ -232,7 +235,7 @@ type signingidentity struct {
 }
 
 func newSigningIdentity(cert *x509.Certificate, pk bccsp.Key, signer crypto.Signer, msp *bccspmsp) (SigningIdentity, error) {
-	//mspIdentityLogger.Infof("Creating signing identity instance for ID %s", id)
+	// mspIdentityLogger.Infof("Creating signing identity instance for ID %s", id)
 	mspId, err := newIdentity(cert, pk, msp)
 	if err != nil {
 		return nil, err
@@ -250,7 +253,7 @@ func newSigningIdentity(cert *x509.Certificate, pk bccsp.Key, signer crypto.Sign
 
 // Sign produces a signature over msg, signed by this instance
 func (id *signingidentity) Sign(msg []byte) ([]byte, error) {
-	//mspIdentityLogger.Infof("Signing message")
+	// mspIdentityLogger.Infof("Signing message")
 
 	// Compute Hash
 	hashOpt, err := id.getHashOpt(id.msp.cryptoConfig.SignatureHashFamily)

@@ -31,14 +31,19 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	grpc "google.golang.org/grpc"
 )
 
 // UndefinedParamValue defines what undefined parameters in the command line will initialise to
-const UndefinedParamValue = ""
-const CmdRoot = "core"
+const (
+	UndefinedParamValue = ""
+	CmdRoot             = "core"
+)
 
-var mainLogger = flogging.MustGetLogger("main")
-var logOutput = os.Stderr
+var (
+	mainLogger = flogging.MustGetLogger("main")
+	logOutput  = os.Stderr
+)
 
 var (
 	defaultConnTimeout = 3 * time.Second
@@ -73,14 +78,38 @@ var (
 	GetOrdererEndpointOfChainFnc func(chainID string, signer Signer,
 		endorserClient pb.EndorserClient, cryptoProvider bccsp.BCCSP) ([]string, error)
 
-	// GetCertificateFnc is a function that returns the client TLS certificate
-	GetCertificateFnc func() (tls.Certificate, error)
+	// GetClientCertificateFnc is a function that returns the client TLS certificate
+	GetClientCertificateFnc func() (tls.Certificate, error)
 )
 
 type CommonClient struct {
-	*comm.GRPCClient
-	Address string
-	sn      string
+	clientConfig comm.ClientConfig
+	address      string
+}
+
+func newCommonClient(address string, clientConfig comm.ClientConfig) (*CommonClient, error) {
+	return &CommonClient{
+		clientConfig: clientConfig,
+		address:      address,
+	}, nil
+}
+
+func (cc *CommonClient) Certificate() tls.Certificate {
+	if !cc.clientConfig.SecOpts.RequireClientCert {
+		return tls.Certificate{}
+	}
+	cert, err := cc.clientConfig.SecOpts.ClientCertificate()
+	if err != nil {
+		panic(err)
+	}
+	return cert
+}
+
+// Dial will create a new gRPC client connection to the provided
+// address. The options used for the dial are sourced from the
+// ClientConfig provided to the constructor.
+func (cc *CommonClient) Dial(address string) (*grpc.ClientConn, error) {
+	return cc.clientConfig.Dial(address)
 }
 
 func init() {
@@ -90,7 +119,7 @@ func init() {
 	GetOrdererEndpointOfChainFnc = GetOrdererEndpointOfChain
 	GetDeliverClientFnc = GetDeliverClient
 	GetPeerDeliverClientFnc = GetPeerDeliverClient
-	GetCertificateFnc = GetCertificate
+	GetClientCertificateFnc = GetClientCertificate
 }
 
 // InitConfig initializes viper config
@@ -137,7 +166,11 @@ func InitCrypto(mspMgrConfigDir, localMSPID, localMSPType string) error {
 		return errors.WithMessage(err, "could not decode peer BCCSP configuration")
 	}
 
-	err = mspmgmt.LoadLocalMspWithType(mspMgrConfigDir, bccspConfig, localMSPID, localMSPType)
+	conf, err := msp.GetLocalMspConfigWithType(mspMgrConfigDir, bccspConfig, localMSPID, localMSPType)
+	if err != nil {
+		return err
+	}
+	err = mspmgmt.GetLocalMSP(factory.GetDefault()).Setup(conf)
 	if err != nil {
 		return errors.WithMessagef(err, "error when setting up MSP of type %s from directory %s", localMSPType, mspMgrConfigDir)
 	}
@@ -212,7 +245,7 @@ func GetOrdererEndpointOfChain(chainID string, signer Signer, endorserClient pb.
 	// parse config
 	channelConfig := &pcommon.Config{}
 	if err := proto.Unmarshal(proposalResp.Response.Payload, channelConfig); err != nil {
-		return nil, errors.WithMessage(err, "error unmarshaling channel config")
+		return nil, errors.WithMessage(err, "error unmarshalling channel config")
 	}
 
 	bundle, err := channelconfig.NewBundle(chainID, channelConfig, cryptoProvider)
@@ -231,44 +264,33 @@ func CheckLogLevel(level string) error {
 	return nil
 }
 
-func configFromEnv(prefix string) (address, override string, clientConfig comm.ClientConfig, err error) {
+func configFromEnv(prefix string) (address string, clientConfig comm.ClientConfig, err error) {
 	address = viper.GetString(prefix + ".address")
-	override = viper.GetString(prefix + ".tls.serverhostoverride")
 	clientConfig = comm.ClientConfig{}
 	connTimeout := viper.GetDuration(prefix + ".client.connTimeout")
 	if connTimeout == time.Duration(0) {
 		connTimeout = defaultConnTimeout
 	}
-	clientConfig.Timeout = connTimeout
+	clientConfig.DialTimeout = connTimeout
 	secOpts := comm.SecureOptions{
-		UseTLS:            viper.GetBool(prefix + ".tls.enabled"),
-		RequireClientCert: viper.GetBool(prefix + ".tls.clientAuthRequired"),
-		TimeShift:         viper.GetDuration(prefix + ".tls.handshakeTimeShift"),
+		UseTLS:             viper.GetBool(prefix + ".tls.enabled"),
+		RequireClientCert:  viper.GetBool(prefix + ".tls.clientAuthRequired"),
+		TimeShift:          viper.GetDuration(prefix + ".tls.handshakeTimeShift"),
+		ServerNameOverride: viper.GetString(prefix + ".tls.serverhostoverride"),
 	}
 	if secOpts.UseTLS {
 		caPEM, res := ioutil.ReadFile(config.GetPath(prefix + ".tls.rootcert.file"))
 		if res != nil {
-			err = errors.WithMessage(res,
-				fmt.Sprintf("unable to load %s.tls.rootcert.file", prefix))
+			err = errors.WithMessagef(res, "unable to load %s.tls.rootcert.file", prefix)
 			return
 		}
 		secOpts.ServerRootCAs = [][]byte{caPEM}
 	}
 	if secOpts.RequireClientCert {
-		keyPEM, res := ioutil.ReadFile(config.GetPath(prefix + ".tls.clientKey.file"))
-		if res != nil {
-			err = errors.WithMessage(res,
-				fmt.Sprintf("unable to load %s.tls.clientKey.file", prefix))
+		secOpts.Key, secOpts.Certificate, err = getClientAuthInfoFromEnv(prefix)
+		if err != nil {
 			return
 		}
-		secOpts.Key = keyPEM
-		certPEM, res := ioutil.ReadFile(config.GetPath(prefix + ".tls.clientCert.file"))
-		if res != nil {
-			err = errors.WithMessage(res,
-				fmt.Sprintf("unable to load %s.tls.clientCert.file", prefix))
-			return
-		}
-		secOpts.Certificate = certPEM
 	}
 	clientConfig.SecOpts = secOpts
 	clientConfig.MaxRecvMsgSize = comm.DefaultMaxRecvMsgSize
@@ -280,6 +302,20 @@ func configFromEnv(prefix string) (address, override string, clientConfig comm.C
 		clientConfig.MaxSendMsgSize = int(viper.GetInt32(prefix + ".maxSendMsgSize"))
 	}
 	return
+}
+
+// getClientAuthInfoFromEnv reads client tls key file and cert file and returns the bytes for the files
+func getClientAuthInfoFromEnv(prefix string) ([]byte, []byte, error) {
+	keyPEM, err := ioutil.ReadFile(config.GetPath(prefix + ".tls.clientKey.file"))
+	if err != nil {
+		return nil, nil, errors.WithMessagef(err, "unable to load %s.tls.clientKey.file", prefix)
+	}
+	certPEM, err := ioutil.ReadFile(config.GetPath(prefix + ".tls.clientCert.file"))
+	if err != nil {
+		return nil, nil, errors.WithMessagef(err, "unable to load %s.tls.clientCert.file", prefix)
+	}
+
+	return keyPEM, certPEM, nil
 }
 
 func InitCmd(cmd *cobra.Command, args []string) {
@@ -311,15 +347,15 @@ func InitCmd(cmd *cobra.Command, args []string) {
 	})
 
 	// chaincode packaging does not require material from the local MSP
-	if cmd.CommandPath() == "peer lifecycle chaincode package" {
+	if cmd.CommandPath() == "peer lifecycle chaincode package" || cmd.CommandPath() == "peer lifecycle chaincode calculatepackageid" {
 		mainLogger.Debug("peer lifecycle chaincode package does not need to init crypto")
 		return
 	}
 
 	// Init the MSP
-	var mspMgrConfigDir = config.GetPath("peer.mspConfigPath")
-	var mspID = viper.GetString("peer.localMspId")
-	var mspType = viper.GetString("peer.localMspType")
+	mspMgrConfigDir := config.GetPath("peer.mspConfigPath")
+	mspID := viper.GetString("peer.localMspId")
+	mspType := viper.GetString("peer.localMspType")
 	if mspType == "" {
 		mspType = msp.ProviderTypeToString(msp.FABRIC)
 	}

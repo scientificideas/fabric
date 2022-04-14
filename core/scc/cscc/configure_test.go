@@ -16,7 +16,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
-	"github.com/hyperledger/fabric-protos-go/common"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp/sw"
@@ -32,7 +31,6 @@ import (
 	"github.com/hyperledger/fabric/core/ledger/ledgermgmt"
 	"github.com/hyperledger/fabric/core/ledger/ledgermgmt/ledgermgmttest"
 	"github.com/hyperledger/fabric/core/peer"
-	"github.com/hyperledger/fabric/core/policy"
 	"github.com/hyperledger/fabric/core/scc/cscc/mocks"
 	"github.com/hyperledger/fabric/core/transientstore"
 	"github.com/hyperledger/fabric/gossip/gossip"
@@ -42,8 +40,6 @@ import (
 	"github.com/hyperledger/fabric/internal/configtxgen/encoder"
 	"github.com/hyperledger/fabric/internal/configtxgen/genesisconfig"
 	peergossip "github.com/hyperledger/fabric/internal/peer/gossip"
-	peergossipmocks "github.com/hyperledger/fabric/internal/peer/gossip/mocks"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/msp/mgmt"
 	msptesttools "github.com/hyperledger/fabric/msp/mgmt/testtools"
 	"github.com/hyperledger/fabric/protoutil"
@@ -70,12 +66,6 @@ type channelPolicyManagerGetter interface {
 	policies.ChannelPolicyManagerGetter
 }
 
-//go:generate counterfeiter -o mocks/policy_checker.go --fake-name PolicyChecker . policyChecker
-
-type policyChecker interface {
-	policy.PolicyChecker
-}
-
 //go:generate counterfeiter -o mocks/store_provider.go --fake-name StoreProvider . storeProvider
 
 type storeProvider interface {
@@ -86,7 +76,6 @@ func TestMain(m *testing.M) {
 	msptesttools.LoadMSPSetupForTesting()
 	rc := m.Run()
 	os.Exit(rc)
-
 }
 
 func TestConfigerInit(t *testing.T) {
@@ -256,8 +245,8 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 	defer os.RemoveAll(testDir)
 
 	ledgerInitializer := ledgermgmttest.NewInitializer(testDir)
-	ledgerInitializer.CustomTxProcessors = map[common.HeaderType]ledger.CustomTxProcessor{
-		common.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
+	ledgerInitializer.CustomTxProcessors = map[cb.HeaderType]ledger.CustomTxProcessor{
+		cb.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
 	}
 	ledgerMgr := ledgermgmt.NewLedgerMgr(ledgerInitializer)
 	defer ledgerMgr.Close()
@@ -287,7 +276,7 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain"), nil})
 	mockStub.GetSignedProposalReturns(sProp, nil)
 	res := cscc.Invoke(mockStub)
-	//res := stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), nil}, sProp)
+	// res := stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), nil}, sProp)
 	require.Equal(t, int32(shim.ERROR), res.Status)
 
 	// Try fail path with block and nil payload header
@@ -303,7 +292,7 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 	badBlockBytes := protoutil.MarshalOrPanic(badBlock)
 	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain"), badBlockBytes})
 	res = cscc.Invoke(mockStub)
-	//res = stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), badBlockBytes}, sProp)
+	// res = stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), badBlockBytes}, sProp)
 	require.Equal(t, int32(shim.ERROR), res.Status)
 
 	// Now, continue with valid execution path
@@ -324,7 +313,7 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 	sProp.Signature = sProp.ProposalBytes
 
 	// Query the configuration block
-	//channelID := []byte{143, 222, 22, 192, 73, 145, 76, 110, 167, 154, 118, 66, 132, 204, 113, 168}
+	// channelID := []byte{143, 222, 22, 192, 73, 145, 76, 110, 167, 154, 118, 66, 132, 204, 113, 168}
 	channelID, err := protoutil.GetChannelIDFromBlockBytes(blockBytes)
 	if err != nil {
 		t.Fatalf("cscc invoke JoinChain failed with: %v", err)
@@ -371,8 +360,8 @@ func TestConfigerInvokeJoinChainBySnapshot(t *testing.T) {
 	defer os.RemoveAll(testDir)
 
 	ledgerInitializer := ledgermgmttest.NewInitializer(testDir)
-	ledgerInitializer.CustomTxProcessors = map[common.HeaderType]ledger.CustomTxProcessor{
-		common.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
+	ledgerInitializer.CustomTxProcessors = map[cb.HeaderType]ledger.CustomTxProcessor{
+		cb.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
 	}
 	ledgerMgr := ledgermgmt.NewLedgerMgr(ledgerInitializer)
 	defer ledgerMgr.Close()
@@ -457,8 +446,8 @@ func TestConfigerInvokeGetChannelConfig(t *testing.T) {
 	defer os.RemoveAll(testDir)
 
 	ledgerInitializer := ledgermgmttest.NewInitializer(testDir)
-	ledgerInitializer.CustomTxProcessors = map[common.HeaderType]ledger.CustomTxProcessor{
-		common.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
+	ledgerInitializer.CustomTxProcessors = map[cb.HeaderType]ledger.CustomTxProcessor{
+		cb.HeaderType_CONFIG: &peer.ConfigTxProcessor{},
 	}
 	ledgerMgr := ledgermgmt.NewLedgerMgr(ledgerInitializer)
 	defer ledgerMgr.Close()
@@ -576,23 +565,21 @@ func newPeerConfiger(t *testing.T, ledgerMgr *ledgermgmt.LedgerMgr, grpcServer *
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
 
-	signer := mgmt.GetLocalSigningIdentityOrPanic(cryptoProvider)
+	localMSP := mgmt.GetLocalMSP(cryptoProvider)
+	signer, err := localMSP.GetDefaultSigningIdentity()
+	require.NoError(t, err)
+	deserManager := peergossip.NewDeserializersManager(localMSP)
 
-	messageCryptoService := peergossip.NewMCS(&mocks.ChannelPolicyManagerGetter{}, &peergossipmocks.Id2IdentitiesFetcherMock{}, signer, mgmt.NewDeserializersManager(cryptoProvider), cryptoProvider)
-	secAdv := peergossip.NewSecurityAdvisor(mgmt.NewDeserializersManager(cryptoProvider))
-	var defaultSecureDialOpts = func() []grpc.DialOption {
+	messageCryptoService := peergossip.NewMCS(
+		&mocks.ChannelPolicyManagerGetter{},
+		signer,
+		deserManager,
+		cryptoProvider,
+	)
+	secAdv := peergossip.NewSecurityAdvisor(deserManager)
+	defaultSecureDialOpts := func() []grpc.DialOption {
 		return []grpc.DialOption{grpc.WithInsecure()}
 	}
-	var defaultDeliverClientDialOpts []grpc.DialOption
-	defaultDeliverClientDialOpts = append(
-		defaultDeliverClientDialOpts,
-		grpc.WithBlock(),
-		grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(comm.DefaultMaxRecvMsgSize), grpc.MaxCallSendMsgSize(comm.DefaultMaxSendMsgSize)),
-	)
-	defaultDeliverClientDialOpts = append(
-		defaultDeliverClientDialOpts,
-		comm.ClientKeepaliveOptions(comm.DefaultKeepaliveOptions)...,
-	)
 	gossipConfig, err := gossip.GlobalConfig(peerEndpoint, nil)
 	require.NoError(t, err)
 
@@ -604,7 +591,6 @@ func newPeerConfiger(t *testing.T, ledgerMgr *ledgermgmt.LedgerMgr, grpcServer *
 		messageCryptoService,
 		secAdv,
 		defaultSecureDialOpts,
-		nil,
 		nil,
 		gossipConfig,
 		&service.ServiceConfig{},
@@ -619,8 +605,7 @@ func newPeerConfiger(t *testing.T, ledgerMgr *ledgermgmt.LedgerMgr, grpcServer *
 	// setup cscc instance
 	mockACLProvider := &mocks.ACLProvider{}
 	cscc := &PeerConfiger{
-		policyChecker: &mocks.PolicyChecker{},
-		aclProvider:   mockACLProvider,
+		aclProvider: mockACLProvider,
 		peer: &peer.Peer{
 			StoreProvider:  &mocks.StoreProvider{},
 			GossipService:  gossipService,
@@ -632,6 +617,7 @@ func newPeerConfiger(t *testing.T, ledgerMgr *ledgermgmt.LedgerMgr, grpcServer *
 
 	return cscc
 }
+
 func mockConfigBlock() []byte {
 	var blockBytes []byte = nil
 	block, err := configtxtest.MakeGenesisBlock("mytestchannelid")
@@ -660,8 +646,8 @@ func validSignedProposal() *pb.SignedProposal {
 func channelConfigFromBlock(t *testing.T, configBlock *cb.Block) *cb.Config {
 	envelopeConfig, err := protoutil.ExtractEnvelope(configBlock, 0)
 	require.NoError(t, err)
-	configEnv := &common.ConfigEnvelope{}
-	_, err = protoutil.UnmarshalEnvelopeOfType(envelopeConfig, common.HeaderType_CONFIG, configEnv)
+	configEnv := &cb.ConfigEnvelope{}
+	_, err = protoutil.UnmarshalEnvelopeOfType(envelopeConfig, cb.HeaderType_CONFIG, configEnv)
 	require.NoError(t, err)
 	return configEnv.Config
 }

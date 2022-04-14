@@ -23,12 +23,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const DefAliveTimeInterval = 5 * time.Second
-const DefAliveExpirationTimeout = 5 * DefAliveTimeInterval
-const DefAliveExpirationCheckInterval = DefAliveExpirationTimeout / 10
-const DefReconnectInterval = DefAliveExpirationTimeout
-const DefMsgExpirationFactor = 20
-const DefMaxConnectionAttempts = 120
+const (
+	DefAliveTimeInterval            = 5 * time.Second
+	DefAliveExpirationTimeout       = 5 * DefAliveTimeInterval
+	DefAliveExpirationCheckInterval = DefAliveExpirationTimeout / 10
+	DefReconnectInterval            = DefAliveExpirationTimeout
+	DefMsgExpirationFactor          = 20
+	DefMaxConnectionAttempts        = 120
+)
 
 type timestamp struct {
 	incTime  time.Time
@@ -182,7 +184,6 @@ func (d *gossipDiscoveryImpl) Connect(member NetworkMember, id identifier) {
 			go d.sendUntilAcked(peer, req)
 			return
 		}
-
 	}()
 }
 
@@ -550,7 +551,6 @@ func (d *gossipDiscoveryImpl) handleAliveMessage(m *protoext.SignedGossipMessage
 		} else if !same(lastAliveTS, ts) {
 			d.logger.Debug("got old alive message about alive peer ", protoext.MemberToString(m.GetAliveMsg().Membership), "lastAliveTS:", lastAliveTS, "but got ts:", ts)
 		}
-
 	}
 	// else, ignore the message because it is too old
 }
@@ -619,8 +619,8 @@ func (d *gossipDiscoveryImpl) resurrectMember(am *protoext.SignedGossipMessage, 
 	}
 
 	delete(d.deadLastTS, string(pkiID))
-	d.deadMembership.Remove(common.PKIidType(pkiID))
-	d.aliveMembership.Put(common.PKIidType(pkiID), &protoext.SignedGossipMessage{GossipMessage: am.GossipMessage, Envelope: am.Envelope})
+	d.deadMembership.Remove(pkiID)
+	d.aliveMembership.Put(pkiID, &protoext.SignedGossipMessage{GossipMessage: am.GossipMessage, Envelope: am.Envelope})
 }
 
 func (d *gossipDiscoveryImpl) periodicalReconnectToDead() {
@@ -797,7 +797,7 @@ func (d *gossipDiscoveryImpl) aliveMsgAndInternalEndpoint() (*proto.GossipMessag
 					PkiId:    pkiID,
 				},
 				Timestamp: &proto.PeerTime{
-					IncNum: uint64(d.incTime),
+					IncNum: d.incTime,
 					SeqNum: seqNum,
 				},
 			},
@@ -960,7 +960,6 @@ func (d *gossipDiscoveryImpl) GetMembership() []NetworkMember {
 		})
 	}
 	return response
-
 }
 
 func tsToTime(ts uint64) time.Time {

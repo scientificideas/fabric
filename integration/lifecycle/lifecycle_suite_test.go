@@ -8,32 +8,26 @@ package lifecycle
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"math"
 	"syscall"
 	"testing"
 	"time"
 
 	pcommon "github.com/hyperledger/fabric-protos-go/common"
+	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/hyperledger/fabric/bccsp/sw"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/integration"
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
-	ic "github.com/hyperledger/fabric/internal/peer/chaincode"
-	"github.com/hyperledger/fabric/internal/peer/common"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
-	"github.com/hyperledger/fabric/msp"
+	"github.com/hyperledger/fabric/integration/nwo/template"
 	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pkg/errors"
 	"github.com/tedsuo/ifrit"
 )
 
@@ -116,61 +110,22 @@ func RunQueryInvokeQuery(n *nwo.Network, orderer *nwo.Orderer, chaincodeName str
 	ExpectWithOffset(1, sess).To(gbytes.Say(fmt.Sprint(initialQueryResult - 10)))
 }
 
-func RestartNetwork(process *ifrit.Process, network *nwo.Network) {
-	(*process).Signal(syscall.SIGTERM)
-	Eventually((*process).Wait(), network.EventuallyTimeout).Should(Receive())
+func RestartNetwork(process ifrit.Process, network *nwo.Network) ifrit.Process {
+	process.Signal(syscall.SIGTERM)
+	Eventually(process.Wait(), network.EventuallyTimeout).Should(Receive())
 	networkRunner := network.NetworkGroupRunner()
-	*process = ifrit.Invoke(networkRunner)
-	Eventually((*process).Ready(), network.EventuallyTimeout).Should(BeClosed())
+	process = ifrit.Invoke(networkRunner)
+	Eventually(process.Ready(), network.EventuallyTimeout).Should(BeClosed())
+	return process
 }
 
-func LoadLocalMSPAt(dir, id, mspType string) (msp.MSP, error) {
-	if mspType != "bccsp" {
-		return nil, errors.Errorf("invalid msp type, expected 'bccsp', got %s", mspType)
-	}
-	conf, err := msp.GetLocalMspConfig(dir, nil, id)
-	if err != nil {
-		return nil, err
-	}
-	ks, err := sw.NewFileBasedKeyStore(nil, filepath.Join(dir, "keystore"), true)
-	if err != nil {
-		return nil, err
-	}
-	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
-	if err != nil {
-		return nil, err
-	}
-	thisMSP, err := msp.NewBccspMspWithKeyStore(msp.MSPv1_0, ks, cryptoProvider)
-	if err != nil {
-		return nil, err
-	}
-	err = thisMSP.Setup(conf)
-	if err != nil {
-		return nil, err
-	}
-	return thisMSP, nil
-}
-
-func Signer(dir string) (msp.SigningIdentity, []byte) {
-	MSP, err := LoadLocalMSPAt(dir, "Org1MSP", "bccsp")
-	Expect(err).To(BeNil())
-	Expect(MSP).NotTo(BeNil())
-	Expect(err).To(BeNil(), "failed getting signer for %s", dir)
-	signer, err := MSP.GetDefaultSigningIdentity()
-	Expect(err).To(BeNil())
-	Expect(signer).NotTo(BeNil())
-	serialisedSigner, err := signer.Serialize()
-	Expect(err).To(BeNil())
-	Expect(serialisedSigner).NotTo(BeNil())
-
-	return signer, serialisedSigner
-}
-
-func SignedProposal(channel, chaincode string, signer msp.SigningIdentity, serialisedSigner []byte, args ...string) (*pb.SignedProposal, *pb.Proposal, string) {
+func SignedProposal(channel, chaincode string, signer *nwo.SigningIdentity, args ...string) (*pb.SignedProposal, *pb.Proposal, string) {
 	byteArgs := make([][]byte, 0, len(args))
 	for _, arg := range args {
 		byteArgs = append(byteArgs, []byte(arg))
 	}
+	serializedSigner, err := signer.Serialize()
+	Expect(err).NotTo(HaveOccurred())
 
 	prop, txid, err := protoutil.CreateChaincodeProposalWithTxIDAndTransient(
 		pcommon.HeaderType_ENDORSER_TRANSACTION,
@@ -186,7 +141,7 @@ func SignedProposal(channel, chaincode string, signer msp.SigningIdentity, seria
 				},
 			},
 		},
-		serialisedSigner,
+		serializedSigner,
 		"",
 		nil,
 	)
@@ -200,83 +155,58 @@ func SignedProposal(channel, chaincode string, signer msp.SigningIdentity, seria
 	return signedProp, prop, txid
 }
 
-func grpcClient(tlsRootCertFile string) *comm.GRPCClient {
-	caPEM, res := ioutil.ReadFile(tlsRootCertFile)
-	Expect(res).To(BeNil())
+func CommitTx(nw *nwo.Network, tx *pcommon.Envelope, peer *nwo.Peer, dc pb.DeliverClient, oc ab.AtomicBroadcast_BroadcastClient, signer *nwo.SigningIdentity, txid string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	gClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		Timeout: 3 * time.Second,
-		KaOpts:  comm.DefaultKeepaliveOptions,
-		SecOpts: comm.SecureOptions{
-			UseTLS:        true,
-			ServerRootCAs: [][]byte{caPEM},
-		},
-	})
+	df, err := dc.DeliverFiltered(ctx)
 	Expect(err).NotTo(HaveOccurred())
-	Expect(gClient).NotTo(BeNil())
+	defer df.CloseSend()
 
-	return gClient
-}
-
-func EndorserClient(address, tlsRootCertFile string) pb.EndorserClient {
-	peerClient := &common.PeerClient{
-		CommonClient: common.CommonClient{
-			GRPCClient: grpcClient(tlsRootCertFile),
-			Address:    address,
+	deliverEnvelope, err := protoutil.CreateSignedEnvelope(
+		pcommon.HeaderType_DELIVER_SEEK_INFO,
+		"testchannel",
+		signer,
+		&ab.SeekInfo{
+			Behavior: ab.SeekInfo_BLOCK_UNTIL_READY,
+			Start: &ab.SeekPosition{
+				Type: &ab.SeekPosition_Newest{Newest: &ab.SeekNewest{}},
+			},
+			Stop: &ab.SeekPosition{
+				Type: &ab.SeekPosition_Specified{
+					Specified: &ab.SeekSpecified{Number: math.MaxUint64},
+				},
+			},
 		},
+		0,
+		0,
+	)
+	Expect(err).NotTo(HaveOccurred())
+	err = df.Send(deliverEnvelope)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = oc.Send(tx)
+	Expect(err).NotTo(HaveOccurred())
+
+	for {
+		resp, err := df.Recv()
+		if err != nil {
+			return err
+		}
+		fb, ok := resp.Type.(*pb.DeliverResponse_FilteredBlock)
+		if !ok {
+			return fmt.Errorf("unexpected filtered block, received %T", resp.Type)
+		}
+		for _, tx := range fb.FilteredBlock.FilteredTransactions {
+			if tx.Txid != txid {
+				continue
+			}
+			if tx.TxValidationCode != pb.TxValidationCode_VALID {
+				return fmt.Errorf("transaction invalidated with status (%s)", tx.TxValidationCode)
+			}
+			return nil
+		}
 	}
-
-	ec, err := peerClient.Endorser()
-	Expect(err).NotTo(HaveOccurred())
-	Expect(ec).NotTo(BeNil())
-
-	return ec
-}
-
-func OrdererClient(address, tlsRootCertFile string) common.BroadcastClient {
-	ordererClient := &common.OrdererClient{
-		CommonClient: common.CommonClient{
-			GRPCClient: grpcClient(tlsRootCertFile),
-			Address:    address,
-		},
-	}
-
-	bc, err := ordererClient.Broadcast()
-	Expect(err).NotTo(HaveOccurred())
-	Expect(bc).NotTo(BeNil())
-
-	return &common.BroadcastGRPCClient{Client: bc}
-}
-
-func DeliverClient(address, tlsRootCertFile string) pb.DeliverClient {
-	peerClient := &common.PeerClient{
-		CommonClient: common.CommonClient{
-			GRPCClient: grpcClient(tlsRootCertFile),
-			Address:    address,
-		},
-	}
-
-	pd, err := peerClient.PeerDeliver()
-	Expect(err).NotTo(HaveOccurred())
-	Expect(pd).NotTo(BeNil())
-
-	return pd
-}
-
-func CommitTx(network *nwo.Network, env *pcommon.Envelope, peer *nwo.Peer, dc pb.DeliverClient, oc common.BroadcastClient, signer msp.SigningIdentity, txid string) error {
-	var cancelFunc context.CancelFunc
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelFunc()
-
-	dg := ic.NewDeliverGroup([]pb.DeliverClient{dc}, []string{network.PeerAddress(peer, nwo.ListenPort)}, signer, tls.Certificate{}, "testchannel", txid)
-
-	err := dg.Connect(ctx)
-	Expect(err).NotTo(HaveOccurred())
-
-	err = oc.Send(env)
-	Expect(err).NotTo(HaveOccurred())
-
-	return dg.Wait(ctx)
 }
 
 // GenerateOrgUpdateMeterials generates the necessary configtx and
@@ -285,8 +215,8 @@ func GenerateOrgUpdateMaterials(n *nwo.Network, peers ...*nwo.Peer) {
 	orgUpdateNetwork := *n
 	orgUpdateNetwork.Peers = peers
 	orgUpdateNetwork.Templates = &nwo.Templates{
-		ConfigTx: nwo.OrgUpdateConfigTxTemplate,
-		Crypto:   nwo.OrgUpdateCryptoTemplate,
+		ConfigTx: template.OrgUpdateConfigTxTemplate,
+		Crypto:   template.OrgUpdateCryptoTemplate,
 		Core:     n.Templates.CoreTemplate(),
 	}
 

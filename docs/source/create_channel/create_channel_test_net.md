@@ -40,7 +40,7 @@ You can then use the following command to start the test network:
 ```
 This command creates a Fabric network with the two peer organizations and the single ordering node ordering organization. The peer organizations will operate one peer each, while the ordering service administrator will operate a single ordering node. When you run the command, the script prints out the nodes being created:
 ```
-Creating network "net_test" with the default driver
+Creating network "fabric_test" with the default driver
 Creating volume "net_orderer.example.com" with default driver
 Creating volume "net_peer0.org1.example.com" with default driver
 Creating volume "net_peer0.org2.example.com" with default driver
@@ -104,15 +104,13 @@ This `configtx.yaml` file contains the following information that we will use to
             <<: *OrdererDefaults
             Organizations:
                 - *OrdererOrg
-            Capabilities:
-                <<: *OrdererCapabilities
+            Capabilities: *OrdererCapabilities
         Application:
             <<: *ApplicationDefaults
             Organizations:
                 - *Org1
                 - *Org2
-            Capabilities:
-                <<: *ApplicationCapabilities
+            Capabilities: *ApplicationCapabilities
     ```
 
 The profile includes both peer organizations, `Org1` and `Org2` as well as the ordering organization `OrdererOrg`. Additional ordering nodes and ordering organizations can be added or removed from the consenter set at a later time using a channel update transaction.

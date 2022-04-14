@@ -11,7 +11,7 @@ pr:
 variables:
   GOPATH: $(Agent.BuildDirectory)/go
   PATH: $(Agent.BuildDirectory)/go/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin
-  GOVER: 1.16.7
+  GOVER: 1.17.5
 
 stages:
   - stage: VerifyBuild
@@ -19,7 +19,7 @@ stages:
     jobs:
       - job: Checks
         pool:
-          vmImage: ubuntu-18.04
+          vmImage: ubuntu-20.04
         steps:
           - template: install_deps.yml
           - checkout: self
@@ -36,7 +36,7 @@ stages:
       - job: UnitTests
         condition: eq(stageDependencies.VerifyBuild.Checks.outputs['SetJobTriggers.runTests'], 'true')
         pool:
-          vmImage: ubuntu-18.04
+          vmImage: ubuntu-20.04
         steps:
           - template: install_deps.yml
           - checkout: self
@@ -53,7 +53,7 @@ stages:
       - job: IntegrationTests
         condition: eq(stageDependencies.VerifyBuild.Checks.outputs['SetJobTriggers.runTests'], 'true')
         pool:
-          vmImage: ubuntu-18.04
+          vmImage: ubuntu-20.04
         strategy:
           parallel: 5
         timeoutInMinutes: 90

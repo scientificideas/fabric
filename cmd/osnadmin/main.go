@@ -20,7 +20,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/internal/osnadmin"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/protoutil"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -45,6 +44,7 @@ func executeForArgs(args []string) (output string, exit int, err error) {
 	caFile := app.Flag("ca-file", "Path to file containing PEM-encoded TLS CA certificate(s) for the OSN").String()
 	clientCert := app.Flag("client-cert", "Path to file containing PEM-encoded X509 public key to use for mutual TLS communication with the OSN").String()
 	clientKey := app.Flag("client-key", "Path to file containing PEM-encoded private key to use for mutual TLS communication with the OSN").String()
+	noStatus := app.Flag("no-status", "Remove the HTTP status message from the command output").Default("false").Bool()
 
 	channel := app.Command("channel", "Channel actions")
 
@@ -80,9 +80,8 @@ func executeForArgs(args []string) (output string, exit int, err error) {
 		if err != nil {
 			return "", 1, fmt.Errorf("reading orderer CA certificate: %s", err)
 		}
-		err = comm.AddPemToCertPool(caFilePEM, caCertPool)
-		if err != nil {
-			return "", 1, fmt.Errorf("adding ca-file PEM to cert pool: %s", err)
+		if !caCertPool.AppendCertsFromPEM(caFilePEM) {
+			return "", 1, fmt.Errorf("failed to add ca-file PEM to cert pool")
 		}
 
 		tlsClientCert, err = tls.LoadX509KeyPair(*clientCert, *clientKey)
@@ -132,19 +131,25 @@ func executeForArgs(args []string) (output string, exit int, err error) {
 		return errorOutput(err), 1, nil
 	}
 
-	return responseOutput(resp.StatusCode, bodyBytes), 0, nil
+	output, err = responseOutput(!*noStatus, resp.StatusCode, bodyBytes)
+	if err != nil {
+		return errorOutput(err), 1, nil
+	}
+
+	return output, 0, nil
 }
 
-func responseOutput(statusCode int, responseBody []byte) string {
-	status := fmt.Sprintf("Status: %d", statusCode)
-
+func responseOutput(showStatus bool, statusCode int, responseBody []byte) (string, error) {
 	var buffer bytes.Buffer
-	json.Indent(&buffer, responseBody, "", "\t")
-	response := fmt.Sprintf("%s", buffer.Bytes())
-
-	output := fmt.Sprintf("%s\n%s", status, response)
-
-	return output
+	if showStatus {
+		fmt.Fprintf(&buffer, "Status: %d\n", statusCode)
+	}
+	if len(responseBody) != 0 {
+		if err := json.Indent(&buffer, responseBody, "", "\t"); err != nil {
+			return "", err
+		}
+	}
+	return buffer.String(), nil
 }
 
 func readBodyBytes(body io.ReadCloser) ([]byte, error) {
@@ -165,7 +170,7 @@ func validateBlockChannelID(blockBytes []byte, channelID string) error {
 	block := &common.Block{}
 	err := proto.Unmarshal(blockBytes, block)
 	if err != nil {
-		return fmt.Errorf("unmarshaling block: %s", err)
+		return fmt.Errorf("unmarshalling block: %s", err)
 	}
 
 	blockChannelID, err := protoutil.GetChannelIDFromBlock(block)

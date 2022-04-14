@@ -244,8 +244,6 @@ func TestGetSigningIdentityFromVerifyingMSP(t *testing.T) {
 
 	_, err = newmsp.GetDefaultSigningIdentity()
 	require.Error(t, err)
-	_, err = newmsp.GetSigningIdentity(nil)
-	require.Error(t, err)
 }
 
 func TestValidateDefaultSigningIdentity(t *testing.T) {
@@ -259,7 +257,7 @@ func TestValidateDefaultSigningIdentity(t *testing.T) {
 func TestSerializeIdentities(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded, got err %s", err)
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded, got err %s", err)
 		return
 	}
 
@@ -448,7 +446,7 @@ func TestIsWellFormed(t *testing.T) {
 
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded, got err %s", err)
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded, got err %s", err)
 		return
 	}
 
@@ -581,7 +579,7 @@ func TestValidateAdminIdentity(t *testing.T) {
 func TestSerializeIdentitiesWithWrongMSP(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded, got err %s", err)
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded, got err %s", err)
 		return
 	}
 
@@ -607,7 +605,7 @@ func TestSerializeIdentitiesWithWrongMSP(t *testing.T) {
 func TestSerializeIdentitiesWithMSPManager(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded, got err %s", err)
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded, got err %s", err)
 		return
 	}
 
@@ -641,7 +639,7 @@ func TestSerializeIdentitiesWithMSPManager(t *testing.T) {
 func TestIdentitiesGetters(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded, got err %s", err)
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded, got err %s", err)
 		return
 	}
 
@@ -655,7 +653,7 @@ func TestIdentitiesGetters(t *testing.T) {
 func TestSignAndVerify(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -701,7 +699,7 @@ func TestSignAndVerifyFailures(t *testing.T) {
 
 	id, err := localMspBad.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -730,7 +728,7 @@ func TestSignAndVerifyFailures(t *testing.T) {
 func TestSignAndVerifyOtherHash(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -753,7 +751,7 @@ func TestSignAndVerifyOtherHash(t *testing.T) {
 func TestSignAndVerify_longMessage(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -792,7 +790,7 @@ func TestSignAndVerify_longMessage(t *testing.T) {
 func TestGetOU(t *testing.T) {
 	id, err := localMsp.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -802,7 +800,7 @@ func TestGetOU(t *testing.T) {
 func TestGetOUFail(t *testing.T) {
 	id, err := localMspBad.GetDefaultSigningIdentity()
 	if err != nil {
-		t.Fatalf("GetSigningIdentity should have succeeded")
+		t.Fatalf("GetDefaultSigningIdentity should have succeeded")
 		return
 	}
 
@@ -951,7 +949,8 @@ func TestPolicyPrincipalBogusType(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: 35,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
@@ -966,7 +965,8 @@ func TestPolicyPrincipalBogusRole(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
@@ -981,7 +981,8 @@ func TestPolicyPrincipalWrongMSPID(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
@@ -996,7 +997,8 @@ func TestMemberPolicyPrincipal(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.NoError(t, err)
@@ -1011,7 +1013,8 @@ func TestAdminPolicyPrincipal(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.NoError(t, err)
@@ -1045,11 +1048,13 @@ func TestMultilevelAdminAndMemberPolicyPrincipal(t *testing.T) {
 
 	adminPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               adminPrincipalBytes}
+		Principal:               adminPrincipalBytes,
+	}
 
 	memberPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               memberPrincipalBytes}
+		Principal:               memberPrincipalBytes,
+	}
 
 	// CombinedPrincipal with Admin and Member principals
 	levelOneCombinedPrincipal, err := createCombinedPrincipal(adminPrincipal, memberPrincipal)
@@ -1082,11 +1087,13 @@ func TestMultilevelAdminAndMemberPolicyPrincipalPreV12(t *testing.T) {
 
 	adminPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               adminPrincipalBytes}
+		Principal:               adminPrincipalBytes,
+	}
 
 	memberPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               memberPrincipalBytes}
+		Principal:               memberPrincipalBytes,
+	}
 
 	// CombinedPrincipal with Admin and Member principals
 	levelOneCombinedPrincipal, err := createCombinedPrincipal(adminPrincipal, memberPrincipal)
@@ -1116,7 +1123,8 @@ func TestAdminPolicyPrincipalFails(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	// remove the admin so validation will fail
 	localMspV13.(*bccspmsp).admins = make([]Identity, 0)
@@ -1137,11 +1145,13 @@ func TestMultilevelAdminAndMemberPolicyPrincipalFails(t *testing.T) {
 
 	adminPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               adminPrincipalBytes}
+		Principal:               adminPrincipalBytes,
+	}
 
 	memberPrincipal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ROLE,
-		Principal:               memberPrincipalBytes}
+		Principal:               memberPrincipalBytes,
+	}
 
 	// remove the admin so validation will fail
 	localMspV13.(*bccspmsp).admins = make([]Identity, 0)
@@ -1209,7 +1219,8 @@ func TestIdentityPolicyPrincipal(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               idSerialized}
+		Principal:               idSerialized,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.NoError(t, err)
@@ -1221,7 +1232,8 @@ func TestIdentityPolicyPrincipalBadBytes(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               []byte("barf")}
+		Principal:               []byte("barf"),
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
@@ -1290,20 +1302,25 @@ func TestIdentityPolicyPrincipalFails(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_IDENTITY,
-		Principal:               sid}
+		Principal:               sid,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
 }
 
-var conf *msp.MSPConfig
-var localMsp MSP
-var localMspV11 MSP
-var localMspV13 MSP
+var (
+	conf        *msp.MSPConfig
+	localMsp    MSP
+	localMspV11 MSP
+	localMspV13 MSP
+)
 
 // Required because deleting the cert or msp options from localMsp causes parallel tests to fail
-var localMspBad MSP
-var mspMgr MSPManager
+var (
+	localMspBad MSP
+	mspMgr      MSPManager
+)
 
 func TestMain(m *testing.M) {
 	var err error
@@ -1538,7 +1555,8 @@ func TestAnonymityIdentity(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.NoError(t, err)
@@ -1553,7 +1571,8 @@ func TestAnonymityIdentityPreV12Fail(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)
@@ -1568,7 +1587,8 @@ func TestAnonymityIdentityFail(t *testing.T) {
 
 	principal := &msp.MSPPrincipal{
 		PrincipalClassification: msp.MSPPrincipal_ANONYMITY,
-		Principal:               principalBytes}
+		Principal:               principalBytes,
+	}
 
 	err = id.SatisfiesPrincipal(principal)
 	require.Error(t, err)

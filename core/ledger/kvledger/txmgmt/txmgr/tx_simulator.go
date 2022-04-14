@@ -10,6 +10,8 @@ import (
 	commonledger "github.com/hyperledger/fabric/common/ledger"
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/rwsetutil"
+	"github.com/hyperledger/fabric/core/ledger/kvledger/txmgmt/statemetadata"
+	"github.com/hyperledger/fabric/core/ledger/util"
 	"github.com/pkg/errors"
 )
 
@@ -21,13 +23,14 @@ type txSimulator struct {
 	pvtdataQueriesPerformed   bool
 	simulationResultsComputed bool
 	paginatedQueriesPerformed bool
+	writesetMetadata          ledger.WritesetMetadata
 }
 
 func newTxSimulator(txmgr *LockBasedTxMgr, txid string, hashFunc rwsetutil.HashFunc) (*txSimulator, error) {
 	rwsetBuilder := rwsetutil.NewRWSetBuilder()
 	qe := newQueryExecutor(txmgr, txid, rwsetBuilder, true, hashFunc)
 	logger.Debugf("constructing new tx simulator txid = [%s]", txid)
-	return &txSimulator{qe, rwsetBuilder, false, false, false, false}, nil
+	return &txSimulator{qe, rwsetBuilder, false, false, false, false, ledger.WritesetMetadata{}}, nil
 }
 
 // SetState implements method in interface `ledger.TxSimulator`
@@ -36,6 +39,35 @@ func (s *txSimulator) SetState(ns string, key string, value []byte) error {
 		return err
 	}
 	s.rwsetBuilder.AddToWriteSet(ns, key, value)
+	// if this has a key level signature policy, add it to the interest
+	return s.checkStateMetadata(ns, key)
+}
+
+// If this key has a SBE policy, add that policy to the set
+func (s *txSimulator) checkStateMetadata(ns string, key string) error {
+	metabytes, err := s.txmgr.db.GetStateMetadata(ns, key)
+	if err != nil {
+		return err
+	}
+	metadata, err := statemetadata.Deserialize(metabytes)
+	if err != nil {
+		return err
+	}
+	s.writesetMetadata.Add(ns, "", key, metadata) // empty string represents the public writeset
+	return nil
+}
+
+// If this private collection key has a SBE policy, add that policy to the set
+func (s *txSimulator) checkPrivateStateMetadata(ns string, coll string, key string) error {
+	metabytes, err := s.txmgr.db.GetPrivateDataMetadataByHash(ns, coll, util.ComputeStringHash(key))
+	if err != nil {
+		return err
+	}
+	metadata, err := statemetadata.Deserialize(metabytes)
+	if err != nil {
+		return err
+	}
+	s.writesetMetadata.Add(ns, coll, key, metadata)
 	return nil
 }
 
@@ -60,7 +92,7 @@ func (s *txSimulator) SetStateMetadata(namespace, key string, metadata map[strin
 		return err
 	}
 	s.rwsetBuilder.AddToMetadataWriteSet(namespace, key, metadata)
-	return nil
+	return s.checkStateMetadata(namespace, key)
 }
 
 // DeleteStateMetadata implements method in interface `ledger.TxSimulator`
@@ -78,7 +110,7 @@ func (s *txSimulator) SetPrivateData(ns, coll, key string, value []byte) error {
 	}
 	s.writePerformed = true
 	s.rwsetBuilder.AddToPvtAndHashedWriteSet(ns, coll, key, value)
-	return nil
+	return s.checkPrivateStateMetadata(ns, coll, key)
 }
 
 // DeletePrivateData implements method in interface `ledger.TxSimulator`
@@ -113,7 +145,7 @@ func (s *txSimulator) SetPrivateDataMetadata(namespace, collection, key string, 
 		return err
 	}
 	s.rwsetBuilder.AddToHashedMetadataWriteSet(namespace, collection, key, metadata)
-	return nil
+	return s.checkPrivateStateMetadata(namespace, collection, key)
 }
 
 // DeletePrivateMetadata implements method in interface `ledger.TxSimulator`
@@ -157,7 +189,14 @@ func (s *txSimulator) GetTxSimulationResults() (*ledger.TxSimulationResults, err
 		return nil, s.queryExecutor.err
 	}
 	s.queryExecutor.addRangeQueryInfo()
-	return s.rwsetBuilder.GetTxSimulationResults()
+	simResults, err := s.rwsetBuilder.GetTxSimulationResults()
+	if err != nil {
+		return nil, err
+	}
+	// The txSimulator structures need to be cloned so that subsequent RW set additions don't modify these TX simulation results
+	simResults.PrivateReads = s.privateReads.Clone()
+	simResults.WritesetMetadata = s.writesetMetadata.Clone()
+	return simResults, nil
 }
 
 // ExecuteUpdate implements method in interface `ledger.TxSimulator`

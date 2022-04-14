@@ -156,15 +156,14 @@ func (mf *MaintenanceFilter) inspect(configEnvelope *cb.ConfigEnvelope, ordererC
 // ensureConsensusTypeChangeOnly checks that the only change is the the Channel/Orderer group, and within that,
 // only to the ConsensusType value.
 func (mf *MaintenanceFilter) ensureConsensusTypeChangeOnly(configEnvelope *cb.ConfigEnvelope) error {
-
 	configUpdateEnv, err := protoutil.EnvelopeToConfigUpdate(configEnvelope.LastUpdate)
 	if err != nil {
-		return errors.Wrap(err, "envelope to config update unmarshaling error")
+		return errors.Wrap(err, "envelope to config update unmarshalling error")
 	}
 
 	configUpdate, err := configtx.UnmarshalConfigUpdate(configUpdateEnv.ConfigUpdate)
 	if err != nil {
-		return errors.Wrap(err, "config update unmarshaling error")
+		return errors.Wrap(err, "config update unmarshalling error")
 	}
 
 	if len(configUpdate.WriteSet.Groups) == 0 {

@@ -11,10 +11,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/peer"
-	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/msp"
-	mspmgmt "github.com/hyperledger/fabric/msp/mgmt"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
@@ -77,13 +75,15 @@ type SimpleCollectionStore struct {
 	idDeserializerFactory IdentityDeserializerFactory
 }
 
-func NewSimpleCollectionStore(qeFactory QueryExecutorFactory, ccInfoProvider ChaincodeInfoProvider) *SimpleCollectionStore {
+func NewSimpleCollectionStore(
+	qeFactory QueryExecutorFactory,
+	ccInfoProvider ChaincodeInfoProvider,
+	idDeserializerFactory IdentityDeserializerFactory,
+) *SimpleCollectionStore {
 	return &SimpleCollectionStore{
-		qeFactory:      qeFactory,
-		ccInfoProvider: ccInfoProvider,
-		idDeserializerFactory: IdentityDeserializerFactoryFunc(func(chainID string) msp.IdentityDeserializer {
-			return mspmgmt.GetManagerForChain(chainID)
-		}),
+		qeFactory:             qeFactory,
+		ccInfoProvider:        ccInfoProvider,
+		idDeserializerFactory: idDeserializerFactory,
 	}
 }
 
@@ -193,12 +193,12 @@ func (c *SimpleCollectionStore) RetrieveCollectionPersistenceConfigs(cc Collecti
 	return &SimpleCollectionPersistenceConfigs{staticCollectionConfig.BlockToLive}, nil
 }
 
-// RetrieveReadWritePermission retrieves the read-write persmission of the creator of the
+// RetrieveReadWritePermission retrieves the read-write permission of the creator of the
 // signedProposal for a given collection using collection access policy and flags such as
 // memberOnlyRead & memberOnlyWrite
 func (c *SimpleCollectionStore) RetrieveReadWritePermission(
 	cc CollectionCriteria,
-	signedProposal *pb.SignedProposal,
+	signedProposal *peer.SignedProposal,
 	qe ledger.QueryExecutor,
 ) (bool, bool, error) {
 	collection, err := c.retrieveSimpleCollection(cc, qe)
@@ -210,7 +210,7 @@ func (c *SimpleCollectionStore) RetrieveReadWritePermission(
 		return true, true, nil
 	}
 
-	// all members have read-write persmission
+	// all members have read-write permission
 	if isAMember, err := isCreatorOfProposalAMember(signedProposal, collection); err != nil {
 		return false, false, err
 	} else if isAMember {
@@ -227,7 +227,7 @@ func canAnyoneReadAndWrite(collection *SimpleCollection) bool {
 	return false
 }
 
-func isCreatorOfProposalAMember(signedProposal *pb.SignedProposal, collection *SimpleCollection) (bool, error) {
+func isCreatorOfProposalAMember(signedProposal *peer.SignedProposal, collection *SimpleCollection) (bool, error) {
 	signedData, err := getSignedData(signedProposal)
 	if err != nil {
 		return false, err
@@ -237,7 +237,7 @@ func isCreatorOfProposalAMember(signedProposal *pb.SignedProposal, collection *S
 	return accessFilter(signedData), nil
 }
 
-func getSignedData(signedProposal *pb.SignedProposal) (protoutil.SignedData, error) {
+func getSignedData(signedProposal *peer.SignedProposal) (protoutil.SignedData, error) {
 	proposal, err := protoutil.UnmarshalProposal(signedProposal.ProposalBytes)
 	if err != nil {
 		return protoutil.SignedData{}, err

@@ -38,6 +38,19 @@ type PeerLedger struct {
 	commitLegacyReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CommitNotificationsChannelStub        func(<-chan struct{}) (<-chan *ledger.CommitNotification, error)
+	commitNotificationsChannelMutex       sync.RWMutex
+	commitNotificationsChannelArgsForCall []struct {
+		arg1 <-chan struct{}
+	}
+	commitNotificationsChannelReturns struct {
+		result1 <-chan *ledger.CommitNotification
+		result2 error
+	}
+	commitNotificationsChannelReturnsOnCall map[int]struct {
+		result1 <-chan *ledger.CommitNotification
+		result2 error
+	}
 	CommitPvtDataOfOldBlocksStub        func([]*ledger.ReconciledPvtdata, ledger.MissingPvtDataInfo) ([]*ledger.PvtdataHashMismatch, error)
 	commitPvtDataOfOldBlocksMutex       sync.RWMutex
 	commitPvtDataOfOldBlocksArgsForCall []struct {
@@ -194,18 +207,20 @@ type PeerLedger struct {
 		result1 *peera.ProcessedTransaction
 		result2 error
 	}
-	GetTxValidationCodeByTxIDStub        func(string) (peera.TxValidationCode, error)
+	GetTxValidationCodeByTxIDStub        func(string) (peera.TxValidationCode, uint64, error)
 	getTxValidationCodeByTxIDMutex       sync.RWMutex
 	getTxValidationCodeByTxIDArgsForCall []struct {
 		arg1 string
 	}
 	getTxValidationCodeByTxIDReturns struct {
 		result1 peera.TxValidationCode
-		result2 error
+		result2 uint64
+		result3 error
 	}
 	getTxValidationCodeByTxIDReturnsOnCall map[int]struct {
 		result1 peera.TxValidationCode
-		result2 error
+		result2 uint64
+		result3 error
 	}
 	NewHistoryQueryExecutorStub        func() (ledger.HistoryQueryExecutor, error)
 	newHistoryQueryExecutorMutex       sync.RWMutex
@@ -290,16 +305,15 @@ func (fake *PeerLedger) CancelSnapshotRequest(arg1 uint64) error {
 	fake.cancelSnapshotRequestArgsForCall = append(fake.cancelSnapshotRequestArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
-	stub := fake.CancelSnapshotRequestStub
-	fakeReturns := fake.cancelSnapshotRequestReturns
 	fake.recordInvocation("CancelSnapshotRequest", []interface{}{arg1})
 	fake.cancelSnapshotRequestMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.CancelSnapshotRequestStub != nil {
+		return fake.CancelSnapshotRequestStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.cancelSnapshotRequestReturns
 	return fakeReturns.result1
 }
 
@@ -349,10 +363,9 @@ func (fake *PeerLedger) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
-	stub := fake.CloseStub
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if stub != nil {
+	if fake.CloseStub != nil {
 		fake.CloseStub()
 	}
 }
@@ -376,16 +389,15 @@ func (fake *PeerLedger) CommitLegacy(arg1 *ledger.BlockAndPvtData, arg2 *ledger.
 		arg1 *ledger.BlockAndPvtData
 		arg2 *ledger.CommitOptions
 	}{arg1, arg2})
-	stub := fake.CommitLegacyStub
-	fakeReturns := fake.commitLegacyReturns
 	fake.recordInvocation("CommitLegacy", []interface{}{arg1, arg2})
 	fake.commitLegacyMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.CommitLegacyStub != nil {
+		return fake.CommitLegacyStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.commitLegacyReturns
 	return fakeReturns.result1
 }
 
@@ -431,6 +443,69 @@ func (fake *PeerLedger) CommitLegacyReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *PeerLedger) CommitNotificationsChannel(arg1 <-chan struct{}) (<-chan *ledger.CommitNotification, error) {
+	fake.commitNotificationsChannelMutex.Lock()
+	ret, specificReturn := fake.commitNotificationsChannelReturnsOnCall[len(fake.commitNotificationsChannelArgsForCall)]
+	fake.commitNotificationsChannelArgsForCall = append(fake.commitNotificationsChannelArgsForCall, struct {
+		arg1 <-chan struct{}
+	}{arg1})
+	fake.recordInvocation("CommitNotificationsChannel", []interface{}{arg1})
+	fake.commitNotificationsChannelMutex.Unlock()
+	if fake.CommitNotificationsChannelStub != nil {
+		return fake.CommitNotificationsChannelStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.commitNotificationsChannelReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *PeerLedger) CommitNotificationsChannelCallCount() int {
+	fake.commitNotificationsChannelMutex.RLock()
+	defer fake.commitNotificationsChannelMutex.RUnlock()
+	return len(fake.commitNotificationsChannelArgsForCall)
+}
+
+func (fake *PeerLedger) CommitNotificationsChannelCalls(stub func(<-chan struct{}) (<-chan *ledger.CommitNotification, error)) {
+	fake.commitNotificationsChannelMutex.Lock()
+	defer fake.commitNotificationsChannelMutex.Unlock()
+	fake.CommitNotificationsChannelStub = stub
+}
+
+func (fake *PeerLedger) CommitNotificationsChannelArgsForCall(i int) <-chan struct{} {
+	fake.commitNotificationsChannelMutex.RLock()
+	defer fake.commitNotificationsChannelMutex.RUnlock()
+	argsForCall := fake.commitNotificationsChannelArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *PeerLedger) CommitNotificationsChannelReturns(result1 <-chan *ledger.CommitNotification, result2 error) {
+	fake.commitNotificationsChannelMutex.Lock()
+	defer fake.commitNotificationsChannelMutex.Unlock()
+	fake.CommitNotificationsChannelStub = nil
+	fake.commitNotificationsChannelReturns = struct {
+		result1 <-chan *ledger.CommitNotification
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *PeerLedger) CommitNotificationsChannelReturnsOnCall(i int, result1 <-chan *ledger.CommitNotification, result2 error) {
+	fake.commitNotificationsChannelMutex.Lock()
+	defer fake.commitNotificationsChannelMutex.Unlock()
+	fake.CommitNotificationsChannelStub = nil
+	if fake.commitNotificationsChannelReturnsOnCall == nil {
+		fake.commitNotificationsChannelReturnsOnCall = make(map[int]struct {
+			result1 <-chan *ledger.CommitNotification
+			result2 error
+		})
+	}
+	fake.commitNotificationsChannelReturnsOnCall[i] = struct {
+		result1 <-chan *ledger.CommitNotification
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *PeerLedger) CommitPvtDataOfOldBlocks(arg1 []*ledger.ReconciledPvtdata, arg2 ledger.MissingPvtDataInfo) ([]*ledger.PvtdataHashMismatch, error) {
 	var arg1Copy []*ledger.ReconciledPvtdata
 	if arg1 != nil {
@@ -443,16 +518,15 @@ func (fake *PeerLedger) CommitPvtDataOfOldBlocks(arg1 []*ledger.ReconciledPvtdat
 		arg1 []*ledger.ReconciledPvtdata
 		arg2 ledger.MissingPvtDataInfo
 	}{arg1Copy, arg2})
-	stub := fake.CommitPvtDataOfOldBlocksStub
-	fakeReturns := fake.commitPvtDataOfOldBlocksReturns
 	fake.recordInvocation("CommitPvtDataOfOldBlocks", []interface{}{arg1Copy, arg2})
 	fake.commitPvtDataOfOldBlocksMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.CommitPvtDataOfOldBlocksStub != nil {
+		return fake.CommitPvtDataOfOldBlocksStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.commitPvtDataOfOldBlocksReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -507,16 +581,15 @@ func (fake *PeerLedger) DoesPvtDataInfoExist(arg1 uint64) (bool, error) {
 	fake.doesPvtDataInfoExistArgsForCall = append(fake.doesPvtDataInfoExistArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
-	stub := fake.DoesPvtDataInfoExistStub
-	fakeReturns := fake.doesPvtDataInfoExistReturns
 	fake.recordInvocation("DoesPvtDataInfoExist", []interface{}{arg1})
 	fake.doesPvtDataInfoExistMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.DoesPvtDataInfoExistStub != nil {
+		return fake.DoesPvtDataInfoExistStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.doesPvtDataInfoExistReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -576,16 +649,15 @@ func (fake *PeerLedger) GetBlockByHash(arg1 []byte) (*common.Block, error) {
 	fake.getBlockByHashArgsForCall = append(fake.getBlockByHashArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
-	stub := fake.GetBlockByHashStub
-	fakeReturns := fake.getBlockByHashReturns
 	fake.recordInvocation("GetBlockByHash", []interface{}{arg1Copy})
 	fake.getBlockByHashMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetBlockByHashStub != nil {
+		return fake.GetBlockByHashStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getBlockByHashReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -640,16 +712,15 @@ func (fake *PeerLedger) GetBlockByNumber(arg1 uint64) (*common.Block, error) {
 	fake.getBlockByNumberArgsForCall = append(fake.getBlockByNumberArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
-	stub := fake.GetBlockByNumberStub
-	fakeReturns := fake.getBlockByNumberReturns
 	fake.recordInvocation("GetBlockByNumber", []interface{}{arg1})
 	fake.getBlockByNumberMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetBlockByNumberStub != nil {
+		return fake.GetBlockByNumberStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getBlockByNumberReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -704,16 +775,15 @@ func (fake *PeerLedger) GetBlockByTxID(arg1 string) (*common.Block, error) {
 	fake.getBlockByTxIDArgsForCall = append(fake.getBlockByTxIDArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.GetBlockByTxIDStub
-	fakeReturns := fake.getBlockByTxIDReturns
 	fake.recordInvocation("GetBlockByTxID", []interface{}{arg1})
 	fake.getBlockByTxIDMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetBlockByTxIDStub != nil {
+		return fake.GetBlockByTxIDStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getBlockByTxIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -767,16 +837,15 @@ func (fake *PeerLedger) GetBlockchainInfo() (*common.BlockchainInfo, error) {
 	ret, specificReturn := fake.getBlockchainInfoReturnsOnCall[len(fake.getBlockchainInfoArgsForCall)]
 	fake.getBlockchainInfoArgsForCall = append(fake.getBlockchainInfoArgsForCall, struct {
 	}{})
-	stub := fake.GetBlockchainInfoStub
-	fakeReturns := fake.getBlockchainInfoReturns
 	fake.recordInvocation("GetBlockchainInfo", []interface{}{})
 	fake.getBlockchainInfoMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetBlockchainInfoStub != nil {
+		return fake.GetBlockchainInfoStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getBlockchainInfoReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -824,16 +893,15 @@ func (fake *PeerLedger) GetBlocksIterator(arg1 uint64) (ledgera.ResultsIterator,
 	fake.getBlocksIteratorArgsForCall = append(fake.getBlocksIteratorArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
-	stub := fake.GetBlocksIteratorStub
-	fakeReturns := fake.getBlocksIteratorReturns
 	fake.recordInvocation("GetBlocksIterator", []interface{}{arg1})
 	fake.getBlocksIteratorMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetBlocksIteratorStub != nil {
+		return fake.GetBlocksIteratorStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getBlocksIteratorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -887,16 +955,15 @@ func (fake *PeerLedger) GetConfigHistoryRetriever() (ledger.ConfigHistoryRetriev
 	ret, specificReturn := fake.getConfigHistoryRetrieverReturnsOnCall[len(fake.getConfigHistoryRetrieverArgsForCall)]
 	fake.getConfigHistoryRetrieverArgsForCall = append(fake.getConfigHistoryRetrieverArgsForCall, struct {
 	}{})
-	stub := fake.GetConfigHistoryRetrieverStub
-	fakeReturns := fake.getConfigHistoryRetrieverReturns
 	fake.recordInvocation("GetConfigHistoryRetriever", []interface{}{})
 	fake.getConfigHistoryRetrieverMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetConfigHistoryRetrieverStub != nil {
+		return fake.GetConfigHistoryRetrieverStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getConfigHistoryRetrieverReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -943,16 +1010,15 @@ func (fake *PeerLedger) GetMissingPvtDataTracker() (ledger.MissingPvtDataTracker
 	ret, specificReturn := fake.getMissingPvtDataTrackerReturnsOnCall[len(fake.getMissingPvtDataTrackerArgsForCall)]
 	fake.getMissingPvtDataTrackerArgsForCall = append(fake.getMissingPvtDataTrackerArgsForCall, struct {
 	}{})
-	stub := fake.GetMissingPvtDataTrackerStub
-	fakeReturns := fake.getMissingPvtDataTrackerReturns
 	fake.recordInvocation("GetMissingPvtDataTracker", []interface{}{})
 	fake.getMissingPvtDataTrackerMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetMissingPvtDataTrackerStub != nil {
+		return fake.GetMissingPvtDataTrackerStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getMissingPvtDataTrackerReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1001,16 +1067,15 @@ func (fake *PeerLedger) GetPvtDataAndBlockByNum(arg1 uint64, arg2 ledger.PvtNsCo
 		arg1 uint64
 		arg2 ledger.PvtNsCollFilter
 	}{arg1, arg2})
-	stub := fake.GetPvtDataAndBlockByNumStub
-	fakeReturns := fake.getPvtDataAndBlockByNumReturns
 	fake.recordInvocation("GetPvtDataAndBlockByNum", []interface{}{arg1, arg2})
 	fake.getPvtDataAndBlockByNumMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.GetPvtDataAndBlockByNumStub != nil {
+		return fake.GetPvtDataAndBlockByNumStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getPvtDataAndBlockByNumReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1066,16 +1131,15 @@ func (fake *PeerLedger) GetPvtDataByNum(arg1 uint64, arg2 ledger.PvtNsCollFilter
 		arg1 uint64
 		arg2 ledger.PvtNsCollFilter
 	}{arg1, arg2})
-	stub := fake.GetPvtDataByNumStub
-	fakeReturns := fake.getPvtDataByNumReturns
 	fake.recordInvocation("GetPvtDataByNum", []interface{}{arg1, arg2})
 	fake.getPvtDataByNumMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.GetPvtDataByNumStub != nil {
+		return fake.GetPvtDataByNumStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getPvtDataByNumReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1130,16 +1194,15 @@ func (fake *PeerLedger) GetTransactionByID(arg1 string) (*peera.ProcessedTransac
 	fake.getTransactionByIDArgsForCall = append(fake.getTransactionByIDArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.GetTransactionByIDStub
-	fakeReturns := fake.getTransactionByIDReturns
 	fake.recordInvocation("GetTransactionByID", []interface{}{arg1})
 	fake.getTransactionByIDMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetTransactionByIDStub != nil {
+		return fake.GetTransactionByIDStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.getTransactionByIDReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1188,23 +1251,22 @@ func (fake *PeerLedger) GetTransactionByIDReturnsOnCall(i int, result1 *peera.Pr
 	}{result1, result2}
 }
 
-func (fake *PeerLedger) GetTxValidationCodeByTxID(arg1 string) (peera.TxValidationCode, error) {
+func (fake *PeerLedger) GetTxValidationCodeByTxID(arg1 string) (peera.TxValidationCode, uint64, error) {
 	fake.getTxValidationCodeByTxIDMutex.Lock()
 	ret, specificReturn := fake.getTxValidationCodeByTxIDReturnsOnCall[len(fake.getTxValidationCodeByTxIDArgsForCall)]
 	fake.getTxValidationCodeByTxIDArgsForCall = append(fake.getTxValidationCodeByTxIDArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.GetTxValidationCodeByTxIDStub
-	fakeReturns := fake.getTxValidationCodeByTxIDReturns
 	fake.recordInvocation("GetTxValidationCodeByTxID", []interface{}{arg1})
 	fake.getTxValidationCodeByTxIDMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.GetTxValidationCodeByTxIDStub != nil {
+		return fake.GetTxValidationCodeByTxIDStub(arg1)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1, ret.result2, ret.result3
 	}
-	return fakeReturns.result1, fakeReturns.result2
+	fakeReturns := fake.getTxValidationCodeByTxIDReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
 func (fake *PeerLedger) GetTxValidationCodeByTxIDCallCount() int {
@@ -1213,7 +1275,7 @@ func (fake *PeerLedger) GetTxValidationCodeByTxIDCallCount() int {
 	return len(fake.getTxValidationCodeByTxIDArgsForCall)
 }
 
-func (fake *PeerLedger) GetTxValidationCodeByTxIDCalls(stub func(string) (peera.TxValidationCode, error)) {
+func (fake *PeerLedger) GetTxValidationCodeByTxIDCalls(stub func(string) (peera.TxValidationCode, uint64, error)) {
 	fake.getTxValidationCodeByTxIDMutex.Lock()
 	defer fake.getTxValidationCodeByTxIDMutex.Unlock()
 	fake.GetTxValidationCodeByTxIDStub = stub
@@ -1226,30 +1288,33 @@ func (fake *PeerLedger) GetTxValidationCodeByTxIDArgsForCall(i int) string {
 	return argsForCall.arg1
 }
 
-func (fake *PeerLedger) GetTxValidationCodeByTxIDReturns(result1 peera.TxValidationCode, result2 error) {
+func (fake *PeerLedger) GetTxValidationCodeByTxIDReturns(result1 peera.TxValidationCode, result2 uint64, result3 error) {
 	fake.getTxValidationCodeByTxIDMutex.Lock()
 	defer fake.getTxValidationCodeByTxIDMutex.Unlock()
 	fake.GetTxValidationCodeByTxIDStub = nil
 	fake.getTxValidationCodeByTxIDReturns = struct {
 		result1 peera.TxValidationCode
-		result2 error
-	}{result1, result2}
+		result2 uint64
+		result3 error
+	}{result1, result2, result3}
 }
 
-func (fake *PeerLedger) GetTxValidationCodeByTxIDReturnsOnCall(i int, result1 peera.TxValidationCode, result2 error) {
+func (fake *PeerLedger) GetTxValidationCodeByTxIDReturnsOnCall(i int, result1 peera.TxValidationCode, result2 uint64, result3 error) {
 	fake.getTxValidationCodeByTxIDMutex.Lock()
 	defer fake.getTxValidationCodeByTxIDMutex.Unlock()
 	fake.GetTxValidationCodeByTxIDStub = nil
 	if fake.getTxValidationCodeByTxIDReturnsOnCall == nil {
 		fake.getTxValidationCodeByTxIDReturnsOnCall = make(map[int]struct {
 			result1 peera.TxValidationCode
-			result2 error
+			result2 uint64
+			result3 error
 		})
 	}
 	fake.getTxValidationCodeByTxIDReturnsOnCall[i] = struct {
 		result1 peera.TxValidationCode
-		result2 error
-	}{result1, result2}
+		result2 uint64
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *PeerLedger) NewHistoryQueryExecutor() (ledger.HistoryQueryExecutor, error) {
@@ -1257,16 +1322,15 @@ func (fake *PeerLedger) NewHistoryQueryExecutor() (ledger.HistoryQueryExecutor, 
 	ret, specificReturn := fake.newHistoryQueryExecutorReturnsOnCall[len(fake.newHistoryQueryExecutorArgsForCall)]
 	fake.newHistoryQueryExecutorArgsForCall = append(fake.newHistoryQueryExecutorArgsForCall, struct {
 	}{})
-	stub := fake.NewHistoryQueryExecutorStub
-	fakeReturns := fake.newHistoryQueryExecutorReturns
 	fake.recordInvocation("NewHistoryQueryExecutor", []interface{}{})
 	fake.newHistoryQueryExecutorMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.NewHistoryQueryExecutorStub != nil {
+		return fake.NewHistoryQueryExecutorStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.newHistoryQueryExecutorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1313,16 +1377,15 @@ func (fake *PeerLedger) NewQueryExecutor() (ledger.QueryExecutor, error) {
 	ret, specificReturn := fake.newQueryExecutorReturnsOnCall[len(fake.newQueryExecutorArgsForCall)]
 	fake.newQueryExecutorArgsForCall = append(fake.newQueryExecutorArgsForCall, struct {
 	}{})
-	stub := fake.NewQueryExecutorStub
-	fakeReturns := fake.newQueryExecutorReturns
 	fake.recordInvocation("NewQueryExecutor", []interface{}{})
 	fake.newQueryExecutorMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.NewQueryExecutorStub != nil {
+		return fake.NewQueryExecutorStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.newQueryExecutorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1370,16 +1433,15 @@ func (fake *PeerLedger) NewTxSimulator(arg1 string) (ledger.TxSimulator, error) 
 	fake.newTxSimulatorArgsForCall = append(fake.newTxSimulatorArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.NewTxSimulatorStub
-	fakeReturns := fake.newTxSimulatorReturns
 	fake.recordInvocation("NewTxSimulator", []interface{}{arg1})
 	fake.newTxSimulatorMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.NewTxSimulatorStub != nil {
+		return fake.NewTxSimulatorStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.newTxSimulatorReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1433,16 +1495,15 @@ func (fake *PeerLedger) PendingSnapshotRequests() ([]uint64, error) {
 	ret, specificReturn := fake.pendingSnapshotRequestsReturnsOnCall[len(fake.pendingSnapshotRequestsArgsForCall)]
 	fake.pendingSnapshotRequestsArgsForCall = append(fake.pendingSnapshotRequestsArgsForCall, struct {
 	}{})
-	stub := fake.PendingSnapshotRequestsStub
-	fakeReturns := fake.pendingSnapshotRequestsReturns
 	fake.recordInvocation("PendingSnapshotRequests", []interface{}{})
 	fake.pendingSnapshotRequestsMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.PendingSnapshotRequestsStub != nil {
+		return fake.PendingSnapshotRequestsStub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.pendingSnapshotRequestsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1490,16 +1551,15 @@ func (fake *PeerLedger) SubmitSnapshotRequest(arg1 uint64) error {
 	fake.submitSnapshotRequestArgsForCall = append(fake.submitSnapshotRequestArgsForCall, struct {
 		arg1 uint64
 	}{arg1})
-	stub := fake.SubmitSnapshotRequestStub
-	fakeReturns := fake.submitSnapshotRequestReturns
 	fake.recordInvocation("SubmitSnapshotRequest", []interface{}{arg1})
 	fake.submitSnapshotRequestMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.SubmitSnapshotRequestStub != nil {
+		return fake.SubmitSnapshotRequestStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.submitSnapshotRequestReturns
 	return fakeReturns.result1
 }
 
@@ -1551,16 +1611,15 @@ func (fake *PeerLedger) TxIDExists(arg1 string) (bool, error) {
 	fake.txIDExistsArgsForCall = append(fake.txIDExistsArgsForCall, struct {
 		arg1 string
 	}{arg1})
-	stub := fake.TxIDExistsStub
-	fakeReturns := fake.txIDExistsReturns
 	fake.recordInvocation("TxIDExists", []interface{}{arg1})
 	fake.txIDExistsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.TxIDExistsStub != nil {
+		return fake.TxIDExistsStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.txIDExistsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -1618,6 +1677,8 @@ func (fake *PeerLedger) Invocations() map[string][][]interface{} {
 	defer fake.closeMutex.RUnlock()
 	fake.commitLegacyMutex.RLock()
 	defer fake.commitLegacyMutex.RUnlock()
+	fake.commitNotificationsChannelMutex.RLock()
+	defer fake.commitNotificationsChannelMutex.RUnlock()
 	fake.commitPvtDataOfOldBlocksMutex.RLock()
 	defer fake.commitPvtDataOfOldBlocksMutex.RUnlock()
 	fake.doesPvtDataInfoExistMutex.RLock()

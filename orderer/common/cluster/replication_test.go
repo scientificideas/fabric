@@ -321,7 +321,6 @@ func TestPullChannelFailure(t *testing.T) {
 			require.Equal(t, cluster.ErrRetryCountExhausted, err)
 		})
 	}
-
 }
 
 func TestPullerConfigFromTopLevelConfig(t *testing.T) {
@@ -443,8 +442,10 @@ func TestReplicateChainsGreenPath(t *testing.T) {
 	channelLister := &mocks.ChannelLister{}
 	channelLister.On("Channels").Return([]cluster.ChannelGenesisBlock{
 		{ChannelName: "E", GenesisBlock: fakeGB},
-		{ChannelName: "D", GenesisBlock: fakeGB}, {ChannelName: "C", GenesisBlock: fakeGB},
-		{ChannelName: "A", GenesisBlock: fakeGB}, {ChannelName: "B", GenesisBlock: fakeGB},
+		{ChannelName: "D", GenesisBlock: fakeGB},
+		{ChannelName: "C", GenesisBlock: fakeGB},
+		{ChannelName: "A", GenesisBlock: fakeGB},
+		{ChannelName: "B", GenesisBlock: fakeGB},
 	})
 	channelLister.On("Close")
 
@@ -750,7 +751,7 @@ func TestParticipant(t *testing.T) {
 					Metadata: [][]byte{{1, 2, 3}},
 				},
 			},
-			expectedError: "failed to retrieve metadata: error unmarshaling metadata" +
+			expectedError: "failed to retrieve metadata: error unmarshalling metadata" +
 				" at index [SIGNATURES]: proto: common.Metadata: illegal tag 0 (wire type 1)",
 		},
 		{
@@ -764,7 +765,7 @@ func TestParticipant(t *testing.T) {
 					Metadata: [][]byte{{}, {1, 2, 3}},
 				},
 			},
-			expectedError: "failed to retrieve metadata: error unmarshaling metadata" +
+			expectedError: "failed to retrieve metadata: error unmarshalling metadata" +
 				" at index [LAST_CONFIG]: proto: common.Metadata: illegal tag 0 (wire type 1)",
 		},
 		{
@@ -868,7 +869,7 @@ func TestBlockPullerFromConfigBlockFailures(t *testing.T) {
 			name: "bad envelope inside block",
 			expectedErr: "failed extracting bundle from envelope: " +
 				"failed to unmarshal payload from envelope: " +
-				"error unmarshaling Payload: " +
+				"error unmarshalling Payload: " +
 				"proto: common.Payload: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
@@ -1148,7 +1149,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		{
 			name: "corrupt envelope in block",
 			expectedErr: "block data does not carry an" +
-				" envelope at index 0: error unmarshaling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
+				" envelope at index 0: error unmarshalling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
 					Data: [][]byte{{1, 2, 3}},
@@ -1157,7 +1158,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		},
 		{
 			name:        "corrupt payload in envelope",
-			expectedErr: "error unmarshaling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedErr: "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
@@ -1179,7 +1180,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		},
 		{
 			name: "corrupt channel header",
-			expectedErr: "error unmarshaling ChannelHeader:" +
+			expectedErr: "error unmarshalling ChannelHeader:" +
 				" proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
@@ -1212,7 +1213,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		},
 		{
 			name:        "orderer transaction with corrupt inner envelope",
-			expectedErr: "error unmarshaling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
+			expectedErr: "error unmarshalling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
@@ -1230,7 +1231,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		},
 		{
 			name:        "orderer transaction with corrupt inner payload",
-			expectedErr: "error unmarshaling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedErr: "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
@@ -1270,7 +1271,7 @@ func TestExtractGenesisBlock(t *testing.T) {
 		},
 		{
 			name:        "orderer transaction with corrupt inner channel header",
-			expectedErr: "error unmarshaling ChannelHeader: proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
+			expectedErr: "error unmarshalling ChannelHeader: proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Data: &common.BlockData{
 					Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
@@ -1494,7 +1495,7 @@ func TestChannels(t *testing.T) {
 			},
 			assertion: func(t *testing.T, ci *cluster.ChainInspector) {
 				panicValue := "Failed extracting channel genesis block from config block: " +
-					"block data does not carry an envelope at index 0: error unmarshaling " +
+					"block data does not carry an envelope at index 0: error unmarshalling " +
 					"Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)"
 				require.PanicsWithValue(t, panicValue, func() {
 					ci.Channels()

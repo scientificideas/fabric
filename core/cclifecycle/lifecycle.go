@@ -14,11 +14,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	// Logger is the logging instance for this package.
-	// It's exported because the tests override its backend
-	Logger = flogging.MustGetLogger("discovery.lifecycle")
-)
+// Logger is the logging instance for this package.
+// It's exported because the tests override its backend
+var Logger = flogging.MustGetLogger("discovery.lifecycle")
 
 // MetadataManager manages information about lscc chaincodes.
 type MetadataManager struct {
@@ -128,7 +126,7 @@ func (m *MetadataManager) Metadata(channel string, cc string, collections ...str
 		return nil
 	}
 	if len(md) == 0 {
-		Logger.Info("Chaincode", cc, "isn't defined in channel", channel)
+		Logger.Warn("Chaincode", cc, "isn't defined in channel", channel)
 		return nil
 	}
 

@@ -6,12 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 package common_test
 
 import (
+	"io/ioutil"
 	"net"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
 
+	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric/internal/peer/common"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/spf13/viper"
@@ -20,14 +23,87 @@ import (
 
 func initOrdererTestEnv(t *testing.T) (cleanup func()) {
 	t.Helper()
-	cfgPath := "./testdata"
+	cfgPath, err := ioutil.TempDir("", "ordererTestEnv")
+	require.NoError(t, err)
+	certsDir := filepath.Join(cfgPath, "certs")
+	err = os.Mkdir(certsDir, 0o755)
+	require.NoError(t, err)
+
+	configFile, err := os.Create(filepath.Join(cfgPath, "test.yaml"))
+	require.NoError(t, err)
+	defer configFile.Close()
+
+	configStr := `
+peer:
+  tls:
+    rootcert:
+      file: "certs/ca.crt"
+    clientKey:
+      file: "certs/client.key"
+    clientCert:
+      file: "certs/client.crt"
+  client:
+    connTimeout: 1s
+
+orderer:
+  tls:
+    rootcert:
+      file: "certs/ca.crt"
+    clientKey:
+      file: "certs/client.key"
+    clientCert:
+      file: "certs/client.crt"
+  client:
+    connTimeout: 1s
+`
+	_, err = configFile.WriteString(configStr)
+	require.NoError(t, err)
+
 	os.Setenv("FABRIC_CFG_PATH", cfgPath)
 	viper.Reset()
 	_ = common.InitConfig("test")
+	ca, err := tlsgen.NewCA()
+	require.NoError(t, err)
+
+	caCrtFile := path.Join(certsDir, "ca.crt")
+	err = ioutil.WriteFile(caCrtFile, ca.CertBytes(), 0o644)
+	require.NoError(t, err)
+
+	kp, err := ca.NewClientCertKeyPair()
+	require.NoError(t, err)
+
+	key := path.Join(certsDir, "client.key")
+	err = ioutil.WriteFile(key, kp.Key, 0o644)
+	require.NoError(t, err)
+
+	crt := path.Join(certsDir, "client.crt")
+	err = ioutil.WriteFile(crt, kp.Cert, 0o644)
+	require.NoError(t, err)
+
+	ekey := path.Join(certsDir, "empty.key")
+	err = ioutil.WriteFile(ekey, []byte{}, 0o644)
+	require.NoError(t, err)
+
+	ecrt := path.Join(certsDir, "empty.crt")
+	err = ioutil.WriteFile(ecrt, []byte{}, 0o644)
+	require.NoError(t, err)
+
+	configFile, err = os.Create(filepath.Join(certsDir, "bad.key"))
+	require.NoError(t, err)
+	defer configFile.Close()
+
+	_, err = configFile.WriteString(`
+-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgg6BAaCpwlmg/hEP4
+QjUeWEu3crkxMvjq4vYh3LaDREuhRANCAAR+FujNKcGQW/CEpMU6Yp45ye2cbOwJ
+-----END PRIVATE KEY-----
+	`)
+	require.NoError(t, err)
 
 	return func() {
 		err := os.Unsetenv("FABRIC_CFG_PATH")
 		require.NoError(t, err)
+		defer os.RemoveAll(cfgPath)
 		viper.Reset()
 	}
 }
@@ -55,26 +131,28 @@ func TestNewOrdererClientFromEnv(t *testing.T) {
 	badKeyFile := filepath.Join("certs", "bad.key")
 	viper.Set("orderer.tls.clientKey.file", badKeyFile)
 	oClient, err = common.NewOrdererClientFromEnv()
-	require.Contains(t, err.Error(), "failed to create OrdererClient from config")
-	require.Nil(t, oClient)
+	require.NoError(t, err)
+	_, err = oClient.Dial("127.0.0.1:0")
+	require.ErrorContains(t, err, "failed to load client certificate:")
+	require.ErrorContains(t, err, "tls: failed to parse private key")
 
 	// bad cert file path
 	viper.Set("orderer.tls.clientCert.file", "./nocert.crt")
 	oClient, err = common.NewOrdererClientFromEnv()
-	require.Contains(t, err.Error(), "unable to load orderer.tls.clientCert.file")
-	require.Contains(t, err.Error(), "failed to load config for OrdererClient")
+	require.ErrorContains(t, err, "unable to load orderer.tls.clientCert.file")
+	require.ErrorContains(t, err, "failed to load config for OrdererClient")
 	require.Nil(t, oClient)
 
 	// bad key file path
 	viper.Set("orderer.tls.clientKey.file", "./nokey.key")
 	oClient, err = common.NewOrdererClientFromEnv()
-	require.Contains(t, err.Error(), "unable to load orderer.tls.clientKey.file")
+	require.ErrorContains(t, err, "unable to load orderer.tls.clientKey.file")
 	require.Nil(t, oClient)
 
 	// bad ca path
 	viper.Set("orderer.tls.rootcert.file", "noroot.crt")
 	oClient, err = common.NewOrdererClientFromEnv()
-	require.Contains(t, err.Error(), "unable to load orderer.tls.rootcert.file")
+	require.ErrorContains(t, err, "unable to load orderer.tls.rootcert.file")
 	require.Nil(t, oClient)
 }
 

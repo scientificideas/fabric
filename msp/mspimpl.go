@@ -34,7 +34,7 @@ type validateIdentityOUsFuncType func(id *identity) error
 // satisfiesPrincipalInternalFuncType is the prototype of the function to check if principals are satisfied
 type satisfiesPrincipalInternalFuncType func(id Identity, principal *m.MSPPrincipal) error
 
-//setupAdminInternalFuncType is a prototype of the function to setup the admins
+// setupAdminInternalFuncType is a prototype of the function to setup the admins
 type setupAdminInternalFuncType func(conf *m.FabricMSPConfig) error
 
 // This is an instantiation of an MSP that
@@ -302,13 +302,6 @@ func (msp *bccspmsp) GetDefaultSigningIdentity() (SigningIdentity, error) {
 	}
 
 	return msp.signer, nil
-}
-
-// GetSigningIdentity returns a specific signing
-// identity identified by the supplied identifier
-func (msp *bccspmsp) GetSigningIdentity(identifier *IdentityIdentifier) (SigningIdentity, error) {
-	// TODO
-	return nil, errors.Errorf("no signing identity for %#v", identifier)
 }
 
 // Validate attempts to determine whether
@@ -794,7 +787,7 @@ func oidInExtensions(oid asn1.ObjectIdentifier, exts []pkix.Extension) bool {
 // matched against according to RFC 6125 2.2, with some leniency to accommodate
 // legacy values.
 //
-// This implementation is sourced from the standaard library.
+// This implementation is sourced from the standard library.
 func validHostname(host string) bool {
 	host = strings.TrimSuffix(host, ".")
 
@@ -952,7 +945,6 @@ func (msp *bccspmsp) IsWellFormed(identity *m.SerializedIdentity) error {
 	}
 
 	return isIdentitySignedInCanonicalForm(cert.Signature, identity.Mspid, identity.IdBytes)
-
 }
 
 func isIdentitySignedInCanonicalForm(sig []byte, mspID string, pemEncodedIdentity []byte) error {

@@ -139,7 +139,6 @@ func chaincodeInvokeOrQuery(cmd *cobra.Command, invoke bool, cf *ChaincodeCmdFac
 		cf.DeliverClients,
 		cf.BroadcastClient,
 	)
-
 	if err != nil {
 		return errors.Errorf("%s - proposal response: %v", err, proposalResp)
 	}
@@ -148,11 +147,11 @@ func chaincodeInvokeOrQuery(cmd *cobra.Command, invoke bool, cf *ChaincodeCmdFac
 		logger.Debugf("ESCC invoke result: %v", proposalResp)
 		pRespPayload, err := protoutil.UnmarshalProposalResponsePayload(proposalResp.Payload)
 		if err != nil {
-			return errors.WithMessage(err, "error while unmarshaling proposal response payload")
+			return errors.WithMessage(err, "error while unmarshalling proposal response payload")
 		}
 		ca, err := protoutil.UnmarshalChaincodeAction(pRespPayload.Extension)
 		if err != nil {
-			return errors.WithMessage(err, "error while unmarshaling chaincode action")
+			return errors.WithMessage(err, "error while unmarshalling chaincode action")
 		}
 		if proposalResp.Endorsement == nil {
 			return errors.Errorf("endorsement failure during invoke. response: %v", proposalResp.Response)
@@ -469,7 +468,7 @@ func InitCmdFactory(cmdName string, isEndorserRequired, isOrdererRequired bool, 
 			return nil, errors.New("no endorser clients retrieved - this might indicate a bug")
 		}
 	}
-	certificate, err := common.GetCertificateFnc()
+	certificate, err := common.GetClientCertificateFnc()
 	if err != nil {
 		return nil, errors.WithMessage(err, "error getting client certificate")
 	}

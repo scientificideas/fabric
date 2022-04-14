@@ -16,20 +16,19 @@ import (
 )
 
 // MarblesPrivateChaincode example Chaincode implementation
-type MarblesPrivateChaincode struct {
-}
+type MarblesPrivateChaincode struct{}
 
 type marble struct {
-	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
-	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	ObjectType string `json:"docType"` // docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    // the fieldtags are needed to keep case from bouncing around
 	Color      string `json:"color"`
 	Size       int    `json:"size"`
 	Owner      string `json:"owner"`
 }
 
 type marblePrivateDetails struct {
-	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
-	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	ObjectType string `json:"docType"` // docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    // the fieldtags are needed to keep case from bouncing around
 	Price      int    `json:"price"`
 }
 
@@ -48,22 +47,22 @@ func (t *MarblesPrivateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 	// Handle different functions
 	switch function {
 	case "initMarble":
-		//create a new marble
+		// create a new marble
 		return t.initMarble(stub, args)
 	case "readMarble":
-		//read a marble
+		// read a marble
 		return t.readMarble(stub, args)
 	case "readMarblePrivateDetails":
-		//read a marble private details
+		// read a marble private details
 		return t.readMarblePrivateDetails(stub, args)
 	case "transferMarble":
-		//change owner of a specific marble
+		// change owner of a specific marble
 		return t.transferMarble(stub, args)
 	case "delete":
-		//delete a marble
+		// delete a marble
 		return t.delete(stub, args)
 	case "getMarblesByRange":
-		//get marbles based on range query
+		// get marbles based on range query
 		return t.getMarblesByRange(stub, args)
 	case "getMarbleHash":
 		// get private data hash for collectionMarbles
@@ -71,8 +70,11 @@ func (t *MarblesPrivateChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Re
 	case "getMarblePrivateDetailsHash":
 		// get private data hash for collectionMarblePrivateDetails
 		return t.getMarblePrivateDetailsHash(stub, args)
+	case "checkEndorsingOrg":
+		// check mspid of the current peer
+		return t.checkEndorsingOrg(stub)
 	default:
-		//error
+		// error
 		fmt.Println("invoke did not find func: " + function)
 		return shim.Error("Received unknown function invocation")
 	}
@@ -85,7 +87,7 @@ func (t *MarblesPrivateChaincode) initMarble(stub shim.ChaincodeStubInterface, a
 	var err error
 
 	type marbleTransientInput struct {
-		Name  string `json:"name"` //the fieldtags are needed to keep case from bouncing around
+		Name  string `json:"name"` // the fieldtags are needed to keep case from bouncing around
 		Color string `json:"color"`
 		Size  int    `json:"size"`
 		Owner string `json:"owner"`
@@ -213,7 +215,7 @@ func (t *MarblesPrivateChaincode) readMarble(stub shim.ChaincodeStubInterface, a
 	}
 
 	name = args[0]
-	valAsbytes, err := stub.GetPrivateData("collectionMarbles", name) //get the marble from chaincode state
+	valAsbytes, err := stub.GetPrivateData("collectionMarbles", name) // get the marble from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get state for " + name + ": " + err.Error() + "\"}"
 		return shim.Error(jsonResp)
@@ -237,7 +239,7 @@ func (t *MarblesPrivateChaincode) readMarblePrivateDetails(stub shim.ChaincodeSt
 	}
 
 	name = args[0]
-	valAsbytes, err := stub.GetPrivateData("collectionMarblePrivateDetails", name) //get the marble private details from chaincode state
+	valAsbytes, err := stub.GetPrivateData("collectionMarblePrivateDetails", name) // get the marble private details from chaincode state
 	if err != nil {
 		jsonResp = "{\"Error\":\"Failed to get private details for " + name + ": " + err.Error() + "\"}"
 		return shim.Error(jsonResp)
@@ -336,7 +338,7 @@ func (t *MarblesPrivateChaincode) delete(stub shim.ChaincodeStubInterface, args 
 	}
 
 	// to maintain the color~name index, we need to read the marble first and get its color
-	valAsbytes, err := stub.GetPrivateData("collectionMarbles", marbleDeleteInput.Name) //get the marble from chaincode state
+	valAsbytes, err := stub.GetPrivateData("collectionMarbles", marbleDeleteInput.Name) // get the marble from chaincode state
 	if err != nil {
 		return shim.Error("Failed to get state for " + marbleDeleteInput.Name)
 	} else if valAsbytes == nil {
@@ -379,7 +381,6 @@ func (t *MarblesPrivateChaincode) delete(stub shim.ChaincodeStubInterface, args 
 // transfer a marble by setting a new owner name on the marble
 // ===========================================================
 func (t *MarblesPrivateChaincode) transferMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	fmt.Println("- start transfer marble")
 
 	type marbleTransferTransientInput struct {
@@ -426,14 +427,14 @@ func (t *MarblesPrivateChaincode) transferMarble(stub shim.ChaincodeStubInterfac
 	}
 
 	marbleToTransfer := marble{}
-	err = json.Unmarshal(marbleAsBytes, &marbleToTransfer) //unmarshal it aka JSON.parse()
+	err = json.Unmarshal(marbleAsBytes, &marbleToTransfer) // unmarshal it aka JSON.parse()
 	if err != nil {
 		return shim.Error(err.Error())
 	}
-	marbleToTransfer.Owner = marbleTransferInput.Owner //change the owner
+	marbleToTransfer.Owner = marbleTransferInput.Owner // change the owner
 
 	marbleJSONasBytes, _ := json.Marshal(marbleToTransfer)
-	err = stub.PutPrivateData("collectionMarbles", marbleToTransfer.Name, marbleJSONasBytes) //rewrite the marble
+	err = stub.PutPrivateData("collectionMarbles", marbleToTransfer.Name, marbleJSONasBytes) // rewrite the marble
 	if err != nil {
 		return shim.Error(err.Error())
 	}
@@ -454,7 +455,6 @@ func (t *MarblesPrivateChaincode) transferMarble(stub shim.ChaincodeStubInterfac
 // Therefore, range queries are a safe option for performing update transactions based on query results.
 // ===========================================================================================
 func (t *MarblesPrivateChaincode) getMarblesByRange(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-
 	if len(args) < 2 {
 		return shim.Error("Incorrect number of arguments. Expecting 2")
 	}
@@ -496,4 +496,31 @@ func (t *MarblesPrivateChaincode) getMarblesByRange(stub shim.ChaincodeStubInter
 	fmt.Printf("- getMarblesByRange queryResult:\n%s\n", buffer.String())
 
 	return shim.Success(buffer.Bytes())
+}
+
+// CheckEndorsingOrg checks that the peer org is present in the given transient data
+func (t *MarblesPrivateChaincode) checkEndorsingOrg(stub shim.ChaincodeStubInterface) pb.Response {
+	transient, err := stub.GetTransient()
+	if err != nil {
+		return shim.Error(fmt.Sprintf("failed to get transient data: %v", err))
+	}
+
+	peerOrgMSP, err := shim.GetMSPID()
+	if err != nil {
+		return shim.Error(fmt.Sprintf("failed getting client's orgID: %v", err))
+	}
+
+	var result string
+	if _, ok := transient[peerOrgMSP]; ok {
+		result = "Peer mspid OK"
+	} else {
+		expectedMSPs := make([]string, 0, len(transient))
+		for k := range transient {
+			expectedMSPs = append(expectedMSPs, k)
+		}
+
+		result = fmt.Sprintf("Unexpected peer mspid! Expected MSP IDs: %s Actual MSP ID: %s", expectedMSPs, peerOrgMSP)
+	}
+
+	return shim.Success([]byte(result))
 }

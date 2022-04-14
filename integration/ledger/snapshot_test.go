@@ -8,11 +8,11 @@ package ledger
 
 import (
 	"context"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -22,17 +22,14 @@ import (
 
 	docker "github.com/fsouza/go-dockerclient"
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/hyperledger/fabric/cmd/common/signer"
 	"github.com/hyperledger/fabric/core/ledger/util"
 	"github.com/hyperledger/fabric/integration/chaincode/kvexecutor"
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
+	"github.com/hyperledger/fabric/integration/nwo/runner"
 	"github.com/hyperledger/fabric/integration/pvtdata/marblechaincodeutil"
-	"github.com/hyperledger/fabric/integration/runner"
-	ic "github.com/hyperledger/fabric/internal/peer/chaincode"
-	"github.com/hyperledger/fabric/internal/peer/common"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -41,11 +38,9 @@ import (
 	"github.com/tedsuo/ifrit"
 )
 
-const (
-	testchannelID = "testchannel"
-)
+const testchannelID = "testchannel"
 
-var _ bool = Describe("Snapshot Generation and Bootstrap", func() {
+var _ = Describe("Snapshot Generation and Bootstrap", func() {
 	var (
 		setup                 *setup
 		helper                *marblesTestHelper
@@ -299,7 +294,7 @@ var _ bool = Describe("Snapshot Generation and Bootstrap", func() {
 				Path:            components.Build("github.com/hyperledger/fabric/integration/chaincode/kvexecutor/cmd"),
 				Lang:            "binary",
 				SignaturePolicy: `OR ('Org1MSP.member','Org2MSP.member', 'Org3MSP.member', 'Org4MSP.member')`,
-				PackageFile:     filepath.Join(setup.testDir, "kvexcutor20.tar.gz"),
+				PackageFile:     filepath.Join(setup.testDir, "kvexecutor20.tar.gz"),
 				Label:           "kvexecutor-20",
 				Sequence:        "1",
 			}
@@ -599,7 +594,8 @@ func initAndStartFourOrgsNetwork() *setup {
 		Organization: "Org4",
 		Channels: []*nwo.PeerChannel{
 			{Name: testchannelID, Anchor: true},
-		}})
+		},
+	})
 
 	n := nwo.New(config, testDir, client, StartPort(), components)
 	n.GenerateConfigTree()
@@ -809,7 +805,7 @@ func joinBySnapshot(n *nwo.Network, orderer *nwo.Orderer, peer *nwo.Peer, channe
 	n.JoinChannelBySnapshot(snapshotDir, peer)
 
 	By("calling JoinBySnapshotStatus")
-	checkStatus := func() []byte { return n.JoinBySnapshotStatus(peer) }
+	checkStatus := func() string { return n.JoinBySnapshotStatus(peer) }
 	Eventually(checkStatus, n.EventuallyTimeout, 10*time.Second).Should(ContainSubstring("No joinbysnapshot operation is in progress"))
 
 	By("waiting for the new peer to have the same ledger height")
@@ -822,7 +818,7 @@ func joinBySnapshot(n *nwo.Network, orderer *nwo.Orderer, peer *nwo.Peer, channe
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(sess, n.EventuallyTimeout).Should(gexec.Exit(0))
 	channelInfoStr := strings.TrimPrefix(string(sess.Buffer().Contents()[:]), "Blockchain info:")
-	var bcInfo = cb.BlockchainInfo{}
+	bcInfo := cb.BlockchainInfo{}
 	err = json.Unmarshal([]byte(channelInfoStr), &bcInfo)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(bcInfo.Height).To(Equal(uint64(channelHeight)))
@@ -1039,66 +1035,69 @@ func invokeWithoutPassingOrdererEndPoint(n *nwo.Network, peer *nwo.Peer, channel
 }
 
 // commitTx commits a transaction for a given transaction envelope
-func commitTx(n *nwo.Network, orderer *nwo.Orderer, peer *nwo.Peer, channelID string, env *cb.Envelope, txid string) error {
-	var cancelFunc context.CancelFunc
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelFunc()
-
-	// get signing identity
+func commitTx(n *nwo.Network, orderer *nwo.Orderer, peer *nwo.Peer, channelID string, tx *cb.Envelope, txid string) error {
 	By("getting the signer for user1 on peer " + peer.ID())
-	conf := signer.Config{
-		MSPID:        n.Organization(peer.Organization).MSPID,
-		IdentityPath: n.PeerUserCert(peer, "User1"),
-		KeyPath:      n.PeerUserKey(peer, "User1"),
-	}
-	signer, err := signer.NewSigner(conf)
-	Expect(err).NotTo(HaveOccurred())
+	signer := n.PeerUserSigner(peer, "User1")
 
-	// create deliver client and delivergroup
-	peerClient := &common.PeerClient{
-		CommonClient: common.CommonClient{
-			GRPCClient: grpcClient(filepath.Join(n.PeerLocalTLSDir(peer), "ca.crt")),
-			Address:    n.PeerAddress(peer, nwo.ListenPort),
+	By("creating the deliver client to peer " + peer.ID())
+	pcc := n.PeerClientConn(peer)
+	defer pcc.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	df, err := pb.NewDeliverClient(pcc).DeliverFiltered(ctx)
+	Expect(err).NotTo(HaveOccurred())
+	defer df.CloseSend()
+
+	By("starting filtered delivery on peer " + peer.ID())
+	deliverEnvelope, err := protoutil.CreateSignedEnvelope(
+		cb.HeaderType_DELIVER_SEEK_INFO,
+		channelID,
+		signer,
+		&ab.SeekInfo{
+			Behavior: ab.SeekInfo_BLOCK_UNTIL_READY,
+			Start: &ab.SeekPosition{
+				Type: &ab.SeekPosition_Newest{Newest: &ab.SeekNewest{}},
+			},
+			Stop: &ab.SeekPosition{
+				Type: &ab.SeekPosition_Specified{
+					Specified: &ab.SeekSpecified{Number: math.MaxUint64},
+				},
+			},
 		},
-	}
-	deliverClient, err := peerClient.PeerDeliver()
+		0,
+		0,
+	)
 	Expect(err).NotTo(HaveOccurred())
-	dg := ic.NewDeliverGroup([]pb.DeliverClient{deliverClient}, []string{n.PeerAddress(peer, nwo.ListenPort)}, signer, tls.Certificate{}, channelID, txid)
-	err = dg.Connect(ctx)
-	Expect(err).NotTo(HaveOccurred())
-
-	// create orderer client and broadcast client
-	By("creating orderer client to send transaction to the orderer" + peer.ID())
-	ordererClient := &common.OrdererClient{
-		CommonClient: common.CommonClient{
-			GRPCClient: grpcClient(filepath.Join(n.OrdererLocalTLSDir(orderer), "ca.crt")),
-			Address:    n.OrdererAddress(orderer, nwo.ListenPort),
-		},
-	}
-	bc, err := ordererClient.Broadcast()
-	Expect(err).NotTo(HaveOccurred())
-	broadcastClient := &common.BroadcastGRPCClient{Client: bc}
-	err = broadcastClient.Send(env)
+	err = df.Send(deliverEnvelope)
 	Expect(err).NotTo(HaveOccurred())
 
-	// wait for deliver event
+	By("creating orderer client and send transaction to the orderer" + orderer.ID())
+	occ := n.OrdererClientConn(orderer)
+	defer occ.Close()
+	broadcastClient, err := ab.NewAtomicBroadcastClient(occ).Broadcast(context.Background())
+	Expect(err).NotTo(HaveOccurred())
+
+	err = broadcastClient.Send(tx)
+	Expect(err).NotTo(HaveOccurred())
+
 	By("waiting for deliver event on peer " + peer.ID())
-	return dg.Wait(ctx)
-}
-
-func grpcClient(tlsRootCertFile string) *comm.GRPCClient {
-	caPEM, res := ioutil.ReadFile(tlsRootCertFile)
-	Expect(res).To(BeNil())
-
-	gClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		Timeout: 3 * time.Second,
-		KaOpts:  comm.DefaultKeepaliveOptions,
-		SecOpts: comm.SecureOptions{
-			UseTLS:        true,
-			ServerRootCAs: [][]byte{caPEM},
-		},
-	})
-	Expect(err).NotTo(HaveOccurred())
-
-	return gClient
+	for {
+		resp, err := df.Recv()
+		if err != nil {
+			return err
+		}
+		fb, ok := resp.Type.(*pb.DeliverResponse_FilteredBlock)
+		if !ok {
+			return fmt.Errorf("unexpected filtered block, received %T", resp.Type)
+		}
+		for _, tx := range fb.FilteredBlock.FilteredTransactions {
+			if tx.Txid != txid {
+				continue
+			}
+			if tx.TxValidationCode != pb.TxValidationCode_VALID {
+				return fmt.Errorf("transaction invalidated with status (%s)", tx.TxValidationCode)
+			}
+			return nil
+		}
+	}
 }

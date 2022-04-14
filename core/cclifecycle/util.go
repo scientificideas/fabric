@@ -14,12 +14,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	// AcceptAll returns a predicate that accepts all Metadata
-	AcceptAll ChaincodePredicate = func(cc chaincode.Metadata) bool {
-		return true
-	}
-)
+// AcceptAll returns a predicate that accepts all Metadata
+var AcceptAll ChaincodePredicate = func(cc chaincode.Metadata) bool {
+	return true
+}
 
 // ChaincodePredicate accepts or rejects chaincode based on its metadata
 type ChaincodePredicate func(cc chaincode.Metadata) bool
@@ -93,7 +91,7 @@ func deployedCCToNameVersion(cc chaincode.Metadata) nameVersion {
 func extractCCInfo(data []byte) (*ccprovider.ChaincodeData, error) {
 	cd := &ccprovider.ChaincodeData{}
 	if err := proto.Unmarshal(data, cd); err != nil {
-		return nil, errors.Wrap(err, "failed unmarshaling lscc read value into ChaincodeData")
+		return nil, errors.Wrap(err, "failed unmarshalling lscc read value into ChaincodeData")
 	}
 	return cd, nil
 }

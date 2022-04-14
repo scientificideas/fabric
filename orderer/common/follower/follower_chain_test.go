@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/bccsp/sw"
@@ -159,6 +160,20 @@ func TestFollowerNewChain(t *testing.T) {
 		require.Equal(t, types.ConsensusRelationFollower, consensusRelation)
 		require.True(t, status == types.StatusActive)
 	})
+
+	t.Run("can not find config block in chain", func(t *testing.T) {
+		globalSetup(t)
+		localBlockchain.fill(5)
+
+		// Set last config index to non-existing value 222
+		lastBlock := localBlockchain.Block(localBlockchain.Height() - 1)
+		err := setLastConfigIndexInBlock(lastBlock, 222)
+		require.NoError(t, err)
+
+		chain, err := follower.NewChain(ledgerResources, mockClusterConsenter, nil, options, pullerFactory, mockChainCreator, nil, mockChannelParticipationMetricsReporter)
+		require.EqualError(t, err, "could not retrieve config block from index 222")
+		require.Nil(t, chain)
+	})
 }
 
 func TestFollowerPullUpToJoin(t *testing.T) {
@@ -216,7 +231,7 @@ func TestFollowerPullUpToJoin(t *testing.T) {
 	t.Run("existing half chain until join block, member", func(t *testing.T) {
 		setup()
 		mockClusterConsenter.IsChannelMemberCalls(amIReallyInChannel)
-		localBlockchain.fill(joinNum / 2) //A gap between the ledger and the join block
+		localBlockchain.fill(joinNum / 2) // A gap between the ledger and the join block
 		require.True(t, joinBlockAppRaft.Header.Number > ledgerResources.Height())
 		require.True(t, ledgerResources.Height() > 0)
 
@@ -254,13 +269,12 @@ func TestFollowerPullUpToJoin(t *testing.T) {
 		require.Equal(t, "my-channel", channel)
 		require.Equal(t, types.ConsensusRelationConsenter, relation)
 		require.Equal(t, types.StatusActive, status)
-
 	})
 	t.Run("no need to pull, member", func(t *testing.T) {
 		setup()
 		mockClusterConsenter.IsChannelMemberCalls(amIReallyInChannel)
 		localBlockchain.fill(joinNum)
-		localBlockchain.appendConfig(1) //No gap between the ledger and the join block
+		localBlockchain.appendConfig(1) // No gap between the ledger and the join block
 		require.True(t, joinBlockAppRaft.Header.Number < ledgerResources.Height())
 
 		chain, err := follower.NewChain(ledgerResources, mockClusterConsenter, joinBlockAppRaft, options, pullerFactory, mockChainCreator, cryptoProvider, mockChannelParticipationMetricsReporter)
@@ -359,7 +373,7 @@ func TestFollowerPullAfterJoin(t *testing.T) {
 		setup()
 		ledgerResources.AppendCalls(func(block *common.Block) error {
 			_ = localBlockchain.Append(block)
-			//Stop when we catch-up with latest
+			// Stop when we catch-up with latest
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				wgChain.Done()
 			}
@@ -399,7 +413,7 @@ func TestFollowerPullAfterJoin(t *testing.T) {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(10)
 				} else {
-					//Stop when we catch-up with latest
+					// Stop when we catch-up with latest
 					wgChain.Done()
 				}
 			}
@@ -455,7 +469,7 @@ func TestFollowerPullAfterJoin(t *testing.T) {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(10)
 				} else {
-					//Stop when we catch-up with latest
+					// Stop when we catch-up with latest
 					wgChain.Done()
 				}
 			}
@@ -500,17 +514,17 @@ func TestFollowerPullAfterJoin(t *testing.T) {
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(9)
-					//Each config appended will trigger the creation of a new puller in the next round
+					// Each config appended will trigger the creation of a new puller in the next round
 					remoteBlockchain.appendConfig(0)
 				} else {
 					remoteBlockchain.fill(9)
-					//This will trigger the creation of a new chain
+					// This will trigger the creation of a new chain
 					remoteBlockchain.appendConfig(1)
 				}
 			}
 			return nil
 		})
-		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) //Stop when a new chain is created
+		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) // Stop when a new chain is created
 		require.Equal(t, joinNum+1, localBlockchain.Height())
 
 		chain, err := follower.NewChain(ledgerResources, mockClusterConsenter, nil, options, pullerFactory, mockChainCreator, cryptoProvider, mockChannelParticipationMetricsReporter)
@@ -545,17 +559,17 @@ func TestFollowerPullAfterJoin(t *testing.T) {
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(9)
-					//Each config appended will trigger the creation of a new puller in the next round
+					// Each config appended will trigger the creation of a new puller in the next round
 					remoteBlockchain.appendConfig(0)
 				} else {
 					remoteBlockchain.fill(9)
-					//This will trigger the creation of a new chain
+					// This will trigger the creation of a new chain
 					remoteBlockchain.appendConfig(1)
 				}
 			}
 			return nil
 		})
-		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) //Stop when a new chain is created
+		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) // Stop when a new chain is created
 		require.Equal(t, joinNum+1, localBlockchain.Height())
 
 		failPull := 10
@@ -650,7 +664,7 @@ func TestFollowerPullPastJoin(t *testing.T) {
 		setup()
 		ledgerResources.AppendCalls(func(block *common.Block) error {
 			_ = localBlockchain.Append(block)
-			//Stop when we catch-up with latest
+			// Stop when we catch-up with latest
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				wgChain.Done()
 			}
@@ -690,7 +704,7 @@ func TestFollowerPullPastJoin(t *testing.T) {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(10)
 				} else {
-					//Stop when we catch-up with latest
+					// Stop when we catch-up with latest
 					wgChain.Done()
 				}
 			}
@@ -733,17 +747,17 @@ func TestFollowerPullPastJoin(t *testing.T) {
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(9)
-					//Each config appended will trigger the creation of a new puller in the next round
+					// Each config appended will trigger the creation of a new puller in the next round
 					remoteBlockchain.appendConfig(0)
 				} else {
 					remoteBlockchain.fill(9)
-					//This will trigger the creation of a new chain
+					// This will trigger the creation of a new chain
 					remoteBlockchain.appendConfig(1)
 				}
 			}
 			return nil
 		})
-		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) //Stop when a new chain is created
+		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) // Stop when a new chain is created
 		require.Equal(t, uint64(6), localBlockchain.Height())
 
 		chain, err := follower.NewChain(ledgerResources, mockClusterConsenter, joinBlockAppRaft, options, pullerFactory, mockChainCreator, cryptoProvider, mockChannelParticipationMetricsReporter)
@@ -778,17 +792,17 @@ func TestFollowerPullPastJoin(t *testing.T) {
 			if remoteBlockchain.Height() == localBlockchain.Height() {
 				if remoteBlockchain.Height() < 50 {
 					remoteBlockchain.fill(9)
-					//Each config appended will trigger the creation of a new puller in the next round
+					// Each config appended will trigger the creation of a new puller in the next round
 					remoteBlockchain.appendConfig(0)
 				} else {
 					remoteBlockchain.fill(9)
-					//This will trigger the creation of a new chain
+					// This will trigger the creation of a new chain
 					remoteBlockchain.appendConfig(1)
 				}
 			}
 			return nil
 		})
-		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) //Stop when a new chain is created
+		mockChainCreator.SwitchFollowerToChainCalls(func(_ string) { wgChain.Done() }) // Stop when a new chain is created
 		require.Equal(t, uint64(0), localBlockchain.Height())
 
 		failPull := 10
@@ -889,7 +903,6 @@ func (mbc *memoryBlockChain) fill(numBlocks uint64) {
 	for i := height; i < height+numBlocks; i++ {
 		if i > 0 {
 			prevHash = protoutil.BlockHeaderHash(mbc.chain[i-1].Header)
-
 		}
 
 		var block *common.Block
@@ -973,4 +986,25 @@ func TestChain_makeConfigBlock(t *testing.T) {
 	isMem, err = amIReallyInChannel(protoutil.NewBlock(10, []byte{1, 2, 3, 4}))
 	require.EqualError(t, err, "not a config")
 	require.False(t, isMem)
+}
+
+func setLastConfigIndexInBlock(block *common.Block, lastConfigIndex uint64) error {
+	ordererBlockMetadata := &common.OrdererBlockMetadata{
+		LastConfig: &common.LastConfig{
+			Index: lastConfigIndex,
+		},
+	}
+	obmBytes, err := proto.Marshal(ordererBlockMetadata)
+	if err != nil {
+		return err
+	}
+	metadata := &common.Metadata{
+		Value: obmBytes,
+	}
+	metadataBytes, err := proto.Marshal(metadata)
+	if err != nil {
+		return err
+	}
+	block.Metadata.Metadata[common.BlockMetadataIndex_SIGNATURES] = metadataBytes
+	return nil
 }

@@ -19,8 +19,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp"
-	"github.com/hyperledger/fabric/bccsp/factory"
-	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
@@ -76,7 +74,7 @@ func ConsortiumValue(name string) *StandardConfigValue {
 	}
 }
 
-// HashingAlgorithm returns the only currently valid hashing algorithm.
+// HashingAlgorithmValue returns the default hashing algorithm.
 // It is a value for the /Channel group.
 func HashingAlgorithmValue() *StandardConfigValue {
 	return &StandardConfigValue{
@@ -259,7 +257,7 @@ func ValidateCapabilities(block *cb.Block, bccsp bccsp.BCCSP) error {
 
 // ExtractMSPIDsForApplicationOrgs extracts MSPIDs for application organizations
 func ExtractMSPIDsForApplicationOrgs(block *cb.Block, bccsp bccsp.BCCSP) ([]string, error) {
-	cc, err := extractChannelConfig(block, factory.GetDefault())
+	cc, err := extractChannelConfig(block, bccsp)
 	if err != nil {
 		return nil, err
 	}

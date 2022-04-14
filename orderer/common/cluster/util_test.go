@@ -94,7 +94,7 @@ func TestDialerCustomKeepAliveOptions(t *testing.T) {
 		KaOpts: comm.KeepaliveOptions{
 			ClientTimeout: time.Second * 12345,
 		},
-		Timeout: time.Millisecond * 100,
+		DialTimeout: time.Millisecond * 100,
 		SecOpts: comm.SecureOptions{
 			RequireClientCert: true,
 			Key:               clientKeyPair.Key,
@@ -118,10 +118,10 @@ func TestPredicateDialerUpdateRootCAs(t *testing.T) {
 	require.NoError(t, err)
 
 	dialer := &cluster.PredicateDialer{
-		Config: node1.clientConfig.Clone(),
+		Config: node1.clientConfig,
 	}
 	dialer.Config.SecOpts.ServerRootCAs = [][]byte{anotherTLSCA.CertBytes()}
-	dialer.Config.Timeout = time.Second
+	dialer.Config.DialTimeout = time.Second
 	dialer.Config.AsyncConnect = false
 
 	_, err = dialer.Dial(node1.srv.Address(), nil)
@@ -157,7 +157,7 @@ func TestDialerBadConfig(t *testing.T) {
 	_, err := dialer.Dial("127.0.0.1:8080", func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 		return nil
 	})
-	require.EqualError(t, err, "error adding root certificate: asn1: syntax error: sequence truncated")
+	require.ErrorContains(t, err, "error adding root certificate")
 }
 
 func TestDERtoPEM(t *testing.T) {
@@ -176,10 +176,7 @@ func TestStandardDialer(t *testing.T) {
 		Config: config,
 	}
 	_, err := standardDialer.Dial(cluster.EndpointCriteria{Endpoint: "127.0.0.1:8080", TLSRootCAs: certPool})
-	require.EqualError(t,
-		err,
-		"failed creating gRPC client: error adding root certificate: asn1: syntax error: sequence truncated",
-	)
+	require.ErrorContains(t, err, "error adding root certificate")
 }
 
 func TestVerifyBlockSignature(t *testing.T) {
@@ -217,7 +214,7 @@ func TestVerifyBlockSignature(t *testing.T) {
 		},
 		{
 			name:          "nil metadata",
-			errorContains: "failed unmarshaling medatata for signatures",
+			errorContains: "failed unmarshalling medatata for signatures",
 			mutateBlock: func(block *common.Block) *common.Block {
 				block.Metadata.Metadata[0] = []byte{1, 2, 3}
 				return block
@@ -225,7 +222,7 @@ func TestVerifyBlockSignature(t *testing.T) {
 		},
 		{
 			name:          "bad signature header",
-			errorContains: "failed unmarshaling signature header",
+			errorContains: "failed unmarshalling signature header",
 			mutateBlock: func(block *common.Block) *common.Block {
 				metadata := protoutil.GetMetadataFromBlockOrPanic(block, common.BlockMetadataIndex_SIGNATURES)
 				metadata.Signatures[0].SignatureHeader = []byte{1, 2, 3}
@@ -743,7 +740,7 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 		},
 		{
 			name:          "invalid payload",
-			expectedError: "error unmarshaling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
+			expectedError: "error unmarshalling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
 			block:         &common.Block{Data: &common.BlockData{Data: [][]byte{{1, 2, 3}}}},
 		},
 		{
@@ -754,23 +751,24 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 					Payload: protoutil.MarshalOrPanic(&common.Payload{
 						Data: []byte{1, 2, 3},
 					}),
-				})}}},
+				})}},
+			},
 		},
 		{
 			name:          "invalid envelope in block",
-			expectedError: "error unmarshaling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
+			expectedError: "error unmarshalling Envelope: proto: common.Envelope: illegal tag 0 (wire type 1)",
 			block:         &common.Block{Data: &common.BlockData{Data: [][]byte{{1, 2, 3}}}},
 		},
 		{
 			name:          "invalid payload in block envelope",
-			expectedError: "error unmarshaling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedError: "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
 			block: &common.Block{Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
 				Payload: []byte{1, 2, 3},
 			})}}},
 		},
 		{
 			name:          "invalid channel header",
-			expectedError: "error unmarshaling ChannelHeader: proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
+			expectedError: "error unmarshalling ChannelHeader: proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
 			block: &common.Block{
 				Header: &common.BlockHeader{Number: 1},
 				Data: &common.BlockData{Data: [][]byte{protoutil.MarshalOrPanic(&common.Envelope{
@@ -779,7 +777,8 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 							ChannelHeader: []byte{1, 2, 3},
 						},
 					}),
-				})}}},
+				})}},
+			},
 		},
 		{
 			name:          "invalid config block",
@@ -795,7 +794,8 @@ func TestConfigFromBlockBadInput(t *testing.T) {
 							}),
 						},
 					}),
-				})}}},
+				})}},
+			},
 		},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {

@@ -20,14 +20,12 @@ import (
 	pb "github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/channelconfig"
-	"github.com/hyperledger/fabric/common/config"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/core/aclmgmt"
 	"github.com/hyperledger/fabric/core/aclmgmt/resources"
 	"github.com/hyperledger/fabric/core/committer/txvalidator/v20/plugindispatcher"
 	"github.com/hyperledger/fabric/core/ledger"
 	"github.com/hyperledger/fabric/core/peer"
-	"github.com/hyperledger/fabric/core/policy"
 	"github.com/hyperledger/fabric/internal/pkg/txflags"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
@@ -40,13 +38,10 @@ func New(
 	deployedCCInfoProvider ledger.DeployedChaincodeInfoProvider,
 	lr plugindispatcher.LifecycleResources,
 	nr plugindispatcher.CollectionAndLifecycleResources,
-	policyChecker policy.PolicyChecker,
 	p *peer.Peer,
 	bccsp bccsp.BCCSP,
 ) *PeerConfiger {
 	return &PeerConfiger{
-		policyChecker:          policyChecker,
-		configMgr:              peer.NewConfigSupport(p),
 		aclProvider:            aclProvider,
 		deployedCCInfoProvider: deployedCCInfoProvider,
 		legacyLifecycle:        lr,
@@ -63,8 +58,6 @@ func (e *PeerConfiger) Chaincode() shim.Chaincode { return e }
 // configuration transaction coming in from the ordering service, the
 // committer calls this system chaincode to process the transaction.
 type PeerConfiger struct {
-	policyChecker          policy.PolicyChecker
-	configMgr              config.Manager
 	aclProvider            aclmgmt.ACLProvider
 	deployedCCInfoProvider ledger.DeployedChaincodeInfoProvider
 	legacyLifecycle        plugindispatcher.LifecycleResources

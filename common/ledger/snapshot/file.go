@@ -40,7 +40,7 @@ func CreateFile(filePath string, dataformat byte, newHashFunc NewHashFunc) (*Fil
 	}
 	// create the file only if it does not already exist.
 	// set the permission mode to read-only, as once the file is closed, we do not support modifying the file
-	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0444)
+	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0o444)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error while creating the snapshot file: %s", filePath)
 	}
@@ -119,7 +119,7 @@ func (c *FileWriter) Close() error {
 // FileReader reads from a ledger snapshot file. This is expected to be used for loading the ledger snapshot data
 // during bootstrapping a channel from snapshot. The data should be read, using the functions `DecodeXXX`,
 // in the same sequence in which the data was written by the functions `EncodeXXX` in the `FileCreator`.
-// Note that the FileReader does not verifies the hash of stream and it is expected that the hash has been verified
+// Note that the FileReader does not verify the hash of stream and it is expected that the hash has been verified
 // by the consumer. Later, if we decide to perform this, on-the-side, while loading the snapshot data, the FileRedear,
 // like the FileCreator, would take a `hasher` as an input
 type FileReader struct {

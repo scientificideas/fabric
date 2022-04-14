@@ -224,10 +224,7 @@ func (c *Chain) Start() {
 // Halt signals the Chain to stop and waits for the internal go-routine to exit.
 func (c *Chain) Halt() {
 	c.halt()
-
-	select {
-	case <-c.doneChan:
-	}
+	<-c.doneChan
 }
 
 func (c *Chain) halt() {
@@ -298,7 +295,6 @@ func (c *Chain) run() {
 	}()
 
 	if err := c.pull(); err != nil {
-
 		c.logger.Warnf("Pull failed, error: %s", err)
 		// TODO set the status to StatusError (see FAB-18106)
 	}
@@ -308,7 +304,7 @@ func (c *Chain) increaseRetryInterval(retryInterval *time.Duration, upperLimit t
 	if *retryInterval == upperLimit {
 		return
 	}
-	//assuming this will never overflow int64, as upperLimit cannot be over MaxInt64/2
+	// assuming this will never overflow int64, as upperLimit cannot be over MaxInt64/2
 	*retryInterval = time.Duration(1.5 * float64(*retryInterval))
 	if *retryInterval > upperLimit {
 		*retryInterval = upperLimit
@@ -375,7 +371,7 @@ func (c *Chain) pullUpToJoin() error {
 	var err error
 	// Block puller created with endpoints from the join-block.
 	c.blockPuller, err = c.blockPullerFactory.BlockPuller(c.joinBlock, c.stopChan)
-	if err != nil { //This should never happen since we check the join-block before we start.
+	if err != nil { // This should never happen since we check the join-block before we start.
 		return errors.WithMessagef(err, "error creating block puller")
 	}
 	defer c.blockPuller.Close()
@@ -565,7 +561,7 @@ func (c *Chain) loadLastConfig() error {
 	}
 	lastConfig := c.ledgerResources.Block(index)
 	if lastConfig == nil {
-		return errors.WithMessagef(err, "could not retrieve config block from index %d", index)
+		return errors.Errorf("could not retrieve config block from index %d", index)
 	}
 	c.lastConfig = lastConfig
 	return nil

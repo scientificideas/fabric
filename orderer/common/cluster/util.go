@@ -8,7 +8,6 @@ package cluster
 
 import (
 	"bytes"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
@@ -148,26 +147,11 @@ func (dialer *PredicateDialer) UpdateRootCAs(serverRootCAs [][]byte) {
 // certificate chain satisfy verifyFunc
 func (dialer *PredicateDialer) Dial(address string, verifyFunc RemoteVerifier) (*grpc.ClientConn, error) {
 	dialer.lock.RLock()
-	cfg := dialer.Config.Clone()
+	clientConfigCopy := dialer.Config
 	dialer.lock.RUnlock()
 
-	cfg.SecOpts.VerifyCertificate = verifyFunc
-	client, err := comm.NewGRPCClient(cfg)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return client.NewConnection(address, func(tlsConfig *tls.Config) {
-		// We need to dynamically overwrite the TLS root CAs,
-		// as they may be updated.
-		dialer.lock.RLock()
-		serverRootCAs := dialer.Config.Clone().SecOpts.ServerRootCAs
-		dialer.lock.RUnlock()
-
-		tlsConfig.RootCAs = x509.NewCertPool()
-		for _, pem := range serverRootCAs {
-			tlsConfig.RootCAs.AppendCertsFromPEM(pem)
-		}
-	})
+	clientConfigCopy.SecOpts.VerifyCertificate = verifyFunc
+	return clientConfigCopy.Dial(address)
 }
 
 // DERtoPEM returns a PEM representation of the DER
@@ -187,15 +171,10 @@ type StandardDialer struct {
 
 // Dial dials an address according to the given EndpointCriteria
 func (dialer *StandardDialer) Dial(endpointCriteria EndpointCriteria) (*grpc.ClientConn, error) {
-	cfg := dialer.Config.Clone()
-	cfg.SecOpts.ServerRootCAs = endpointCriteria.TLSRootCAs
+	clientConfigCopy := dialer.Config
+	clientConfigCopy.SecOpts.ServerRootCAs = endpointCriteria.TLSRootCAs
 
-	client, err := comm.NewGRPCClient(cfg)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed creating gRPC client")
-	}
-
-	return client.NewConnection(endpointCriteria.Endpoint)
+	return clientConfigCopy.Dial(endpointCriteria.Endpoint)
 }
 
 //go:generate mockery --dir=. --name=BlockVerifier --case=underscore --output=./mocks/
@@ -360,6 +339,35 @@ func VerifyBlockHash(indexInBuffer int, blockBuff []*common.Block) error {
 		}
 	}
 	return nil
+}
+
+// SignatureSetFromBlock creates a signature set out of a block.
+func SignatureSetFromBlock(block *common.Block) ([]*protoutil.SignedData, error) {
+	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
+		return nil, errors.New("no metadata in block")
+	}
+	metadata, err := protoutil.GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
+	if err != nil {
+		return nil, errors.Errorf("failed unmarshalling medatata for signatures: %v", err)
+	}
+
+	var signatureSet []*protoutil.SignedData
+	for _, metadataSignature := range metadata.Signatures {
+		sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
+		if err != nil {
+			return nil, errors.Errorf("failed unmarshalling signature header for block with id %d: %v",
+				block.Header.Number, err)
+		}
+		signatureSet = append(signatureSet,
+			&protoutil.SignedData{
+				Identity: sigHdr.Creator,
+				Data: util.ConcatenateBytes(metadata.Value,
+					metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(block.Header)),
+				Signature: metadataSignature.Signature,
+			},
+		)
+	}
+	return signatureSet, nil
 }
 
 // VerifyBlockSignature verifies the signature on the block with the given BlockVerifier and the given config.

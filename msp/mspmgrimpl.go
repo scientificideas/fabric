@@ -73,6 +73,9 @@ func (mgr *mspManagerImpl) GetMSPs() (map[string]MSP, error) {
 
 // DeserializeIdentity returns an identity given its serialized version supplied as argument
 func (mgr *mspManagerImpl) DeserializeIdentity(serializedID []byte) (Identity, error) {
+	if !mgr.up {
+		return nil, errors.New("channel doesn't exist")
+	}
 	// We first deserialize to a SerializedIdentity to get the MSP ID
 	sId := &msp.SerializedIdentity{}
 	err := proto.Unmarshal(serializedID, sId)
@@ -89,7 +92,7 @@ func (mgr *mspManagerImpl) DeserializeIdentity(serializedID []byte) (Identity, e
 	switch t := msp.(type) {
 	case *bccspmsp:
 		return t.deserializeIdentityInternal(sId.IdBytes)
-	case *idemixmsp:
+	case *idemixMSPWrapper:
 		return t.deserializeIdentityInternal(sId.IdBytes)
 	default:
 		return t.DeserializeIdentity(serializedID)

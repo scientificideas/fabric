@@ -42,7 +42,7 @@ func TestLevelDBHelperReadWithoutOpen(t *testing.T) {
 
 func TestLevelDBHelper(t *testing.T) {
 	env := newTestDBEnv(t, testDBPath)
-	//defer env.cleanup()
+	// defer env.cleanup()
 	db := env.db
 
 	db.Open()
@@ -157,9 +157,36 @@ func TestFileLock(t *testing.T) {
 	require.NoError(t, os.RemoveAll(fileLockPath))
 }
 
+func TestFileLockLockUnlockLock(t *testing.T) {
+	// create an open lock
+	lockPath := testDBPath + "/fileLock"
+	lock := NewFileLock(lockPath)
+	require.Nil(t, lock.db)
+	require.Equal(t, lock.filePath, lockPath)
+	require.False(t, lock.IsLocked())
+
+	defer lock.Unlock()
+	defer os.RemoveAll(lockPath)
+
+	// lock
+	require.NoError(t, lock.Lock())
+	require.True(t, lock.IsLocked())
+
+	// lock
+	require.ErrorContains(t, lock.Lock(), "lock is already acquired")
+
+	// unlock
+	lock.Unlock()
+	require.False(t, lock.IsLocked())
+
+	// lock - this should not error
+	require.NoError(t, lock.Lock())
+	require.True(t, lock.IsLocked())
+}
+
 func TestCreateDBInEmptyDir(t *testing.T) {
 	require.NoError(t, os.RemoveAll(testDBPath), "")
-	require.NoError(t, os.MkdirAll(testDBPath, 0775), "")
+	require.NoError(t, os.MkdirAll(testDBPath, 0o775), "")
 	db := CreateDB(&Conf{DBPath: testDBPath})
 	defer db.Close()
 	defer func() {
@@ -172,7 +199,7 @@ func TestCreateDBInEmptyDir(t *testing.T) {
 
 func TestCreateDBInNonEmptyDir(t *testing.T) {
 	require.NoError(t, os.RemoveAll(testDBPath), "")
-	require.NoError(t, os.MkdirAll(testDBPath, 0775), "")
+	require.NoError(t, os.MkdirAll(testDBPath, 0o775), "")
 	file, err := os.Create(filepath.Join(testDBPath, "dummyfile.txt"))
 	require.NoError(t, err, "")
 	file.Close()

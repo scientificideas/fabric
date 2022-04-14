@@ -17,7 +17,6 @@ import (
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/bccsp/sw"
 	"github.com/hyperledger/fabric/common/channelconfig"
-	newchannelconfig "github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/configtx"
 	"github.com/hyperledger/fabric/common/ledger/blockledger"
 	"github.com/hyperledger/fabric/common/ledger/blockledger/fileledger"
@@ -46,13 +45,13 @@ type mockBlockWriterSupport struct {
 	bccsp      bccsp.BCCSP
 }
 
-func (mbws mockBlockWriterSupport) Update(bundle *newchannelconfig.Bundle) {}
+func (mbws mockBlockWriterSupport) Update(bundle *channelconfig.Bundle) {}
 
-func (mbws mockBlockWriterSupport) CreateBundle(channelID string, config *cb.Config) (*newchannelconfig.Bundle, error) {
+func (mbws mockBlockWriterSupport) CreateBundle(channelID string, config *cb.Config) (*channelconfig.Bundle, error) {
 	return channelconfig.NewBundle(channelID, config, mbws.bccsp)
 }
 
-func (mbws mockBlockWriterSupport) SharedConfig() newchannelconfig.Orderer {
+func (mbws mockBlockWriterSupport) SharedConfig() channelconfig.Orderer {
 	return mbws.fakeConfig
 }
 
@@ -242,9 +241,53 @@ func TestGoodWriteConfig(t *testing.T) {
 
 	// Wait for the commit to complete
 	bw.committingBlock.Lock()
-	bw.committingBlock.Unlock()
+	bw.committingBlock.Unlock() //lint:ignore SA2001 syncpoint
 
 	cBlock := blockledger.GetBlock(l, block.Header.Number)
+	require.Equal(t, block.Header, cBlock.Header)
+	require.Equal(t, block.Data, cBlock.Data)
+
+	omd, err := protoutil.GetConsenterMetadataFromBlock(block)
+	require.NoError(t, err)
+	require.Equal(t, consenterMetadata, omd.Value)
+}
+
+func TestWriteConfigSynchronously(t *testing.T) {
+	confSys := genesisconfig.Load(genesisconfig.SampleInsecureSoloProfile, configtest.GetDevConfigDir())
+	genesisBlockSys := encoder.New(confSys).GenesisBlock()
+
+	tmpdir, err := ioutil.TempDir("", "file-ledger")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	_, l := newLedgerAndFactory(tmpdir, "testchannelid", genesisBlockSys)
+
+	fakeConfig := &mock.OrdererConfig{}
+	fakeConfig.ConsensusTypeReturns("solo")
+
+	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
+	require.NoError(t, err)
+
+	mockValidator := &mocks.ConfigTXValidator{}
+	mockValidator.ChannelIDReturns("testchannelid")
+	bw := newBlockWriter(genesisBlockSys, nil,
+		&mockBlockWriterSupport{
+			SignerSerializer:  mockCrypto(),
+			ReadWriter:        l,
+			ConfigTXValidator: mockValidator,
+			fakeConfig:        fakeConfig,
+			bccsp:             cryptoProvider,
+		},
+	)
+
+	ctx := makeConfigTxFull("testchannelid", 1)
+	block := protoutil.NewBlock(1, protoutil.BlockHeaderHash(genesisBlockSys.Header))
+	block.Data.Data = [][]byte{protoutil.MarshalOrPanic(ctx)}
+	consenterMetadata := []byte("foo")
+	bw.WriteConfigBlock(block, consenterMetadata)
+
+	cBlock, err := blockledger.GetBlockByNumber(l, block.Header.Number)
+	require.Nil(t, err)
 	require.Equal(t, block.Header, cBlock.Header)
 	require.Equal(t, block.Data, cBlock.Data)
 
@@ -291,7 +334,7 @@ func TestMigrationWriteConfig(t *testing.T) {
 
 	// Wait for the commit to complete
 	bw.committingBlock.Lock()
-	bw.committingBlock.Unlock()
+	bw.committingBlock.Unlock() //lint:ignore SA2001 syncpoint
 
 	cBlock := blockledger.GetBlock(l, block.Header.Number)
 	require.Equal(t, block.Header, cBlock.Header)
@@ -345,7 +388,7 @@ func TestRaceWriteConfig(t *testing.T) {
 
 	// Wait for the commit to complete
 	bw.committingBlock.Lock()
-	bw.committingBlock.Unlock()
+	bw.committingBlock.Unlock() //lint:ignore SA2001 syncpoint
 
 	cBlock := blockledger.GetBlock(l, block1.Header.Number)
 	require.Equal(t, block1.Header, cBlock.Header)
@@ -362,6 +405,74 @@ func TestRaceWriteConfig(t *testing.T) {
 	omd, err := protoutil.GetConsenterMetadataFromBlock(block1)
 	require.NoError(t, err)
 	require.Equal(t, consenterMetadata1, omd.Value)
+}
+
+func TestRaceWriteBlocks(t *testing.T) {
+	confSys := genesisconfig.Load(genesisconfig.SampleInsecureSoloProfile, configtest.GetDevConfigDir())
+	genesisBlockSys := encoder.New(confSys).GenesisBlock()
+
+	tmpdir, err := ioutil.TempDir("", "file-ledger")
+	require.NoError(t, err)
+	defer os.RemoveAll(tmpdir)
+
+	_, l := newLedgerAndFactory(tmpdir, "testchannelid", genesisBlockSys)
+
+	fakeConfig := &mock.OrdererConfig{}
+	fakeConfig.ConsensusTypeReturns("solo")
+
+	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
+	require.NoError(t, err)
+
+	mockValidator := &mocks.ConfigTXValidator{}
+	bw := newBlockWriter(genesisBlockSys, nil,
+		&mockBlockWriterSupport{
+			SignerSerializer:  mockCrypto(),
+			ReadWriter:        l,
+			ConfigTXValidator: mockValidator,
+			fakeConfig:        fakeConfig,
+			bccsp:             cryptoProvider,
+		},
+	)
+
+	ctx := makeConfigTxFull("testchannelid", 1)
+	block1 := protoutil.NewBlock(1, protoutil.BlockHeaderHash(genesisBlockSys.Header))
+	block1.Data.Data = [][]byte{protoutil.MarshalOrPanic(ctx)}
+	consenterMetadata1 := []byte("foo")
+	mockValidator.SequenceReturnsOnCall(1, 1)
+
+	ctx = makeConfigTxFull("testchannelid", 1)
+	block2 := protoutil.NewBlock(2, protoutil.BlockHeaderHash(block1.Header))
+	block2.Data.Data = [][]byte{protoutil.MarshalOrPanic(ctx)}
+	consenterMetadata2 := []byte("bar")
+	mockValidator.SequenceReturnsOnCall(2, 2)
+
+	ctx = makeConfigTxFull("testchannelid", 1)
+	block3 := protoutil.NewBlock(3, protoutil.BlockHeaderHash(block2.Header))
+	block3.Data.Data = [][]byte{protoutil.MarshalOrPanic(ctx)}
+	consenterMetadata3 := []byte("3")
+	mockValidator.SequenceReturnsOnCall(3, 3)
+
+	bw.WriteBlock(block1, consenterMetadata1)
+	bw.WriteBlock(block2, consenterMetadata2)
+	bw.WriteConfigBlock(block3, consenterMetadata3)
+
+	cBlock, err := blockledger.GetBlockByNumber(l, block1.Header.Number)
+	require.Nil(t, err)
+	require.Equal(t, block1.Header, cBlock.Header)
+	require.Equal(t, block1.Data, cBlock.Data)
+
+	cBlock, err = blockledger.GetBlockByNumber(l, block2.Header.Number)
+	require.Nil(t, err)
+	require.Equal(t, block2.Header, cBlock.Header)
+	require.Equal(t, block2.Data, cBlock.Data)
+
+	cBlock, err = blockledger.GetBlockByNumber(l, block3.Header.Number)
+	require.Nil(t, err)
+	require.Equal(t, block3.Header, cBlock.Header)
+	require.Equal(t, block3.Data, cBlock.Data)
+
+	expectedLastConfigBlockNumber := block3.Header.Number
+	testLastConfigBlockNumber(t, block3, expectedLastConfigBlockNumber)
 }
 
 func testLastConfigBlockNumber(t *testing.T, block *cb.Block, expectedBlockNumber uint64) {

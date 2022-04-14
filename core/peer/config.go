@@ -31,6 +31,7 @@ import (
 	"github.com/hyperledger/fabric/common/viperutil"
 	"github.com/hyperledger/fabric/core/config"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
+	gatewayconfig "github.com/hyperledger/fabric/internal/pkg/gateway/config"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -124,6 +125,10 @@ type Config struct {
 	// registered to deliver service for blocks and transaction events.
 	LimitsConcurrencyDeliverService int
 
+	// LimitsConcurrencyGatewayService sets the limits for concurrent requests to
+	// gateway service that handles the submission and evaluation of transactions.
+	LimitsConcurrencyGatewayService int
+
 	// ----- TLS -----
 	// Require server-side TLS.
 	// TODO: create separate sub-struct for PeerTLS config.
@@ -207,6 +212,13 @@ type Config struct {
 	DockerKey string
 	// DockerCA is the path to the PEM encoded CA certificate for the docker daemon.
 	DockerCA string
+
+	// ----- Gateway config -----
+
+	// The gateway service is used by client SDKs to
+	// interact with fabric networks
+
+	GatewayOptions gatewayconfig.Options
 }
 
 // GlobalConfig obtains a set of configuration from viper, build and returns
@@ -243,6 +255,7 @@ func (c *Config) load() error {
 	c.NetworkID = viper.GetString("peer.networkId")
 	c.LimitsConcurrencyEndorserService = viper.GetInt("peer.limits.concurrency.endorserService")
 	c.LimitsConcurrencyDeliverService = viper.GetInt("peer.limits.concurrency.deliverService")
+	c.LimitsConcurrencyGatewayService = viper.GetInt("peer.limits.concurrency.gatewayService")
 	c.DiscoveryEnabled = viper.GetBool("peer.discovery.enabled")
 	c.ProfileEnabled = viper.GetBool("peer.profile.enabled")
 	c.ProfileListenAddress = viper.GetString("peer.profile.listenAddress")
@@ -265,6 +278,8 @@ func (c *Config) load() error {
 	if viper.IsSet("peer.keepalive.deliveryClient.timeout") {
 		c.DeliverClientKeepaliveOptions.ClientTimeout = viper.GetDuration("peer.keepalive.deliveryClient.timeout")
 	}
+
+	c.GatewayOptions = gatewayconfig.GetOptions(viper.GetViper())
 
 	c.VMEndpoint = viper.GetString("vm.endpoint")
 	c.VMDockerTLSEnabled = viper.GetBool("vm.docker.tls.enabled")
@@ -330,7 +345,7 @@ func getLocalAddress() (string, error) {
 		return "", errors.Errorf("peer.address isn't in host:port format: %s", peerAddress)
 	}
 
-	localIP, err := comm.GetLocalIP()
+	localIP, err := getLocalIP()
 	if err != nil {
 		peerLogger.Errorf("local IP address not auto-detectable: %s", err)
 		return "", err
@@ -350,7 +365,23 @@ func getLocalAddress() (string, error) {
 	}
 	peerLogger.Info("Returning", peerAddress)
 	return peerAddress, nil
+}
 
+// getLocalIP returns the a loopback local IP of the host.
+func getLocalIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+	for _, address := range addrs {
+		// check the address type and if it is not a loopback then display it
+		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP.String(), nil
+			}
+		}
+	}
+	return "", errors.Errorf("no non-loopback, IPv4 interface detected")
 }
 
 // GetServerConfig returns the gRPC server configuration for the peer

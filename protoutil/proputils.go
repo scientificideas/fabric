@@ -188,7 +188,7 @@ func GetSignatureHeader(bytes []byte) (*common.SignatureHeader, error) {
 // GetBytesTransaction get the bytes of Transaction from the message
 func GetBytesTransaction(tx *peer.Transaction) ([]byte, error) {
 	bytes, err := proto.Marshal(tx)
-	return bytes, errors.Wrap(err, "error unmarshaling Transaction")
+	return bytes, errors.Wrap(err, "error unmarshalling Transaction")
 }
 
 // GetBytesPayload get the bytes of Payload from the message

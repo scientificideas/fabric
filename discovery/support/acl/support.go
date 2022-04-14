@@ -15,9 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	logger = flogging.MustGetLogger("discovery.acl")
-)
+var logger = flogging.MustGetLogger("discovery.acl")
 
 // ChannelConfigGetter enables to retrieve the channel config resources
 type ChannelConfigGetter interface {
@@ -98,6 +96,7 @@ func (s *DiscoverySupport) SatisfiesPrincipal(channel string, rawIdentity []byte
 	}
 	identity, err := mspMgr.DeserializeIdentity(rawIdentity)
 	if err != nil {
+		logger.Warnw("failed deserializing identity", "error", err, "identity", protoutil.LogMessageForSerializedIdentity(rawIdentity))
 		return errors.Wrap(err, "failed deserializing identity")
 	}
 	return identity.SatisfiesPrincipal(principal)

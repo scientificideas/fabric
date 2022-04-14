@@ -10,6 +10,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric/core/chaincode/extcc"
 	"github.com/hyperledger/fabric/core/chaincode/extcc/mock"
 	"github.com/hyperledger/fabric/core/container/ccintf"
@@ -60,8 +61,8 @@ var _ = Describe("Extcc", func() {
 				ccinfo := &ccintf.ChaincodeServerInfo{
 					Address: cclist.Addr().String(),
 					ClientConfig: comm.ClientConfig{
-						KaOpts:  comm.DefaultKeepaliveOptions,
-						Timeout: 10 * time.Second,
+						KaOpts:      comm.DefaultKeepaliveOptions,
+						DialTimeout: 10 * time.Second,
 					},
 				}
 				err := i.Stream("ccid", ccinfo, shandler)
@@ -73,21 +74,23 @@ var _ = Describe("Extcc", func() {
 			})
 		})
 		Context("chaincode info incorrect", func() {
-			var (
-				ccinfo *ccintf.ChaincodeServerInfo
-			)
+			var ccinfo *ccintf.ChaincodeServerInfo
 			BeforeEach(func() {
+				ca, err := tlsgen.NewCA()
+				Expect(err).NotTo(HaveOccurred())
+				ckp, err := ca.NewClientCertKeyPair()
+				Expect(err).NotTo(HaveOccurred())
 				ccinfo = &ccintf.ChaincodeServerInfo{
 					Address: "ccaddress:12345",
 					ClientConfig: comm.ClientConfig{
 						SecOpts: comm.SecureOptions{
 							UseTLS:            true,
 							RequireClientCert: true,
-							Certificate:       []byte("fake-cert"),
-							Key:               []byte("fake-key"),
-							ServerRootCAs:     [][]byte{[]byte("fake-root-cert")},
+							Certificate:       ckp.Cert,
+							Key:               ckp.Key,
+							ServerRootCAs:     [][]byte{ca.CertBytes()},
 						},
-						Timeout: 10 * time.Second,
+						DialTimeout: 10 * time.Second,
 					},
 				}
 			})

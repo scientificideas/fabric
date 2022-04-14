@@ -1,3 +1,11 @@
+# Hyperledger Fabric Changelog
+
+Hyperledger Fabric [releases](https://github.com/hyperledger/fabric/releases) each have a changelog maintained by GitHub.
+
+# Early Hyperledger Fabric release Changelogs
+
+Early Hyperledger Fabric releases prior to v2.0 copied commit history into the changelog file below.
+
 ## "v2.0.0-beta"
 
 * [7cd1eda](https://github.com/hyperledger/fabric/commit/7cd1eda) Add release notes for v2.0.0-beta
@@ -5083,7 +5091,7 @@ Fri Jun 23 14:53:05 EDT 2017
 * [0a72230b](https://github.com/hyperledger/fabric/commit/0a72230b) [FAB-2487](https://jira.hyperledger.org/browse/FAB-2487) Change test string to comply with rule
 * [e02053c9](https://github.com/hyperledger/fabric/commit/e02053c9) [FAB-4473](https://jira.hyperledger.org/browse/FAB-4473) mod cc cache strategy to store minimal data
 * [49b3851b](https://github.com/hyperledger/fabric/commit/49b3851b) [FAB-4500](https://jira.hyperledger.org/browse/FAB-4500) Fix words in orderer.yaml
-* [9c4cb515](https://github.com/hyperledger/fabric/commit/9c4cb515) [FAB-4616](https://jira.hyperledger.org/browse/FAB-4616) Skip type switch on unmarshaling error
+* [9c4cb515](https://github.com/hyperledger/fabric/commit/9c4cb515) [FAB-4616](https://jira.hyperledger.org/browse/FAB-4616) Skip type switch on unmarshalling error
 * [ad608166](https://github.com/hyperledger/fabric/commit/ad608166) [FAB-4176](https://jira.hyperledger.org/browse/FAB-4176) Weekly Test Runs for Auction App
 * [abc81afb](https://github.com/hyperledger/fabric/commit/abc81afb) [FAB-3934](https://jira.hyperledger.org/browse/FAB-3934) Daily Test Runs for Auction App
 * [03d43c36](https://github.com/hyperledger/fabric/commit/03d43c36) [FAB-2487](https://jira.hyperledger.org/browse/FAB-2487) Cleanup couchdb name translation logic
@@ -5791,7 +5799,7 @@ Wed Jun  7 08:49:09 EDT 2017
 * [4e0f96b](https://github.com/hyperledger/fabric/commit/4e0f96b) create ledger with genesis block
 * [466ab2d](https://github.com/hyperledger/fabric/commit/466ab2d) It must be an absolute path in gotools/Makefile
 * [43dfde6](https://github.com/hyperledger/fabric/commit/43dfde6) fabric-ca readthedocs update
-* [4323395](https://github.com/hyperledger/fabric/commit/4323395) [FAB-2954](https://jira.hyperledger.org/browse/FAB-2954) Upated yaml.v2 with latest version
+* [4323395](https://github.com/hyperledger/fabric/commit/4323395) [FAB-2954](https://jira.hyperledger.org/browse/FAB-2954) Updated yaml.v2 with latest version
 * [0aa53d7](https://github.com/hyperledger/fabric/commit/0aa53d7) Enhance validation of chaincode names/versions in LCCC
 * [a37fa64](https://github.com/hyperledger/fabric/commit/a37fa64) [FAB-2678](https://jira.hyperledger.org/browse/FAB-2678) o.h.protos to o.h.fabric.protos.peer
 * [047cc27](https://github.com/hyperledger/fabric/commit/047cc27) [FAB-2936](https://jira.hyperledger.org/browse/FAB-2936) Vendor latest version of sarama library

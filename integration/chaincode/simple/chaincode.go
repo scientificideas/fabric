@@ -16,8 +16,7 @@ import (
 )
 
 // SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
-}
+type SimpleChaincode struct{}
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	fmt.Println("Init invoked")
@@ -72,7 +71,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		// Deletes an entity from its state
 		return t.delete(stub, args)
 	case "query":
-		// the old "Query" is now implemtned in invoke
+		// the old "Query" is now implemented in invoke
 		return t.query(stub, args)
 	case "respond":
 		// return with an error
@@ -82,8 +81,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 		return t.mspid(args)
 	case "issue":
 		return t.issue(stub, args)
+	case "event":
+		return t.event(stub, args)
 	default:
-		return shim.Error(`Invalid invoke function name. Expecting "invoke", "delete", "query", "respond", or "mspid"`)
+		return shim.Error(`Invalid invoke function name. Expecting "invoke", "delete", "query", "respond", "mspid", or "event"`)
 	}
 }
 
@@ -259,4 +260,17 @@ func (t *SimpleChaincode) mspid(args []string) pb.Response {
 
 	fmt.Printf("MSPID:%s\n", mspid)
 	return shim.Success([]byte(mspid))
+}
+
+// event emits a chaincode event
+func (t *SimpleChaincode) event(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Expecting 2")
+	}
+
+	if err := stub.SetEvent(args[0], []byte(args[1])); err != nil {
+		return shim.Error(err.Error())
+	}
+
+	return shim.Success(nil)
 }

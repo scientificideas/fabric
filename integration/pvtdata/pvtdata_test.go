@@ -34,13 +34,11 @@ import (
 	mspp "github.com/hyperledger/fabric-protos-go/msp"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
-	"github.com/hyperledger/fabric/bccsp/sw"
 	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/core/ledger/util"
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
 	"github.com/hyperledger/fabric/integration/pvtdata/marblechaincodeutil"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/msp"
 	"github.com/hyperledger/fabric/protoutil"
 	"github.com/onsi/gomega/gbytes"
@@ -86,7 +84,6 @@ var _ bool = Describe("PrivateData", func() {
 		})
 
 		It("disseminates private data per collections_config1 (positive test) and collections_config8 (negative test)", func() {
-
 			By("deploying legacy chaincode and adding marble1")
 			testChaincode := chaincode{
 				Chaincode: nwo.Chaincode{
@@ -174,9 +171,7 @@ var _ bool = Describe("PrivateData", func() {
 	})
 
 	Describe("Pvtdata behavior when a peer with new certs joins the network", func() {
-		var (
-			peerProcesses map[string]ifrit.Process
-		)
+		var peerProcesses map[string]ifrit.Process
 
 		BeforeEach(func() {
 			By("setting up the network")
@@ -306,7 +301,8 @@ var _ bool = Describe("PrivateData", func() {
 				Path:              "github.com/hyperledger/fabric/integration/chaincode/marbles_private/cmd",
 				Ctor:              `{"Args":["init"]}`,
 				Policy:            `OR ('Org1MSP.member','Org2MSP.member', 'Org3MSP.member')`,
-				CollectionsConfig: filepath.Join("testdata", "collection_configs", "collections_config1.json")}
+				CollectionsConfig: filepath.Join("testdata", "collection_configs", "collections_config1.json"),
+			}
 
 			sess, err = network.PeerUserSession(org2Peer1, "Admin2", commands.ChaincodeInstallLegacy{
 				Name:        chaincode.Name,
@@ -348,7 +344,7 @@ var _ bool = Describe("PrivateData", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 						channelInfoStr := strings.TrimPrefix(string(sess.Buffer().Contents()[:]), "Blockchain info:")
-						var channelInfo = cb.BlockchainInfo{}
+						channelInfo := cb.BlockchainInfo{}
 						err = json.Unmarshal([]byte(channelInfoStr), &channelInfo)
 						Expect(err).NotTo(HaveOccurred())
 						return int(channelInfo.Height)
@@ -833,7 +829,8 @@ var _ bool = Describe("PrivateData", func() {
 			peerList := []*nwo.Peer{
 				network.Peer("Org1", "peer0"),
 				network.Peer("Org2", "peer0"),
-				network.Peer("Org3", "peer0")}
+				network.Peer("Org3", "peer0"),
+			}
 
 			By("verifying getMarbleHash is accessible from all peers that has the chaincode instantiated")
 			expectedBytes := util.ComputeStringHash(`{"docType":"marble","name":"test-marble-1","color":"blue","size":35,"owner":"tom"}`)
@@ -854,7 +851,7 @@ var _ bool = Describe("PrivateData", func() {
 		// before and after upgrade.
 		assertDeliverWithPrivateDataACLBehavior := func() {
 			By("getting signing identity for a user in org1")
-			signingIdentity := getSigningIdentity(network, "Org1", "User1", "Org1MSP", "bccsp")
+			signingIdentity := network.PeerUserSigner(network.Peer("Org1", "peer0"), "User1")
 
 			By("adding a marble")
 			peer := network.Peer("Org2", "peer0")
@@ -1177,7 +1174,6 @@ func assertPvtdataPresencePerCollectionConfig7(n *nwo.Network, chaincodeName, ma
 	}
 	Expect(collectionMPresence).To(Equal(1))
 	Expect(collectionMPDPresence).To(Equal(1))
-
 }
 
 // deliverEvent contains the response and related info from a DeliverWithPrivateData call
@@ -1189,7 +1185,7 @@ type deliverEvent struct {
 
 // getEventFromDeliverService send a request to DeliverWithPrivateData grpc service
 // and receive the response
-func getEventFromDeliverService(network *nwo.Network, peer *nwo.Peer, channelID string, signingIdentity msp.SigningIdentity, blockNum uint64) *deliverEvent {
+func getEventFromDeliverService(network *nwo.Network, peer *nwo.Peer, channelID string, signingIdentity *nwo.SigningIdentity, blockNum uint64) *deliverEvent {
 	ctx, cancelFunc1 := context.WithTimeout(context.Background(), network.EventuallyTimeout)
 	defer cancelFunc1()
 	eventCh, conn := registerForDeliverEvent(ctx, network, peer, channelID, signingIdentity, blockNum)
@@ -1205,108 +1201,57 @@ func registerForDeliverEvent(
 	network *nwo.Network,
 	peer *nwo.Peer,
 	channelID string,
-	signingIdentity msp.SigningIdentity,
+	signingIdentity *nwo.SigningIdentity,
 	blockNum uint64,
 ) (<-chan deliverEvent, *grpc.ClientConn) {
-	// create a comm.GRPCClient
-	tlsRootCertFile := filepath.Join(network.PeerLocalTLSDir(peer), "ca.crt")
-	caPEM, err := ioutil.ReadFile(tlsRootCertFile)
-	Expect(err).NotTo(HaveOccurred())
-	clientConfig := comm.ClientConfig{Timeout: 10 * time.Second}
-	clientConfig.SecOpts = comm.SecureOptions{
-		UseTLS:            true,
-		ServerRootCAs:     [][]byte{caPEM},
-		RequireClientCert: false,
-	}
-	grpcClient, err := comm.NewGRPCClient(clientConfig)
-	Expect(err).NotTo(HaveOccurred())
-	// create a client for DeliverWithPrivateData
-	address := network.PeerAddress(peer, nwo.ListenPort)
-	conn, err := grpcClient.NewConnection(address)
-	Expect(err).NotTo(HaveOccurred())
+	// create a grpc.ClientConn
+	conn := network.PeerClientConn(peer)
+
 	dp, err := pb.NewDeliverClient(conn).DeliverWithPrivateData(ctx)
 	Expect(err).NotTo(HaveOccurred())
+
 	// send a deliver request
 	envelope, err := createDeliverEnvelope(channelID, signingIdentity, blockNum)
 	Expect(err).NotTo(HaveOccurred())
 	err = dp.Send(envelope)
-	dp.CloseSend()
 	Expect(err).NotTo(HaveOccurred())
+	err = dp.CloseSend()
+	Expect(err).NotTo(HaveOccurred())
+
 	// create a goroutine to receive the response in a separate thread
 	eventCh := make(chan deliverEvent, 1)
-	go receiveDeliverResponse(dp, address, eventCh)
+	go receiveDeliverResponse(dp, peer, eventCh)
 
 	return eventCh, conn
 }
 
-func getSigningIdentity(network *nwo.Network, org, user, mspID, mspType string) msp.SigningIdentity {
-	peerForOrg := network.Peer(org, "peer0")
-	mspConfigPath := network.PeerUserMSPDir(peerForOrg, user)
-	mspInstance, err := loadLocalMSPAt(mspConfigPath, mspID, mspType)
-	Expect(err).NotTo(HaveOccurred())
-
-	signingIdentity, err := mspInstance.GetDefaultSigningIdentity()
-	Expect(err).NotTo(HaveOccurred())
-	return signingIdentity
-}
-
-// loadLocalMSPAt loads an MSP whose configuration is stored at 'dir', and whose
-// id and type are the passed as arguments.
-func loadLocalMSPAt(dir, id, mspType string) (msp.MSP, error) {
-	if mspType != "bccsp" {
-		return nil, errors.Errorf("invalid msp type, expected 'bccsp', got %s", mspType)
-	}
-	conf, err := msp.GetLocalMspConfig(dir, nil, id)
-	if err != nil {
-		return nil, err
-	}
-	ks, err := sw.NewFileBasedKeyStore(nil, filepath.Join(dir, "keystore"), true)
-	if err != nil {
-		return nil, err
-	}
-	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
-	if err != nil {
-		return nil, err
-	}
-	thisMSP, err := msp.NewBccspMspWithKeyStore(msp.MSPv1_0, ks, cryptoProvider)
-	if err != nil {
-		return nil, err
-	}
-	err = thisMSP.Setup(conf)
-	if err != nil {
-		return nil, err
-	}
-	return thisMSP, nil
-}
-
 // receiveDeliverResponse expects to receive the BlockAndPrivateData response for the requested block.
-func receiveDeliverResponse(dp pb.Deliver_DeliverWithPrivateDataClient, address string, eventCh chan<- deliverEvent) error {
+func receiveDeliverResponse(dp pb.Deliver_DeliverWithPrivateDataClient, peer *nwo.Peer, eventCh chan<- deliverEvent) {
 	event := deliverEvent{}
 
 	resp, err := dp.Recv()
 	if err != nil {
-		event.Err = errors.WithMessagef(err, "error receiving deliver response from peer %s\n", address)
+		event.Err = errors.WithMessagef(err, "error receiving deliver response from peer %s", peer.ID())
 	}
 	switch r := resp.Type.(type) {
 	case *pb.DeliverResponse_BlockAndPrivateData:
 		event.BlockAndPvtData = r.BlockAndPrivateData
 		event.BlockNum = r.BlockAndPrivateData.Block.Header.Number
 	case *pb.DeliverResponse_Status:
-		event.Err = errors.Errorf("deliver completed with status (%s) before DeliverResponse_BlockAndPrivateData received from peer %s", r.Status, address)
+		event.Err = errors.Errorf("deliver completed with status (%s) before DeliverResponse_BlockAndPrivateData received from peer %s", r.Status, peer.ID())
 	default:
-		event.Err = errors.Errorf("received unexpected response type (%T) from peer %s", r, address)
+		event.Err = errors.Errorf("received unexpected response type (%T) from peer %s", r, peer.ID())
 	}
 
 	select {
 	case eventCh <- event:
 	default:
 	}
-	return nil
 }
 
 // createDeliverEnvelope creates a deliver request based on the block number.
 // blockNum=0 means newest block
-func createDeliverEnvelope(channelID string, signingIdentity msp.SigningIdentity, blockNum uint64) (*cb.Envelope, error) {
+func createDeliverEnvelope(channelID string, signingIdentity *nwo.SigningIdentity, blockNum uint64) (*cb.Envelope, error) {
 	creator, err := signingIdentity.Serialize()
 	if err != nil {
 		return nil, err

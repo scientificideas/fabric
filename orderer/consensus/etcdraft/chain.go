@@ -114,7 +114,7 @@ type Options struct {
 	MaxSizePerMsg     uint64
 	MaxInflightBlocks int
 
-	// BlockMetdata and Consenters should only be modified while under lock
+	// BlockMetadata and Consenters should only be modified while under lock
 	// of raftMetadataLock
 	BlockMetadata *etcdraft.BlockMetadata
 	Consenters    map[uint64]*etcdraft.Consenter
@@ -217,7 +217,6 @@ func NewChain(
 	haltCallback func(),
 	observeC chan<- raft.SoftState,
 ) (*Chain, error) {
-
 	lg := opts.Logger.With("channel", support.ChannelID(), "node", opts.RaftID)
 
 	fresh := !wal.Exist(opts.WALDir)
@@ -892,7 +891,12 @@ func (c *Chain) writeBlock(block *common.Block, index uint64) {
 func (c *Chain) ordered(msg *orderer.SubmitRequest) (batches [][]*common.Envelope, pending bool, err error) {
 	seq := c.support.Sequence()
 
-	if c.isConfig(msg.Payload) {
+	isconfig, err := c.isConfig(msg.Payload)
+	if err != nil {
+		return nil, false, errors.Errorf("bad message: %s", err)
+	}
+
+	if isconfig {
 		// ConfigMsg
 		if msg.LastValidationSeq < seq {
 			c.logger.Warnf("Config message was validated against %d, although current config seq has advanced (%d)", msg.LastValidationSeq, seq)
@@ -921,7 +925,6 @@ func (c *Chain) ordered(msg *orderer.SubmitRequest) (batches [][]*common.Envelop
 	}
 	batches, pending = c.support.BlockCutter().Ordered(msg.Payload)
 	return batches, pending, nil
-
 }
 
 func (c *Chain) propose(ch chan<- *common.Block, bc *blockCreator, batches ...[]*common.Envelope) {
@@ -1165,13 +1168,14 @@ func (c *Chain) gc() {
 	}
 }
 
-func (c *Chain) isConfig(env *common.Envelope) bool {
+func (c *Chain) isConfig(env *common.Envelope) (bool, error) {
 	h, err := protoutil.ChannelHeader(env)
 	if err != nil {
-		c.logger.Panicf("failed to extract channel header from envelope")
+		c.logger.Errorf("failed to extract channel header from envelope")
+		return false, err
 	}
 
-	return h.Type == int32(common.HeaderType_CONFIG) || h.Type == int32(common.HeaderType_ORDERER_TRANSACTION)
+	return h.Type == int32(common.HeaderType_CONFIG) || h.Type == int32(common.HeaderType_ORDERER_TRANSACTION), nil
 }
 
 func (c *Chain) configureComm() error {
@@ -1418,7 +1422,7 @@ func (c *Chain) ValidateConsensusMetadata(oldOrdererConfig, newOrdererConfig cha
 		return err
 	}
 
-	//new config metadata was verified above. Additionally need to check new consenters for certificates expiration
+	// new config metadata was verified above. Additionally need to check new consenters for certificates expiration
 	for _, c := range changes.AddedNodes {
 		if err := validateConsenterTLSCerts(c, verifyOpts, false); err != nil {
 			return errors.Wrapf(err, "consenter %s:%d has invalid certificates", c.Host, c.Port)

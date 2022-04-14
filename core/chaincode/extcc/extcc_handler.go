@@ -11,7 +11,6 @@ import (
 
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/core/container/ccintf"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/pkg/errors"
 
 	pb "github.com/hyperledger/fabric-protos-go/peer"
@@ -26,18 +25,12 @@ type StreamHandler interface {
 	HandleChaincodeStream(stream ccintf.ChaincodeStream) error
 }
 
-type ExternalChaincodeRuntime struct {
-}
+type ExternalChaincodeRuntime struct{}
 
 // createConnection - standard grpc client creating using ClientConfig info (surprised there isn't
 // a helper method for this)
 func (i *ExternalChaincodeRuntime) createConnection(ccid string, ccinfo *ccintf.ChaincodeServerInfo) (*grpc.ClientConn, error) {
-	grpcClient, err := comm.NewGRPCClient(ccinfo.ClientConfig)
-	if err != nil {
-		return nil, errors.WithMessagef(err, "error creating grpc client to %s", ccid)
-	}
-
-	conn, err := grpcClient.NewConnection(ccinfo.Address)
+	conn, err := ccinfo.ClientConfig.Dial(ccinfo.Address)
 	if err != nil {
 		return nil, errors.WithMessagef(err, "error creating grpc connection to %s", ccinfo.Address)
 	}
@@ -56,7 +49,7 @@ func (i *ExternalChaincodeRuntime) Stream(ccid string, ccinfo *ccintf.ChaincodeS
 
 	defer conn.Close()
 
-	//create the client and start streaming
+	// create the client and start streaming
 	client := pb.NewChaincodeClient(conn)
 
 	stream, err := client.Connect(context.Background())
@@ -64,7 +57,7 @@ func (i *ExternalChaincodeRuntime) Stream(ccid string, ccinfo *ccintf.ChaincodeS
 		return errors.WithMessagef(err, "error creating grpc client connection to %s", ccid)
 	}
 
-	//peer as client has to initiate the stream. Rest of the process is unchanged
+	// peer as client has to initiate the stream. Rest of the process is unchanged
 	sHandler.HandleChaincodeStream(stream)
 
 	extccLogger.Debugf("External chaincode %s client exited", ccid)

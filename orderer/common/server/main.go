@@ -182,12 +182,12 @@ func Main() {
 
 	if isClusterType {
 		logger.Infof("Setting up cluster")
-		clusterClientConfig = initializeClusterClientConfig(conf)
+		clusterClientConfig, reuseGrpcListener = initializeClusterClientConfig(conf)
 		clusterDialer = &cluster.PredicateDialer{
 			Config: clusterClientConfig,
 		}
 
-		if reuseGrpcListener = reuseListener(conf); !reuseGrpcListener {
+		if !reuseGrpcListener {
 			clusterServerConfig, clusterGRPCServer = configureClusterListener(conf, serverConfig, ioutil.ReadFile)
 		}
 
@@ -536,12 +536,12 @@ func configureClusterListener(conf *localconfig.TopLevel, generalConf comm.Serve
 	return serverConf, srv
 }
 
-func initializeClusterClientConfig(conf *localconfig.TopLevel) comm.ClientConfig {
+func initializeClusterClientConfig(conf *localconfig.TopLevel) (comm.ClientConfig, bool) {
 	cc := comm.ClientConfig{
 		AsyncConnect:   true,
 		KaOpts:         comm.DefaultKeepaliveOptions,
 		BaOpts:         comm.BackoffOptions{},
-		Timeout:        conf.General.Cluster.DialTimeout,
+		DialTimeout:    conf.General.Cluster.DialTimeout,
 		SecOpts:        comm.SecureOptions{},
 		MaxRecvMsgSize: int(conf.General.MaxRecvMsgSize),
 		MaxSendMsgSize: int(conf.General.MaxSendMsgSize),
@@ -553,7 +553,7 @@ func initializeClusterClientConfig(conf *localconfig.TopLevel) comm.ClientConfig
 	keyFile := conf.General.Cluster.ClientPrivateKey
 	if certFile == "" && keyFile == "" {
 		if !reuseGrpcListener {
-			return cc
+			return cc, reuseGrpcListener
 		}
 		certFile = conf.General.TLS.Certificate
 		keyFile = conf.General.TLS.PrivateKey

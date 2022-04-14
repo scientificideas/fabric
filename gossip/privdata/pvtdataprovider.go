@@ -85,7 +85,7 @@ type eligibilityComputer struct {
 	idDeserializerFactory   IdentityDeserializerFactory
 }
 
-// computeEligibility computes eligilibity of private data and
+// computeEligibility computes eligibility of private data and
 // groups all private data as either eligibleMissing or ineligibleMissing prior to fetching
 func (ec *eligibilityComputer) computeEligibility(mspID string, pvtdataToRetrieve []*ledger.TxPvtdataInfo) (*pvtdataRetrievalInfo, error) {
 	sources := make(map[rwSetKey][]*peer.Endorsement)
@@ -202,7 +202,7 @@ func (pdp *PvtdataProvider) RetrievePvtdata(pvtdataToRetrieve []*ledger.TxPvtdat
 
 	pvtdata := make(rwsetByKeys)
 
-	//If there is no private data to retrieve for the block, skip all population attempts and return
+	// If there is no private data to retrieve for the block, skip all population attempts and return
 	if len(pvtdataRetrievalInfo.remainingEligibleMissingKeys) == 0 {
 		pdp.logger.Debugf("No eligible collection private write sets to fetch for block [%d]", pdp.blockNum)
 		retrievedPvtdata.pvtdataRetrievalInfo = pvtdataRetrievalInfo

@@ -17,6 +17,7 @@ import (
 
 	"github.com/hyperledger/fabric/common/crypto/tlsgen"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.com/hyperledger/fabric/internal/pkg/gateway/config"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 )
@@ -36,14 +37,13 @@ func TestCacheConfigurationNegative(t *testing.T) {
 	viper.Set("peer.address", "wrongAddress")
 	_, err = GlobalConfig()
 	require.Error(t, err, "Expected error for bad configuration")
-
 }
 
 func TestPeerAddress(t *testing.T) {
-	localIP, err := comm.GetLocalIP()
+	localIP, err := getLocalIP()
 	require.NoError(t, err)
 
-	var tests = []struct {
+	tests := []struct {
 		name                string
 		settings            map[string]interface{}
 		expectedPeerAddress string
@@ -263,7 +263,7 @@ func TestGlobalConfig(t *testing.T) {
 	require.NoError(t, err, "failed to get current working directory")
 	viper.SetConfigFile(filepath.Join(cwd, "core.yaml"))
 
-	//Capture the configuration from viper
+	// Capture the configuration from viper
 	viper.Set("peer.addressAutoDetect", false)
 	viper.Set("peer.address", "localhost:8080")
 	viper.Set("peer.id", "testPeerID")
@@ -274,6 +274,7 @@ func TestGlobalConfig(t *testing.T) {
 	viper.Set("peer.networkId", "testNetwork")
 	viper.Set("peer.limits.concurrency.endorserService", 2500)
 	viper.Set("peer.limits.concurrency.deliverService", 2500)
+	viper.Set("peer.limits.concurrency.gatewayService", 500)
 	viper.Set("peer.discovery.enabled", true)
 	viper.Set("peer.profile.enabled", false)
 	viper.Set("peer.profile.listenAddress", "peer.authentication.timewindow")
@@ -284,6 +285,9 @@ func TestGlobalConfig(t *testing.T) {
 	viper.Set("peer.chaincodeListenAddress", "0.0.0.0:7052")
 	viper.Set("peer.chaincodeAddress", "0.0.0.0:7052")
 	viper.Set("peer.validatorPoolSize", 1)
+	viper.Set("peer.gateway.enabled", true)
+	viper.Set("peer.gateway.endorsementTimeout", 10*time.Second)
+	viper.Set("peer.gateway.dialTimeout", 60*time.Second)
 
 	viper.Set("vm.endpoint", "unix:///var/run/docker.sock")
 	viper.Set("vm.docker.tls.enabled", false)
@@ -331,6 +335,7 @@ func TestGlobalConfig(t *testing.T) {
 		NetworkID:                             "testNetwork",
 		LimitsConcurrencyEndorserService:      2500,
 		LimitsConcurrencyDeliverService:       2500,
+		LimitsConcurrencyGatewayService:       500,
 		DiscoveryEnabled:                      true,
 		ProfileEnabled:                        false,
 		ProfileListenAddress:                  "peer.authentication.timewindow",
@@ -378,6 +383,12 @@ func TestGlobalConfig(t *testing.T) {
 		DockerCert: filepath.Join(cwd, "test/vm/tls/cert/file"),
 		DockerKey:  filepath.Join(cwd, "test/vm/tls/key/file"),
 		DockerCA:   filepath.Join(cwd, "test/vm/tls/ca/file"),
+
+		GatewayOptions: config.Options{
+			Enabled:            true,
+			EndorsementTimeout: 10 * time.Second,
+			DialTimeout:        60 * time.Second,
+		},
 	}
 
 	require.Equal(t, coreConfig, expectedConfig)
@@ -396,6 +407,7 @@ func TestGlobalConfigDefault(t *testing.T) {
 		ValidatorPoolSize:             runtime.NumCPU(),
 		VMNetworkMode:                 "host",
 		DeliverClientKeepaliveOptions: comm.DefaultKeepaliveOptions,
+		GatewayOptions:                config.GetOptions(viper.GetViper()),
 	}
 
 	require.Equal(t, expectedConfig, coreConfig)
@@ -450,6 +462,7 @@ func TestPropagateEnvironment(t *testing.T) {
 				Path:                 "/testPath",
 			},
 		},
+		GatewayOptions: config.GetOptions(viper.GetViper()),
 	}
 	require.Equal(t, expectedConfig, coreConfig)
 }

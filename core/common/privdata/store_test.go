@@ -24,20 +24,31 @@ import (
 //go:generate counterfeiter -o mock/identity_deserializer_factory.go -fake-name IdentityDeserializerFactory . identityDeserializerFactory
 //go:generate counterfeiter -o mock/query_executor.go -fake-name QueryExecutor . queryExecutor
 
-type queryExecutorFactory interface{ QueryExecutorFactory }
-type chaincodeInfoProvider interface{ ChaincodeInfoProvider }
-type identityDeserializerFactory interface{ IdentityDeserializerFactory }
-type queryExecutor interface{ ledger.QueryExecutor }
+type (
+	queryExecutorFactory        interface{ QueryExecutorFactory }
+	chaincodeInfoProvider       interface{ ChaincodeInfoProvider }
+	identityDeserializerFactory interface{ IdentityDeserializerFactory }
+	queryExecutor               interface{ ledger.QueryExecutor }
+)
 
 func TestNewSimpleCollectionStore(t *testing.T) {
 	mockQueryExecutorFactory := &mock.QueryExecutorFactory{}
 	mockCCInfoProvider := &mock.ChaincodeInfoProvider{}
+	mockIDDeserializerFactory := &mock.IdentityDeserializerFactory{}
 
-	cs := NewSimpleCollectionStore(mockQueryExecutorFactory, mockCCInfoProvider)
+	cs := NewSimpleCollectionStore(mockQueryExecutorFactory, mockCCInfoProvider, mockIDDeserializerFactory)
 	require.NotNil(t, cs)
 	require.Exactly(t, mockQueryExecutorFactory, cs.qeFactory)
 	require.Exactly(t, mockCCInfoProvider, cs.ccInfoProvider)
-	require.NotNil(t, cs.idDeserializerFactory)
+	require.Exactly(t, mockIDDeserializerFactory, cs.idDeserializerFactory)
+	require.Equal(t,
+		&SimpleCollectionStore{
+			qeFactory:             mockQueryExecutorFactory,
+			ccInfoProvider:        mockCCInfoProvider,
+			idDeserializerFactory: mockIDDeserializerFactory,
+		},
+		cs,
+	)
 }
 
 func TestCollectionStore(t *testing.T) {
@@ -74,7 +85,7 @@ func TestCollectionStore(t *testing.T) {
 	_, err = cs.RetrieveCollection(ccr)
 	require.Contains(t, err.Error(), "error setting up collection for collection criteria")
 
-	var signers = [][]byte{[]byte("signer0"), []byte("signer1")}
+	signers := [][]byte{[]byte("signer0"), []byte("signer1")}
 	policyEnvelope := policydsl.Envelope(policydsl.Or(policydsl.SignedBy(0), policydsl.SignedBy(1)), signers)
 	accessPolicy := createCollectionPolicyConfig(policyEnvelope)
 

@@ -293,7 +293,6 @@ func TestGetMissingDataInfo(t *testing.T) {
 			assertMissingDataInfo(t, store, expectedPrioMissingDataInfo, 2)
 		}
 	})
-
 }
 
 func TestExpiryDataNotIncluded(t *testing.T) {
@@ -835,6 +834,7 @@ func testElgDeprioMissingDataKeyExists(t *testing.T, s *Store, missingDataKey *m
 	require.NoError(t, err)
 	return len(val) != 0
 }
+
 func testInelgMissingDataKeyExists(t *testing.T, s *Store, missingDataKey *missingDataKey) bool {
 	key := encodeInelgMissingDataKey(missingDataKey)
 
@@ -846,7 +846,7 @@ func testInelgMissingDataKeyExists(t *testing.T, s *Store, missingDataKey *missi
 func testWaitForPurgerRoutineToFinish(s *Store) {
 	time.Sleep(1 * time.Second)
 	s.purgerLock.Lock()
-	s.purgerLock.Unlock()
+	s.purgerLock.Unlock() //lint:ignore SA2001 syncpoint
 }
 
 func testutilWaitForCollElgProcToFinish(s *Store) {

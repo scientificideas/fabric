@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package operations
 
 import (
+	"context"
 	"net"
 	"strings"
 	"time"
@@ -131,6 +132,11 @@ func (s *System) initializeMetricsProvider() error {
 	case "prometheus":
 		s.Provider = &prometheus.Provider{}
 		s.versionGauge = versionGauge(s.Provider)
+		// swagger:operation GET /metrics operations metrics
+		// ---
+		// responses:
+		//     '200':
+		//        description: Ok.
 		s.RegisterHandler("/metrics", promhttp.Handler(), s.options.TLS.Enabled)
 		return nil
 
@@ -146,11 +152,43 @@ func (s *System) initializeMetricsProvider() error {
 }
 
 func (s *System) initializeLoggingHandler() {
+	// swagger:operation GET /logspec operations logspecget
+	// ---
+	// summary: Retrieves the active logging spec for a peer or orderer.
+	// responses:
+	//     '200':
+	//        description: Ok.
+
+	// swagger:operation PUT /logspec operations logspecput
+	// ---
+	// summary: Updates the active logging spec for a peer or orderer.
+	//
+	// parameters:
+	// - name: payload
+	//   in: formData
+	//   type: string
+	//   description: The payload must consist of a single attribute named spec.
+	//   required: true
+	// responses:
+	//     '204':
+	//        description: No content.
+	//     '400':
+	//        description: Bad request.
+	// consumes:
+	//   - multipart/form-data
 	s.RegisterHandler("/logspec", httpadmin.NewSpecHandler(), s.options.TLS.Enabled)
 }
 
 func (s *System) initializeHealthCheckHandler() {
 	s.healthHandler = healthz.NewHealthHandler()
+	// swagger:operation GET /healthz operations healthz
+	// ---
+	// summary: Retrieves all registered health checkers for the process.
+	// responses:
+	//     '200':
+	//        description: Ok.
+	//     '503':
+	//        description: Service unavailable.
 	s.RegisterHandler("/healthz", s.healthHandler, false)
 }
 
@@ -159,6 +197,12 @@ func (s *System) initializeVersionInfoHandler() {
 		CommitSHA: metadata.CommitSHA,
 		Version:   metadata.Version,
 	}
+	// swagger:operation GET /version operations version
+	// ---
+	// summary: Returns the orderer or peer version and the commit SHA on which the release was created.
+	// responses:
+	//     '200':
+	//        description: Ok.
 	s.RegisterHandler("/version", versionInfo, false)
 }
 
@@ -181,7 +225,7 @@ func (s *System) startMetricsTickers() error {
 		go goCollector.CollectAndPublish(s.collectorTicker.C)
 
 		s.sendTicker = time.NewTicker(writeInterval)
-		go s.statsd.SendLoop(s.sendTicker.C, network, address)
+		go s.statsd.SendLoop(context.TODO(), s.sendTicker.C, network, address)
 	}
 
 	return nil

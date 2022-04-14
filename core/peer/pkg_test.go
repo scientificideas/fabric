@@ -52,7 +52,7 @@ func createCertPool(rootCAs [][]byte) (*x509.CertPool, error) {
 
 // helper function to invoke the EmptyCall againt the test service
 func invokeEmptyCall(address string, dialOptions []grpc.DialOption) (*testpb.Empty, error) {
-	//add DialOptions
+	// add DialOptions
 	dialOptions = append(dialOptions, grpc.WithBlock())
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -64,10 +64,10 @@ func invokeEmptyCall(address string, dialOptions []grpc.DialOption) (*testpb.Emp
 	}
 	defer clientConn.Close()
 
-	//create GRPC client
+	// create GRPC client
 	client := testpb.NewTestServiceClient(clientConn)
 
-	//invoke service
+	// invoke service
 	empty, err := client.EmptyCall(context.Background(), new(testpb.Empty))
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func TestUpdateRootsFromConfigBlock(t *testing.T) {
 	})
 
 	// basic function tests
-	var tests = []struct {
+	tests := []struct {
 		name          string
 		serverConfig  comm.ServerConfig
 		createChannel func(*testing.T)

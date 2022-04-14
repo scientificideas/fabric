@@ -27,8 +27,10 @@ const (
 	DevModePort
 	DiscoveryBasePort
 	E2EBasePort
+	GatewayBasePort
 	GossipBasePort
 	IdemixBasePort
+	KafkaBasePort
 	LedgerPort
 	LifecyclePort
 	MSPPort

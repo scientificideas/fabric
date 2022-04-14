@@ -22,15 +22,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	testHashFunc = func(data []byte) ([]byte, error) {
-		h := sha256.New()
-		if _, err := h.Write(data); err != nil {
-			return nil, err
-		}
-		return h.Sum(nil), nil
+var testHashFunc = func(data []byte) ([]byte, error) {
+	h := sha256.New()
+	if _, err := h.Write(data); err != nil {
+		return nil, err
 	}
-)
+	return h.Sum(nil), nil
+}
 
 func TestPvtdataResultsItr(t *testing.T) {
 	testEnv := testEnvsMap[levelDBtestEnvName]
@@ -46,7 +44,8 @@ func TestPvtdataResultsItr(t *testing.T) {
 
 	txMgr := testEnv.getTxMgr()
 	populateCollConfigForTest(t, txMgr, []collConfigkey{
-		{"ns1", "coll1"}, {"ns2", "coll1"}, {"ns3", "coll1"}, {"ns4", "coll1"}},
+		{"ns1", "coll1"}, {"ns2", "coll1"}, {"ns3", "coll1"}, {"ns4", "coll1"},
+	},
 		version.NewHeight(1, 0),
 	)
 
@@ -111,7 +110,7 @@ func testPrivateDataMetadataRetrievalByHash(t *testing.T, env testEnv) {
 	require.NoError(t, s1.SetPrivateData("ns", "coll", key1, value1))
 	require.NoError(t, s1.SetPrivateDataMetadata("ns", "coll", key1, metadata1))
 	s1.Done()
-	blkAndPvtdata1 := prepareNextBlockForTestFromSimulator(t, bg, s1)
+	blkAndPvtdata1, _ := prepareNextBlockForTestFromSimulator(t, bg, s1)
 	_, _, err := txMgr.ValidateAndPrepare(blkAndPvtdata1, true)
 	require.NoError(t, err)
 	require.NoError(t, txMgr.Commit())

@@ -77,7 +77,6 @@ func (m *mockIterator) ReadyChan() <-chan struct{} {
 }
 
 func (m *mockIterator) Close() {
-
 }
 
 // mockReader mock structure implementing
@@ -599,7 +598,8 @@ func createDefaultSupportMamangerMock(config testConfig, chaincodeActionPayload 
 
 	block, err := createTestBlock([]*common.Envelope{{
 		Payload:   payloadBytes,
-		Signature: []byte{}}})
+		Signature: []byte{},
+	}})
 	config.NoError(err)
 
 	iter.On("Next").Return(block, common.Status_SUCCESS)

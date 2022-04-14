@@ -79,17 +79,9 @@ var (
 		Channel: "foo",
 	})
 
-	fooRes = &orderer.SubmitResponse{
-		Info: "foo",
-	}
-
 	barReq = wrapSubmitReq(&orderer.SubmitRequest{
 		Channel: "bar",
 	})
-
-	barRes = &orderer.SubmitResponse{
-		Info: "bar",
-	}
 
 	testConsensusReq = &orderer.StepRequest{
 		Payload: &orderer.StepRequest_ConsensusRequest{
@@ -225,7 +217,7 @@ func newTestNodeWithMetrics(t *testing.T, metrics cluster.MetricsProvider, tlsCo
 	handler := &mocks.Handler{}
 	clientConfig := comm_utils.ClientConfig{
 		AsyncConnect: true,
-		Timeout:      time.Hour,
+		DialTimeout:  time.Hour,
 		SecOpts: comm_utils.SecureOptions{
 			RequireClientCert: true,
 			Key:               clientKeyPair.Key,
@@ -515,7 +507,7 @@ func TestUnavailableHosts(t *testing.T) {
 	// The below timeout makes sure that connection establishment is done
 	// asynchronously. Had it been synchronous, the Remote() call would be
 	// blocked for an hour.
-	clientConfig.Timeout = time.Hour
+	clientConfig.DialTimeout = time.Hour
 	defer node1.stop()
 
 	node2 := newTestNode(t)
@@ -822,19 +814,18 @@ func TestNoTLSCertificate(t *testing.T) {
 
 	clientConfig := comm_utils.ClientConfig{
 		AsyncConnect: true,
-		Timeout:      time.Millisecond * 100,
+		DialTimeout:  time.Millisecond * 100,
 		SecOpts: comm_utils.SecureOptions{
 			ServerRootCAs: [][]byte{ca.CertBytes()},
 			UseTLS:        true,
 		},
 	}
-	cl, err := comm_utils.NewGRPCClient(clientConfig)
-	require.NoError(t, err)
 
 	var conn *grpc.ClientConn
 	gt := gomega.NewGomegaWithT(t)
 	gt.Eventually(func() (bool, error) {
-		conn, err = cl.NewConnection(node1.srv.Address())
+		var err error
+		conn, err = clientConfig.Dial(node1.srv.Address())
 		return true, err
 	}, time.Minute).Should(gomega.BeTrue())
 
@@ -859,7 +850,7 @@ func TestReconnect(t *testing.T) {
 	node1 := newTestNode(t)
 	defer node1.stop()
 	conf := node1.dialer.Config
-	conf.Timeout = time.Hour
+	conf.DialTimeout = time.Hour
 
 	node2 := newTestNode(t)
 	node2.handler.On("OnSubmit", testChannel, node1.nodeInfo.ID, mock.Anything).Return(nil)

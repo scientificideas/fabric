@@ -62,7 +62,7 @@ func (_m *ChannelResponse) Endorsers(invocationChain client.InvocationChain, f c
 }
 
 // Peers provides a mock function with given fields: invocationChain
-func (_m *ChannelResponse) Peers(invocationChain ...*discovery.ChaincodeCall) ([]*client.Peer, error) {
+func (_m *ChannelResponse) Peers(invocationChain ...*peer.ChaincodeCall) ([]*client.Peer, error) {
 	_va := make([]interface{}, len(invocationChain))
 	for _i := range invocationChain {
 		_va[_i] = invocationChain[_i]
@@ -72,7 +72,7 @@ func (_m *ChannelResponse) Peers(invocationChain ...*discovery.ChaincodeCall) ([
 	ret := _m.Called(_ca...)
 
 	var r0 []*client.Peer
-	if rf, ok := ret.Get(0).(func(...*discovery.ChaincodeCall) []*client.Peer); ok {
+	if rf, ok := ret.Get(0).(func(...*peer.ChaincodeCall) []*client.Peer); ok {
 		r0 = rf(invocationChain...)
 	} else {
 		if ret.Get(0) != nil {
@@ -81,7 +81,7 @@ func (_m *ChannelResponse) Peers(invocationChain ...*discovery.ChaincodeCall) ([
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(...*discovery.ChaincodeCall) error); ok {
+	if rf, ok := ret.Get(1).(func(...*peer.ChaincodeCall) error); ok {
 		r1 = rf(invocationChain...)
 	} else {
 		r1 = ret.Error(1)

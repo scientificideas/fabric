@@ -54,11 +54,11 @@ var _ = Describe("Instance", func() {
 			instance.ReleaseDir, err = ioutil.TempDir("", "cc-conn-test")
 			Expect(err).NotTo(HaveOccurred())
 
-			err = os.MkdirAll(filepath.Join(instance.ReleaseDir, "chaincode", "server"), 0755)
+			err = os.MkdirAll(filepath.Join(instance.ReleaseDir, "chaincode", "server"), 0o755)
 			Expect(err).NotTo(HaveOccurred())
 			// initialize with a well-formed, all fields set, connection.json file
 			ccdata := `{"address": "ccaddress:12345", "tls_required": true, "dial_timeout": "10s", "client_auth_required": true, "client_key": "fake-key", "client_cert": "fake-cert", "root_cert": "fake-root-cert"}`
-			err = ioutil.WriteFile(filepath.Join(instance.ChaincodeServerReleaseDir(), "connection.json"), []byte(ccdata), 0600)
+			err = ioutil.WriteFile(filepath.Join(instance.ChaincodeServerReleaseDir(), "connection.json"), []byte(ccdata), 0o600)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -79,8 +79,8 @@ var _ = Describe("Instance", func() {
 						Key:               []byte("fake-key"),
 						ServerRootCAs:     [][]byte{[]byte("fake-root-cert")},
 					},
-					KaOpts:  comm.DefaultKeepaliveOptions,
-					Timeout: 10 * time.Second,
+					KaOpts:      comm.DefaultKeepaliveOptions,
+					DialTimeout: 10 * time.Second,
 				},
 			}))
 		})
@@ -101,7 +101,7 @@ var _ = Describe("Instance", func() {
 		When("chaincode info is badly formed", func() {
 			BeforeEach(func() {
 				ccdata := `{"badly formed chaincode"}`
-				err := ioutil.WriteFile(filepath.Join(instance.ChaincodeServerReleaseDir(), "connection.json"), []byte(ccdata), 0600)
+				err := ioutil.WriteFile(filepath.Join(instance.ChaincodeServerReleaseDir(), "connection.json"), []byte(ccdata), 0o600)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -123,7 +123,7 @@ var _ = Describe("Instance", func() {
 			releaseDir, err = ioutil.TempDir("", "cc-conn-test")
 			Expect(err).NotTo(HaveOccurred())
 
-			err = os.MkdirAll(filepath.Join(releaseDir, "chaincode", "server"), 0755)
+			err = os.MkdirAll(filepath.Join(releaseDir, "chaincode", "server"), 0o755)
 			Expect(err).NotTo(HaveOccurred())
 
 			ccuserdata = &externalbuilder.ChaincodeServerUserData{
@@ -151,8 +151,8 @@ var _ = Describe("Instance", func() {
 					Expect(ccinfo).To(Equal(&ccintf.ChaincodeServerInfo{
 						Address: "ccaddress:12345",
 						ClientConfig: comm.ClientConfig{
-							Timeout: 10 * time.Second,
-							KaOpts:  comm.DefaultKeepaliveOptions,
+							DialTimeout: 10 * time.Second,
+							KaOpts:      comm.DefaultKeepaliveOptions,
 						},
 					}))
 				})
@@ -171,8 +171,8 @@ var _ = Describe("Instance", func() {
 								UseTLS:        true,
 								ServerRootCAs: [][]byte{[]byte("fake-root-cert")},
 							},
-							KaOpts:  comm.DefaultKeepaliveOptions,
-							Timeout: 10 * time.Second,
+							KaOpts:      comm.DefaultKeepaliveOptions,
+							DialTimeout: 10 * time.Second,
 						},
 					}))
 				})
@@ -194,8 +194,8 @@ var _ = Describe("Instance", func() {
 								Key:               []byte("fake-key"),
 								ServerRootCAs:     [][]byte{[]byte("fake-root-cert")},
 							},
-							KaOpts:  comm.DefaultKeepaliveOptions,
-							Timeout: 3 * time.Second,
+							KaOpts:      comm.DefaultKeepaliveOptions,
+							DialTimeout: 3 * time.Second,
 						},
 					}))
 				})

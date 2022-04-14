@@ -77,7 +77,7 @@ ZsQXrlIqlmNalfYPX+NDDELqlpXQBeEqnA==
 
 			defer os.Remove(tmpFile.Name())
 
-			err = ioutil.WriteFile(tmpFile.Name(), []byte(testCase.keyBytes), 0600)
+			err = ioutil.WriteFile(tmpFile.Name(), []byte(testCase.keyBytes), 0o600)
 			require.NoError(t, err)
 
 			signer, err := NewSigner(Config{
@@ -159,6 +159,6 @@ func TestSignerBadConfig(t *testing.T) {
 	}
 
 	signer, err = NewSigner(conf)
-	require.EqualError(t, err, "enrollment certificate is not a valid x509 certificate: asn1: syntax error: data truncated")
+	require.EqualError(t, err, "enrollment certificate is not a valid x509 certificate: x509: malformed certificate")
 	require.Nil(t, signer)
 }

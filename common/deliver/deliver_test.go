@@ -615,9 +615,7 @@ var _ = Describe("Deliver", func() {
 		})
 
 		Context("when blocks with private data are requested", func() {
-			var (
-				fakeResponseSender *mock.PrivateDataResponseSender
-			)
+			var fakeResponseSender *mock.PrivateDataResponseSender
 
 			BeforeEach(func() {
 				fakeResponseSender = &mock.PrivateDataResponseSender{}
@@ -715,7 +713,7 @@ var _ = Describe("Deliver", func() {
 			})
 		})
 
-		Context("when unmarshaling the payload fails", func() {
+		Context("when unmarshalling the payload fails", func() {
 			BeforeEach(func() {
 				envelope.Payload = []byte("completely-bogus-data")
 			})
@@ -747,7 +745,7 @@ var _ = Describe("Deliver", func() {
 			})
 		})
 
-		Context("when unmarshaling the channel header fails", func() {
+		Context("when unmarshalling the channel header fails", func() {
 			BeforeEach(func() {
 				channelHeaderPayload = []byte("complete-nonsense")
 			})
@@ -964,7 +962,7 @@ var _ = Describe("Deliver", func() {
 			})
 		})
 
-		Context("when unmarshaling seek info fails", func() {
+		Context("when unmarshalling seek info fails", func() {
 			BeforeEach(func() {
 				seekInfoPayload = []byte("complete-nonsense")
 			})

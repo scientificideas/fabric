@@ -26,6 +26,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -41,17 +42,14 @@ type Logger struct {
 	core zapcore.Core
 
 	development bool
-	addCaller   bool
-	onFatal     zapcore.CheckWriteAction // default is WriteThenFatal
-
 	name        string
 	errorOutput zapcore.WriteSyncer
 
-	addStack zapcore.LevelEnabler
+	addCaller bool
+	addStack  zapcore.LevelEnabler
 
 	callerSkip int
-
-	clock zapcore.Clock
+	onFatal    zapcore.CheckWriteAction // default is WriteThenFatal
 }
 
 // New constructs a new Logger from the provided zapcore.Core and Options. If
@@ -72,7 +70,6 @@ func New(core zapcore.Core, options ...Option) *Logger {
 		core:        core,
 		errorOutput: zapcore.Lock(os.Stderr),
 		addStack:    zapcore.FatalLevel + 1,
-		clock:       zapcore.DefaultClock,
 	}
 	return log.WithOptions(options...)
 }
@@ -87,7 +84,6 @@ func NewNop() *Logger {
 		core:        zapcore.NewNopCore(),
 		errorOutput: zapcore.AddSync(ioutil.Discard),
 		addStack:    zapcore.FatalLevel + 1,
-		clock:       zapcore.DefaultClock,
 	}
 }
 
@@ -273,7 +269,7 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 	// log message will actually be written somewhere.
 	ent := zapcore.Entry{
 		LoggerName: log.name,
-		Time:       log.clock.Now(),
+		Time:       time.Now(),
 		Level:      lvl,
 		Message:    msg,
 	}
@@ -310,7 +306,7 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 	if log.addCaller {
 		frame, defined := getCallerFrame(log.callerSkip + callerSkipOffset)
 		if !defined {
-			fmt.Fprintf(log.errorOutput, "%v Logger.check error: failed to get caller\n", ent.Time.UTC())
+			fmt.Fprintf(log.errorOutput, "%v Logger.check error: failed to get caller\n", time.Now().UTC())
 			log.errorOutput.Sync()
 		}
 
@@ -338,7 +334,7 @@ func getCallerFrame(skip int) (frame runtime.Frame, ok bool) {
 	const skipOffset = 2 // skip getCallerFrame and Callers
 
 	pc := make([]uintptr, 1)
-	numFrames := runtime.Callers(skip+skipOffset, pc)
+	numFrames := runtime.Callers(skip+skipOffset, pc[:])
 	if numFrames < 1 {
 		return
 	}
