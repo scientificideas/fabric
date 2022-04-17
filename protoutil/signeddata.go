@@ -16,6 +16,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric/common/util"
+	"github.com/pkg/errors"
 )
 
 // SignedData is used to represent the general triplet required to verify a signature
@@ -113,4 +115,43 @@ func LogMessageForSerializedIdentities(signedData []*SignedData) (logMsg string)
 		identityMessages = append(identityMessages, LogMessageForSerializedIdentity(sd.Identity))
 	}
 	return strings.Join(identityMessages, ", ")
+}
+
+// SignatureSetFromBlock creates a signature set out of a block.
+func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte) ([]*SignedData, error) {
+	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
+		return nil, errors.New("no metadata in block")
+	}
+	metadata, err := GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
+	if err != nil {
+		return nil, errors.Errorf("failed unmarshaling medatata for signatures: %v", err)
+	}
+
+	var signatureSet []*SignedData
+	for _, metadataSignature := range metadata.Signatures {
+		identity := id2identities[metadataSignature.SignerId]
+		if len(metadataSignature.SignatureHeader) > 0 {
+			sigHdr, err := GetSignatureHeader(metadataSignature.SignatureHeader)
+			if err != nil {
+				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
+					block.Header.Number, err)
+			}
+			identity = sigHdr.Creator
+		} else {
+			metadataSignature.SignatureHeader = MarshalOrPanic(&common.SignatureHeader{
+				Creator: identity,
+				Nonce:   metadataSignature.Nonce,
+			})
+		}
+
+		signatureSet = append(signatureSet,
+			&SignedData{
+				Identity: identity,
+				Data: util.ConcatenateBytes(metadata.Value,
+					metadataSignature.SignatureHeader, BlockHeaderBytes(block.Header), metadataSignature.AuxiliaryInput),
+				Signature: metadataSignature.Signature,
+			},
+		)
+	}
+	return signatureSet, nil
 }

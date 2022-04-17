@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric/common/flogging"
-
 	"github.com/pkg/errors"
 )
 
@@ -23,6 +22,7 @@ type ConnectionSource struct {
 	orgToEndpointsHash map[string][]byte
 	logger             *flogging.FabricLogger
 	overrides          map[string]*Endpoint
+	updateCh           chan []*Endpoint
 }
 
 type Endpoint struct {
@@ -180,6 +180,10 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 
 	if len(cs.allEndpoints) != 0 {
 		cs.logger.Debugf("Returning an orderer connection pool source with org specific endpoints only")
+
+		// update endpoints
+		cs.updateEndpoints()
+
 		// There are some org specific endpoints, so we do not
 		// add any of the global endpoints to our pool.
 		return
@@ -203,5 +207,30 @@ func (cs *ConnectionSource) Update(globalAddrs []string, orgs map[string]Orderer
 		})
 	}
 
+	// update endpoints
+	cs.updateEndpoints()
+
 	cs.logger.Debugf("Returning an orderer connection pool source with global endpoints only")
+}
+
+func (cs *ConnectionSource) updateEndpoints() {
+	if cs.updateCh != nil {
+		cs.logger.Debugf("Sent endpoints to update channel")
+		cs.updateCh <- cs.allEndpoints
+	}
+}
+
+// GetAllEndpoints returns all endpoints
+func (cs *ConnectionSource) GetAllEndpoints() []*Endpoint {
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
+	return cs.allEndpoints
+}
+
+// InitUpdateEndpointsChannel creates a channel to send endpoints to it if they have changed
+func (cs *ConnectionSource) InitUpdateEndpointsChannel() chan []*Endpoint {
+	cs.mutex.RLock()
+	defer cs.mutex.RUnlock()
+	cs.updateCh = make(chan []*Endpoint)
+	return cs.updateCh
 }

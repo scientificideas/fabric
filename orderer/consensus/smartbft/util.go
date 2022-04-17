@@ -133,8 +133,10 @@ func newBlockPuller(
 		return cluster.VerifyBlocksBFT(blocks, support)
 	}
 
+	clientConfigCopy := baseDialer.Config
+
 	stdDialer := &cluster.StandardDialer{
-		Config: baseDialer.Config.Clone(),
+		Config: clientConfigCopy,
 	}
 	stdDialer.Config.AsyncConnect = false
 	stdDialer.Config.SecOpts.VerifyCertificate = nil

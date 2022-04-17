@@ -161,11 +161,24 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 	var bp blocksprovider.BlocksProvider
 
 	dialer := DialerAdapter{
-		Client: d.conf.DeliverGRPCClient,
+		ClientConfig: comm.ClientConfig{
+			DialTimeout: d.conf.DeliverServiceConfig.ConnectionTimeout,
+			KaOpts:      d.conf.DeliverServiceConfig.KeepaliveOptions,
+			SecOpts:     d.conf.DeliverServiceConfig.SecOpts,
+		},
 	}
 
 	if d.conf.DeliverServiceConfig.IsBFT {
-		bftClient, _ := NewBFTDeliveryClient(chainID, d.conf.OrdererSource, ledgerInfo, d.conf.CryptoSvc, d.conf.Signer, d.conf.DeliverGRPCClient, dialer)
+		var tlsCertHash []byte
+		if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
+			cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
+			if err != nil {
+				return fmt.Errorf("failed to access client TLS configuration: %w", err)
+			}
+			tlsCertHash = util.ComputeSHA256(cert.Certificate[0])
+		}
+
+		bftClient, _ := NewBFTDeliveryClient(chainID, d.conf.OrdererSource, ledgerInfo, d.conf.CryptoSvc, d.conf.Signer, tlsCertHash, dialer)
 		bp = bftBlocksprovider.NewBlocksProvider(chainID, bftClient, d.conf.Gossip, d.conf.CryptoSvc)
 	} else {
 		dc := &blocksprovider.Deliverer{
@@ -186,18 +199,15 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 			YieldLeadership:     !d.conf.IsStaticLeader,
 		}
 
-		if d.conf.DeliverGRPCClient.MutualTLSRequired() {
-			dc.TLSCertHash = util.ComputeSHA256(d.conf.DeliverGRPCClient.Certificate().Certificate[0])
+		if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
+			cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
+			if err != nil {
+				return fmt.Errorf("failed to access client TLS configuration: %w", err)
+			}
+			dc.TLSCertHash = util.ComputeSHA256(cert.Certificate[0])
 		}
-		bp = dc
-	}
 
-	if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
-		cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
-		if err != nil {
-			return fmt.Errorf("failed to access client TLS configuration: %w", err)
-		}
-		dc.TLSCertHash = util.ComputeSHA256(cert.Certificate[0])
+		bp = dc
 	}
 
 	d.blockProviders[chainID] = bp

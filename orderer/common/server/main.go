@@ -611,7 +611,7 @@ func initializeClusterClientConfig(conf *localconfig.TopLevel) (comm.ClientConfi
 		}
 	}
 
-	return cc
+	return cc, reuseGrpcListener
 }
 
 func initializeServerConfig(conf *localconfig.TopLevel, metricsProvider metrics.Provider) comm.ServerConfig {

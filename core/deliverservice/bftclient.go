@@ -17,7 +17,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/gossip/util"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
@@ -74,9 +73,9 @@ type bftDeliveryClient struct {
 	ledgerInfoProvider blocksprovider.LedgerInfo    // provides access to the ledger height
 	msgCryptoVerifier  blocksprovider.BlockVerifier // verifies headers
 
-	signer            identity.SignerSerializer // signer for blocks requester
-	deliverGPRCClient *comm.GRPCClient          // GPRC client for blocks requester
-	dialer            blocksprovider.Dialer     // broadcast client dialer
+	signer      identity.SignerSerializer // signer for blocks requester
+	tlsCertHash []byte                    // tlsCertHash
+	dialer      blocksprovider.Dialer     // broadcast client dialer
 
 	// The total time a bft client tries to connect (to all available endpoints) before giving up leadership
 	reconnectTotalTimeThreshold time.Duration
@@ -109,7 +108,7 @@ func NewBFTDeliveryClient(
 	ledgerInfoProvider blocksprovider.LedgerInfo,
 	msgVerifier blocksprovider.BlockVerifier,
 	signer identity.SignerSerializer,
-	deliverGPRCClient *comm.GRPCClient,
+	tlsCertHash []byte,
 	dialer blocksprovider.Dialer,
 ) (*bftDeliveryClient, error) {
 	c := &bftDeliveryClient{
@@ -126,7 +125,7 @@ func NewBFTDeliveryClient(
 		blockReceiverIndex:                  -1,
 		headerReceivers:                     make(map[string]*bftHeaderReceiver),
 		signer:                              signer,
-		deliverGPRCClient:                   deliverGPRCClient,
+		tlsCertHash:                         tlsCertHash,
 		dialer:                              dialer,
 		updateEndpointsCh:                   orderers.InitUpdateEndpointsChannel(),
 	}
@@ -193,7 +192,7 @@ func (c *bftDeliveryClient) Recv() (response *orderer.DeliverResponse, err error
 
 		c.closeBlockReceiver(false)
 		numRetries++
-		if numRetries%numEP == 0 { //double the back-off delay on every round of attempts.
+		if numRetries%numEP == 0 { // double the back-off delay on every round of attempts.
 			dur := backOffDuration(2.0, uint(numRetries/numEP), c.minBackoffDelay, c.maxBackoffDelay)
 			bftLogger.Debugf("[%s] Got receive error: %s; going to retry another endpoint in: %s", c.chainID, err, dur)
 			backOffSleep(dur, c.stopChan)
@@ -561,13 +560,13 @@ func (c *bftDeliveryClient) GetHeadersBlockNumTime() ([]uint64, []time.Time, []e
 // create a deliver client that delivers blocks
 func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
 	requester := &blocksRequester{
-		tls:               viper.GetBool("peer.tls.enabled"),
-		chainID:           c.chainID,
-		signer:            c.signer,
-		deliverGPRCClient: c.deliverGPRCClient,
+		tls:         viper.GetBool("peer.tls.enabled"),
+		chainID:     c.chainID,
+		signer:      c.signer,
+		tlsCertHash: c.tlsCertHash,
 	}
 
-	//Update the nextBlockNumber from the ledger, and then make sure the client request the nextBlockNumber,
+	// Update the nextBlockNumber from the ledger, and then make sure the client request the nextBlockNumber,
 	// because that is what we expect in the Recv() loop.
 	if height, err := c.ledgerInfoProvider.LedgerHeight(); err == nil {
 		c.nextBlockNumber = height
@@ -577,7 +576,7 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 		return requester.RequestBlocks(c) // Do not ask the ledger directly, ask the bftDeliveryClient
 	}
 
-	//Let block receivers give-up early so we can replace them with a header receiver
+	// Let block receivers give-up early so we can replace them with a header receiver
 	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		if elapsedTime >= c.reconnectBlockRcvTotalTimeThreshold {
 			return 0, false
@@ -589,7 +588,7 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 		return orderer.NewAtomicBroadcastClient(conn)
 	}
 
-	//Only a single endpoint
+	// Only a single endpoint
 	blockClient := NewBroadcastClient(endpoint, c.defaultConnectionProducer, clFactory, broadcastSetup, backoffPolicy)
 	requester.client = blockClient
 	return blockClient, nil
@@ -598,17 +597,17 @@ func (c *bftDeliveryClient) newBlockClient(endpoint *orderers.Endpoint) (*broadc
 // create a deliver client that delivers headers
 func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broadcastClient, error) {
 	requester := &blocksRequester{
-		tls:               viper.GetBool("peer.tls.enabled"),
-		chainID:           c.chainID,
-		signer:            c.signer,
-		deliverGPRCClient: c.deliverGPRCClient,
+		tls:         viper.GetBool("peer.tls.enabled"),
+		chainID:     c.chainID,
+		signer:      c.signer,
+		tlsCertHash: c.tlsCertHash,
 	}
 
 	broadcastSetup := func(deliverer blocksprovider.DeliverClient) error {
 		return requester.RequestHeaders(c) // Do not ask the ledger directly, ask the bftDeliveryClient
 	}
 
-	//Let block receivers give-up early so we can replace them with a header receiver
+	// Let block receivers give-up early so we can replace them with a header receiver
 	backoffPolicy := func(attemptNum int, elapsedTime time.Duration) (time.Duration, bool) {
 		if elapsedTime >= c.reconnectTotalTimeThreshold { // Let header receivers continue to try until we close them
 			return 0, false
@@ -620,7 +619,7 @@ func (c *bftDeliveryClient) newHeaderClient(endpoint *orderers.Endpoint) (*broad
 		return orderer.NewAtomicBroadcastClient(conn)
 	}
 
-	//Only a single endpoint
+	// Only a single endpoint
 	headerClient := NewBroadcastClient(endpoint, c.defaultConnectionProducer, clFactory, broadcastSetup, backoffPolicy)
 	requester.client = headerClient
 	return headerClient, nil
@@ -656,7 +655,7 @@ func equalEndpoints(existingEndpoints, newEndpoints []*orderers.Endpoint) bool {
 
 func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 	for _, e := range a {
-		if e.Address == s.Address && reflect.DeepEqual(e.CertPool, s.CertPool) {
+		if e.Address == s.Address && reflect.DeepEqual(e.RootCerts, s.RootCerts) {
 			return true
 		}
 	}
@@ -664,5 +663,5 @@ func contains(s *orderers.Endpoint, a []*orderers.Endpoint) bool {
 }
 
 func (c *bftDeliveryClient) defaultConnectionProducer(endpoint *orderers.Endpoint) (*grpc.ClientConn, error) {
-	return c.dialer.Dial(endpoint.Address, endpoint.CertPool)
+	return c.dialer.Dial(endpoint.Address, endpoint.RootCerts)
 }

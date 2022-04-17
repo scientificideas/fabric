@@ -341,35 +341,6 @@ func VerifyBlockHash(indexInBuffer int, blockBuff []*common.Block) error {
 	return nil
 }
 
-// SignatureSetFromBlock creates a signature set out of a block.
-func SignatureSetFromBlock(block *common.Block) ([]*protoutil.SignedData, error) {
-	if block.Metadata == nil || len(block.Metadata.Metadata) <= int(common.BlockMetadataIndex_SIGNATURES) {
-		return nil, errors.New("no metadata in block")
-	}
-	metadata, err := protoutil.GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
-	if err != nil {
-		return nil, errors.Errorf("failed unmarshalling medatata for signatures: %v", err)
-	}
-
-	var signatureSet []*protoutil.SignedData
-	for _, metadataSignature := range metadata.Signatures {
-		sigHdr, err := protoutil.UnmarshalSignatureHeader(metadataSignature.SignatureHeader)
-		if err != nil {
-			return nil, errors.Errorf("failed unmarshalling signature header for block with id %d: %v",
-				block.Header.Number, err)
-		}
-		signatureSet = append(signatureSet,
-			&protoutil.SignedData{
-				Identity: sigHdr.Creator,
-				Data: util.ConcatenateBytes(metadata.Value,
-					metadataSignature.SignatureHeader, protoutil.BlockHeaderBytes(block.Header)),
-				Signature: metadataSignature.Signature,
-			},
-		)
-	}
-	return signatureSet, nil
-}
-
 // VerifyBlockSignature verifies the signature on the block with the given BlockVerifier and the given config.
 func VerifyBlockSignature(block *common.Block, verifier BlockVerifier, config *common.ConfigEnvelope) error {
 	id2identities := verifier.Id2Identity(config)

@@ -21,21 +21,19 @@ import (
 
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
-	"github.com/hyperledger/fabric/common/util"
 	"github.com/hyperledger/fabric/core/deliverservice/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	blocksprovider2 "github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/protoutil"
-	"github.com/spf13/viper"
 )
 
 type blocksRequester struct {
-	tls               bool
-	chainID           string
-	client            blocksprovider.BlocksDeliverer
-	cs                *comm.CredentialSupport
-	signer            protoutil.Signer
-	deliverGPRCClient *comm.GRPCClient
+	tls         bool
+	chainID     string
+	client      blocksprovider.BlocksDeliverer
+	cs          *comm.CredentialSupport
+	signer      protoutil.Signer
+	tlsCertHash []byte
 }
 
 // RequestBlocks requests blocks from the given ledger info provider
@@ -85,8 +83,8 @@ func (b *blocksRequester) RequestHeaders(ledgerInfoProvider blocksprovider2.Ledg
 }
 
 func (b *blocksRequester) getTLSCertHash() []byte {
-	if viper.GetBool("peer.tls.enabled") && b.deliverGPRCClient.MutualTLSRequired() {
-		return util.ComputeSHA256(b.deliverGPRCClient.Certificate().Certificate[0])
+	if len(b.tlsCertHash) != 0 {
+		return b.tlsCertHash
 	}
 	return nil
 }
@@ -99,7 +97,7 @@ func (b *blocksRequester) seekOldest(contentType orderer.SeekInfo_SeekContentTyp
 		ContentType: contentType,
 	}
 
-	//TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
+	// TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
 	msgVersion := int32(0)
 	epoch := uint64(0)
 	tlsCertHash := b.getTLSCertHash()
@@ -118,7 +116,7 @@ func (b *blocksRequester) seekLatestFromCommitter(height uint64, contentType ord
 		ContentType: contentType,
 	}
 
-	//TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
+	// TODO- epoch and msgVersion may need to be obtained for nowfollowing usage in orderer/configupdate/configupdate.go
 	msgVersion := int32(0)
 	epoch := uint64(0)
 	tlsCertHash := b.getTLSCertHash()

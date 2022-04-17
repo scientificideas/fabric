@@ -16,6 +16,7 @@ import (
 	"github.com/hyperledger/fabric/common/metrics"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -108,6 +109,23 @@ func (cc ClientConfig) DialOptions() ([]grpc.DialOption, error) {
 		Timeout:             cc.KaOpts.ClientTimeout,
 		PermitWithoutStream: true,
 	}))
+
+	if cc.BaOpts.BaseDelay != 0 &&
+		cc.BaOpts.MaxDelay != 0 &&
+		cc.BaOpts.Multiplier != 0 {
+		// backoff options
+		cp := grpc.ConnectParams{
+			Backoff: backoff.Config{
+				BaseDelay:  cc.BaOpts.BaseDelay,
+				Multiplier: cc.BaOpts.Multiplier,
+				Jitter:     0.2,
+				MaxDelay:   cc.BaOpts.MaxDelay,
+			},
+			MinConnectTimeout: 20 * time.Second,
+		}
+		// set backoff
+		dialOpts = append(dialOpts, grpc.WithConnectParams(cp))
+	}
 
 	// Unless asynchronous connect is set, make connection establishment blocking.
 	if !cc.AsyncConnect {
