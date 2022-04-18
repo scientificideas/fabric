@@ -28,8 +28,6 @@ to install the required software.
 
 **Note:** The test network has been successfully verified with Docker Desktop version 2.5.0.1 and is the recommended version at this time. Higher versions may not work.
 
-**Note:** The test network has been successfully verified with Docker Desktop version 2.5.0.1 and is the recommended version at this time. Higher versions may not work.
-
 ## Bring up the test network
 
 You can find the scripts to bring up the network in the `test-network` directory

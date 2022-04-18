@@ -230,7 +230,7 @@ func TestGoodWriteConfig(t *testing.T) {
 			ConfigTXValidator: mockValidator,
 			fakeConfig:        fakeConfig,
 			bccsp:             cryptoProvider,
-		}, false,
+		},
 	)
 
 	ctx := makeConfigTxFull("testchannelid", 1)
@@ -322,7 +322,7 @@ func TestMigrationWriteConfig(t *testing.T) {
 			ConfigTXValidator: mockValidator,
 			fakeConfig:        fakeConfig,
 			bccsp:             cryptoProvider,
-		}, false,
+		},
 	)
 
 	ctx := makeConfigTxMig("testchannelid", 1)
@@ -368,7 +368,7 @@ func TestRaceWriteConfig(t *testing.T) {
 			ConfigTXValidator: mockValidator,
 			fakeConfig:        fakeConfig,
 			bccsp:             cryptoProvider,
-		}, false,
+		},
 	)
 
 	ctx := makeConfigTxFull("testchannelid", 1)

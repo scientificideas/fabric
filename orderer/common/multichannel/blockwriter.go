@@ -33,7 +33,6 @@ type blockWriterSupport interface {
 // BlockWriter will spawn additional committing go routines and handle locking
 // so that these other go routines safely interact with the calling one.
 type BlockWriter struct {
-	sync               bool
 	support            blockWriterSupport
 	registrar          *Registrar
 	lastConfigBlockNum uint64
@@ -42,9 +41,8 @@ type BlockWriter struct {
 	committingBlock    sync.Mutex
 }
 
-func newBlockWriter(lastBlock *cb.Block, r *Registrar, support blockWriterSupport, sync bool) *BlockWriter {
+func newBlockWriter(lastBlock *cb.Block, r *Registrar, support blockWriterSupport) *BlockWriter {
 	bw := &BlockWriter{
-		sync:          sync,
 		support:       support,
 		lastConfigSeq: support.Sequence(),
 		lastBlock:     lastBlock,
@@ -158,7 +156,7 @@ func (bw *BlockWriter) WriteConfigBlock(block *cb.Block, encodedMetadataValue []
 		logger.Panicf("Told to write a config block with unknown header type: %v", chdr.Type)
 	}
 
-	bw.WriteBlock(block, encodedMetadataValue)
+	bw.WriteBlockSync(block, encodedMetadataValue)
 }
 
 // WriteBlock should be invoked for blocks which contain normal transactions.
@@ -168,11 +166,6 @@ func (bw *BlockWriter) WriteConfigBlock(block *cb.Block, encodedMetadataValue []
 // then release the lock.  This allows the calling thread to begin assembling the next block
 // before the commit phase is complete.
 func (bw *BlockWriter) WriteBlock(block *cb.Block, encodedMetadataValue []byte) {
-	if bw.sync {
-		bw.writeBlockSync(block, encodedMetadataValue)
-		return
-	}
-
 	bw.committingBlock.Lock()
 	bw.lastBlock = block
 
@@ -182,11 +175,20 @@ func (bw *BlockWriter) WriteBlock(block *cb.Block, encodedMetadataValue []byte) 
 	}()
 }
 
-func (bw *BlockWriter) writeBlockSync(block *cb.Block, encodedMetadataValue []byte) {
+// WriteBlockSync is same as WriteBlock, but commits block synchronously.
+// Note: WriteConfigBlock should use WriteBlockSync instead of WriteBlock.
+//       If the block contains a transaction that remove the node from consenters,
+//       the node will switch to follower and pull blocks from other nodes.
+//       Suppose writing block asynchronously, the block maybe not persist to disk
+//       when the follower chain starts working. The follower chain will read a block
+//       before the config block, in which the node is still a consenter, so the follower
+//       chain will switch to the consensus chain. That's a dead loop!
+//       So WriteConfigBlock should use WriteBlockSync instead of WriteBlock.
+func (bw *BlockWriter) WriteBlockSync(block *cb.Block, encodedMetadataValue []byte) {
 	bw.committingBlock.Lock()
-	defer bw.committingBlock.Unlock()
-
 	bw.lastBlock = block
+
+	defer bw.committingBlock.Unlock()
 	bw.commitBlock(encodedMetadataValue)
 }
 
