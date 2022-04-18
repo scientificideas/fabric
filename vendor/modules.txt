@@ -493,8 +493,10 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20210420205809-ac73e9fd8988 => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
+# golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
+## explicit
 golang.org/x/sys/cpu
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.3
@@ -634,4 +636,3 @@ gopkg.in/yaml.v3
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b
 # github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
-# golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
