@@ -14,6 +14,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	pmsp "github.com/hyperledger/fabric-protos-go/msp"
@@ -93,6 +95,7 @@ func TestPKIidOfNil(t *testing.T) {
 	localMSP := mgmt.GetLocalMSP(cryptoProvider)
 	msgCryptoService := NewMCS(
 		&mocks.ChannelPolicyManagerGetter{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		NewDeserializersManager(localMSP),
 		cryptoProvider,

@@ -120,6 +120,7 @@ func TestInitGossipService(t *testing.T) {
 
 	messageCryptoService := peergossip.NewMCS(
 		&mocks.ChannelPolicyManagerGetter{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		deserManager,
 		cryptoProvider,
