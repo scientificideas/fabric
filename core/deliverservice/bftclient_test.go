@@ -8,7 +8,6 @@ package deliverservice
 
 import (
 	"context"
-	"crypto/x509"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -17,10 +16,10 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/hyperledger/fabric/common/deliver"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/core/deliverservice/mocks"
 	"github.com/hyperledger/fabric/gossip/util"
-	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider/fake"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	mocks2 "github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
@@ -66,12 +65,7 @@ const goRoutineTestWaitTimeout = time.Second * 15
 func TestNewBFTDeliveryClient(t *testing.T) {
 	flogging.ActivateSpec("bftDeliveryClient=DEBUG")
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
+	var tlsCertHash []byte
 
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
 		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
@@ -81,18 +75,18 @@ func TestNewBFTDeliveryClient(t *testing.T) {
 	fakeBlockVerifier := &fake.BlockVerifier{}
 	mockSignerSerializer := &mocks2.SignerSerializer{}
 	fakeDialer := &fake.Dialer{}
-	fakeDialer.DialStub = func(string, *x509.CertPool) (*grpc.ClientConn, error) {
+	fakeDialer.DialStub = func(string, [][]byte) (*grpc.ClientConn, error) {
 		cc, err := grpc.Dial("", grpc.WithInsecure())
 		require.Nil(t, err)
 		require.NotEqual(t, cc.GetState(), connectivity.Shutdown)
 		return cc, nil
 	}
 
-	conn, err := fakeDialer.Dial("", x509.NewCertPool())
+	conn, err := fakeDialer.Dial("", make([][]byte, 0))
 	require.Nil(t, err)
 	require.NotNil(t, conn)
 
-	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, tlsCertHash, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 }
@@ -109,12 +103,7 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 		os.SetNextExpectedSeek(5)
 	}
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
+	var tlsCertHash []byte
 
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
 		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
@@ -127,13 +116,13 @@ func Test_bftDeliveryClient_Recv(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
-	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
+	fakeDialer.DialCalls(func(ep string, rc [][]byte) (*grpc.ClientConn, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 		defer cancel()
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, tlsCertHash, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -198,12 +187,7 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 		os.SetNextExpectedSeek(5)
 	}
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
+	var tlsCertHash []byte
 
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
 		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
@@ -221,13 +205,13 @@ func TestBFTDeliverClient_Censorship(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
-	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
+	fakeDialer.DialCalls(func(ep string, rc [][]byte) (*grpc.ClientConn, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 		defer cancel()
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, tlsCertHash, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -328,12 +312,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 		os.SetNextExpectedSeek(5)
 	}
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
+	var tlsCertHash []byte
 
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
 		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
@@ -351,13 +330,13 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
-	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
+	fakeDialer.DialCalls(func(ep string, rc [][]byte) (*grpc.ClientConn, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 		defer cancel()
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, tlsCertHash, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -427,7 +406,7 @@ func TestBFTDeliverClient_Failover(t *testing.T) {
 	assert.True(t, lastT.After(beforeSend))
 	verifyHeaderReceivers(t, bc, 3, 9, beforeSend, 1)
 
-	//restart the orderer
+	// restart the orderer
 	for port, ep := range endpointMap {
 		if strings.Split(blockEP, ":")[1] == strings.Split(ep.Address, ":")[1] { // it is down
 			os := mocks.NewOrderer(port, t)
@@ -475,12 +454,7 @@ func TestBFTDeliverClient_UpdateEndpoints(t *testing.T) {
 		os.SetNextExpectedSeek(5)
 	}
 
-	grpcClient, err := comm.NewGRPCClient(comm.ClientConfig{
-		SecOpts: comm.SecureOptions{
-			UseTLS: true,
-		},
-	})
-	require.NoError(t, err)
+	var tlsCertHash []byte
 
 	fakeOrdererConnectionSource := &fake.OrdererConnectionSource{
 		GetAllEndpointsStub: func() []*orderers.Endpoint { return endpoints },
@@ -498,13 +472,13 @@ func TestBFTDeliverClient_UpdateEndpoints(t *testing.T) {
 	mockSignerSerializer.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, nil)
 	mockSignerSerializer.On("Serialize", mock.Anything).Return([]byte{0, 2, 4, 6}, nil)
 	fakeDialer := &fake.Dialer{}
-	fakeDialer.DialCalls(func(ep string, cp *x509.CertPool) (*grpc.ClientConn, error) {
+	fakeDialer.DialCalls(func(ep string, rc [][]byte) (*grpc.ClientConn, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), getConnectionTimeout())
 		defer cancel()
 		return grpc.DialContext(ctx, ep, grpc.WithInsecure(), grpc.WithBlock())
 	})
 
-	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, grpcClient, fakeDialer)
+	bc, err := NewBFTDeliveryClient("test-chain", fakeOrdererConnectionSource, fakeLedgerInfo, fakeBlockVerifier, mockSignerSerializer, tlsCertHash, fakeDialer)
 	require.NotNil(t, bc)
 	require.Nil(t, err)
 
@@ -611,7 +585,7 @@ func detectOSNConnections(isBFT bool, osSet ...*mocks.Orderer) ([]*mocks.Orderer
 			}
 
 			if first >= 0 {
-				break //found
+				break // found
 			}
 
 			time.Sleep(time.Millisecond * 10)
@@ -636,7 +610,7 @@ func detectOSNConnections(isBFT bool, osSet ...*mocks.Orderer) ([]*mocks.Orderer
 			}
 
 			if cCnt == len(osSet) && first >= 0 {
-				break //found
+				break // found
 			}
 
 			time.Sleep(time.Millisecond * 10)
@@ -684,15 +658,18 @@ func (*mockOrderer) Broadcast(orderer.AtomicBroadcast_BroadcastServer) error {
 
 func (o *mockOrderer) Deliver(stream orderer.AtomicBroadcast_DeliverServer) error {
 	envelope, _ := stream.Recv()
-	inspectTLSBinding := comm.NewBindingInspector(true, func(msg proto.Message) []byte {
-		env, isEnvelope := msg.(*common.Envelope)
-		if !isEnvelope || env == nil {
-			assert.Fail(o.t, "not an envelope")
-		}
-		ch, err := protoutil.ChannelHeader(env)
-		assert.NoError(o.t, err)
-		return ch.TlsCertHash
-	})
+	inspectTLSBinding := deliver.NewBindingInspector(
+		true,
+		func(msg proto.Message) []byte {
+			env, isEnvelope := msg.(*common.Envelope)
+			if !isEnvelope || env == nil {
+				assert.Fail(o.t, "not an envelope")
+			}
+			ch, err := protoutil.ChannelHeader(env)
+			assert.NoError(o.t, err)
+			return ch.TlsCertHash
+		},
+	)
 
 	err := inspectTLSBinding(stream.Context(), envelope)
 	assert.NoError(o.t, err, "orderer rejected TLS binding")

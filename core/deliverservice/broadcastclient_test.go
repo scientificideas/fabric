@@ -11,16 +11,17 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"github.com/hyperledger/fabric/core/deliverservice/fake"
-	"github.com/hyperledger/fabric/core/deliverservice/mocks"
-	mocks2 "github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
-	"github.com/hyperledger/fabric/protoutil"
-	"github.com/stretchr/testify/mock"
 	"math"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/hyperledger/fabric/core/deliverservice/fake"
+	"github.com/hyperledger/fabric/core/deliverservice/mocks"
+	mocks2 "github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
+	"github.com/hyperledger/fabric/protoutil"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
@@ -91,7 +92,7 @@ func (ac *abclient) Deliver(ctx context.Context, opts ...grpc.CallOption) (order
 
 var connProducerEnpoint = &orderers.Endpoint{
 	Address:   "localhost:5611",
-	CertPool:  nil,
+	RootCerts: nil,
 	Refreshed: nil,
 }
 
