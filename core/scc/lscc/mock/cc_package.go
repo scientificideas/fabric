@@ -4,9 +4,9 @@ package mock
 import (
 	"sync"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/core/common/ccprovider"
-	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 type CCPackage struct {
@@ -50,15 +50,15 @@ type CCPackage struct {
 	getIdReturnsOnCall map[int]struct {
 		result1 []byte
 	}
-	GetPackageObjectStub        func() protoiface.MessageV1
+	GetPackageObjectStub        func() proto.Message
 	getPackageObjectMutex       sync.RWMutex
 	getPackageObjectArgsForCall []struct {
 	}
 	getPackageObjectReturns struct {
-		result1 protoiface.MessageV1
+		result1 proto.Message
 	}
 	getPackageObjectReturnsOnCall map[int]struct {
-		result1 protoiface.MessageV1
+		result1 proto.Message
 	}
 	InitFromBufferStub        func([]byte) (*ccprovider.ChaincodeData, error)
 	initFromBufferMutex       sync.RWMutex
@@ -103,16 +103,15 @@ func (fake *CCPackage) GetChaincodeData() *ccprovider.ChaincodeData {
 	ret, specificReturn := fake.getChaincodeDataReturnsOnCall[len(fake.getChaincodeDataArgsForCall)]
 	fake.getChaincodeDataArgsForCall = append(fake.getChaincodeDataArgsForCall, struct {
 	}{})
-	stub := fake.GetChaincodeDataStub
-	fakeReturns := fake.getChaincodeDataReturns
 	fake.recordInvocation("GetChaincodeData", []interface{}{})
 	fake.getChaincodeDataMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetChaincodeDataStub != nil {
+		return fake.GetChaincodeDataStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.getChaincodeDataReturns
 	return fakeReturns.result1
 }
 
@@ -156,16 +155,15 @@ func (fake *CCPackage) GetDepSpec() *peer.ChaincodeDeploymentSpec {
 	ret, specificReturn := fake.getDepSpecReturnsOnCall[len(fake.getDepSpecArgsForCall)]
 	fake.getDepSpecArgsForCall = append(fake.getDepSpecArgsForCall, struct {
 	}{})
-	stub := fake.GetDepSpecStub
-	fakeReturns := fake.getDepSpecReturns
 	fake.recordInvocation("GetDepSpec", []interface{}{})
 	fake.getDepSpecMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetDepSpecStub != nil {
+		return fake.GetDepSpecStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.getDepSpecReturns
 	return fakeReturns.result1
 }
 
@@ -209,16 +207,15 @@ func (fake *CCPackage) GetDepSpecBytes() []byte {
 	ret, specificReturn := fake.getDepSpecBytesReturnsOnCall[len(fake.getDepSpecBytesArgsForCall)]
 	fake.getDepSpecBytesArgsForCall = append(fake.getDepSpecBytesArgsForCall, struct {
 	}{})
-	stub := fake.GetDepSpecBytesStub
-	fakeReturns := fake.getDepSpecBytesReturns
 	fake.recordInvocation("GetDepSpecBytes", []interface{}{})
 	fake.getDepSpecBytesMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetDepSpecBytesStub != nil {
+		return fake.GetDepSpecBytesStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.getDepSpecBytesReturns
 	return fakeReturns.result1
 }
 
@@ -262,16 +259,15 @@ func (fake *CCPackage) GetId() []byte {
 	ret, specificReturn := fake.getIdReturnsOnCall[len(fake.getIdArgsForCall)]
 	fake.getIdArgsForCall = append(fake.getIdArgsForCall, struct {
 	}{})
-	stub := fake.GetIdStub
-	fakeReturns := fake.getIdReturns
 	fake.recordInvocation("GetId", []interface{}{})
 	fake.getIdMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetIdStub != nil {
+		return fake.GetIdStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.getIdReturns
 	return fakeReturns.result1
 }
 
@@ -310,21 +306,20 @@ func (fake *CCPackage) GetIdReturnsOnCall(i int, result1 []byte) {
 	}{result1}
 }
 
-func (fake *CCPackage) GetPackageObject() protoiface.MessageV1 {
+func (fake *CCPackage) GetPackageObject() proto.Message {
 	fake.getPackageObjectMutex.Lock()
 	ret, specificReturn := fake.getPackageObjectReturnsOnCall[len(fake.getPackageObjectArgsForCall)]
 	fake.getPackageObjectArgsForCall = append(fake.getPackageObjectArgsForCall, struct {
 	}{})
-	stub := fake.GetPackageObjectStub
-	fakeReturns := fake.getPackageObjectReturns
 	fake.recordInvocation("GetPackageObject", []interface{}{})
 	fake.getPackageObjectMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.GetPackageObjectStub != nil {
+		return fake.GetPackageObjectStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.getPackageObjectReturns
 	return fakeReturns.result1
 }
 
@@ -334,32 +329,32 @@ func (fake *CCPackage) GetPackageObjectCallCount() int {
 	return len(fake.getPackageObjectArgsForCall)
 }
 
-func (fake *CCPackage) GetPackageObjectCalls(stub func() protoiface.MessageV1) {
+func (fake *CCPackage) GetPackageObjectCalls(stub func() proto.Message) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = stub
 }
 
-func (fake *CCPackage) GetPackageObjectReturns(result1 protoiface.MessageV1) {
+func (fake *CCPackage) GetPackageObjectReturns(result1 proto.Message) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = nil
 	fake.getPackageObjectReturns = struct {
-		result1 protoiface.MessageV1
+		result1 proto.Message
 	}{result1}
 }
 
-func (fake *CCPackage) GetPackageObjectReturnsOnCall(i int, result1 protoiface.MessageV1) {
+func (fake *CCPackage) GetPackageObjectReturnsOnCall(i int, result1 proto.Message) {
 	fake.getPackageObjectMutex.Lock()
 	defer fake.getPackageObjectMutex.Unlock()
 	fake.GetPackageObjectStub = nil
 	if fake.getPackageObjectReturnsOnCall == nil {
 		fake.getPackageObjectReturnsOnCall = make(map[int]struct {
-			result1 protoiface.MessageV1
+			result1 proto.Message
 		})
 	}
 	fake.getPackageObjectReturnsOnCall[i] = struct {
-		result1 protoiface.MessageV1
+		result1 proto.Message
 	}{result1}
 }
 
@@ -374,16 +369,15 @@ func (fake *CCPackage) InitFromBuffer(arg1 []byte) (*ccprovider.ChaincodeData, e
 	fake.initFromBufferArgsForCall = append(fake.initFromBufferArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
-	stub := fake.InitFromBufferStub
-	fakeReturns := fake.initFromBufferReturns
 	fake.recordInvocation("InitFromBuffer", []interface{}{arg1Copy})
 	fake.initFromBufferMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.InitFromBufferStub != nil {
+		return fake.InitFromBufferStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.initFromBufferReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -437,16 +431,15 @@ func (fake *CCPackage) PutChaincodeToFS() error {
 	ret, specificReturn := fake.putChaincodeToFSReturnsOnCall[len(fake.putChaincodeToFSArgsForCall)]
 	fake.putChaincodeToFSArgsForCall = append(fake.putChaincodeToFSArgsForCall, struct {
 	}{})
-	stub := fake.PutChaincodeToFSStub
-	fakeReturns := fake.putChaincodeToFSReturns
 	fake.recordInvocation("PutChaincodeToFS", []interface{}{})
 	fake.putChaincodeToFSMutex.Unlock()
-	if stub != nil {
-		return stub()
+	if fake.PutChaincodeToFSStub != nil {
+		return fake.PutChaincodeToFSStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.putChaincodeToFSReturns
 	return fakeReturns.result1
 }
 
@@ -491,16 +484,15 @@ func (fake *CCPackage) ValidateCC(arg1 *ccprovider.ChaincodeData) error {
 	fake.validateCCArgsForCall = append(fake.validateCCArgsForCall, struct {
 		arg1 *ccprovider.ChaincodeData
 	}{arg1})
-	stub := fake.ValidateCCStub
-	fakeReturns := fake.validateCCReturns
 	fake.recordInvocation("ValidateCC", []interface{}{arg1})
 	fake.validateCCMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.ValidateCCStub != nil {
+		return fake.ValidateCCStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.validateCCReturns
 	return fakeReturns.result1
 }
 

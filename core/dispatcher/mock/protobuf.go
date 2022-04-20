@@ -4,14 +4,14 @@ package mock
 import (
 	"sync"
 
-	"google.golang.org/protobuf/runtime/protoiface"
+	"github.com/golang/protobuf/proto"
 )
 
 type Protobuf struct {
-	MarshalStub        func(protoiface.MessageV1) ([]byte, error)
+	MarshalStub        func(proto.Message) ([]byte, error)
 	marshalMutex       sync.RWMutex
 	marshalArgsForCall []struct {
-		arg1 protoiface.MessageV1
+		arg1 proto.Message
 	}
 	marshalReturns struct {
 		result1 []byte
@@ -21,11 +21,11 @@ type Protobuf struct {
 		result1 []byte
 		result2 error
 	}
-	UnmarshalStub        func([]byte, protoiface.MessageV1) error
+	UnmarshalStub        func([]byte, proto.Message) error
 	unmarshalMutex       sync.RWMutex
 	unmarshalArgsForCall []struct {
 		arg1 []byte
-		arg2 protoiface.MessageV1
+		arg2 proto.Message
 	}
 	unmarshalReturns struct {
 		result1 error
@@ -37,22 +37,21 @@ type Protobuf struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Protobuf) Marshal(arg1 protoiface.MessageV1) ([]byte, error) {
+func (fake *Protobuf) Marshal(arg1 proto.Message) ([]byte, error) {
 	fake.marshalMutex.Lock()
 	ret, specificReturn := fake.marshalReturnsOnCall[len(fake.marshalArgsForCall)]
 	fake.marshalArgsForCall = append(fake.marshalArgsForCall, struct {
-		arg1 protoiface.MessageV1
+		arg1 proto.Message
 	}{arg1})
-	stub := fake.MarshalStub
-	fakeReturns := fake.marshalReturns
 	fake.recordInvocation("Marshal", []interface{}{arg1})
 	fake.marshalMutex.Unlock()
-	if stub != nil {
-		return stub(arg1)
+	if fake.MarshalStub != nil {
+		return fake.MarshalStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.marshalReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -62,13 +61,13 @@ func (fake *Protobuf) MarshalCallCount() int {
 	return len(fake.marshalArgsForCall)
 }
 
-func (fake *Protobuf) MarshalCalls(stub func(protoiface.MessageV1) ([]byte, error)) {
+func (fake *Protobuf) MarshalCalls(stub func(proto.Message) ([]byte, error)) {
 	fake.marshalMutex.Lock()
 	defer fake.marshalMutex.Unlock()
 	fake.MarshalStub = stub
 }
 
-func (fake *Protobuf) MarshalArgsForCall(i int) protoiface.MessageV1 {
+func (fake *Protobuf) MarshalArgsForCall(i int) proto.Message {
 	fake.marshalMutex.RLock()
 	defer fake.marshalMutex.RUnlock()
 	argsForCall := fake.marshalArgsForCall[i]
@@ -101,7 +100,7 @@ func (fake *Protobuf) MarshalReturnsOnCall(i int, result1 []byte, result2 error)
 	}{result1, result2}
 }
 
-func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 protoiface.MessageV1) error {
+func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 proto.Message) error {
 	var arg1Copy []byte
 	if arg1 != nil {
 		arg1Copy = make([]byte, len(arg1))
@@ -111,18 +110,17 @@ func (fake *Protobuf) Unmarshal(arg1 []byte, arg2 protoiface.MessageV1) error {
 	ret, specificReturn := fake.unmarshalReturnsOnCall[len(fake.unmarshalArgsForCall)]
 	fake.unmarshalArgsForCall = append(fake.unmarshalArgsForCall, struct {
 		arg1 []byte
-		arg2 protoiface.MessageV1
+		arg2 proto.Message
 	}{arg1Copy, arg2})
-	stub := fake.UnmarshalStub
-	fakeReturns := fake.unmarshalReturns
 	fake.recordInvocation("Unmarshal", []interface{}{arg1Copy, arg2})
 	fake.unmarshalMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.UnmarshalStub != nil {
+		return fake.UnmarshalStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.unmarshalReturns
 	return fakeReturns.result1
 }
 
@@ -132,13 +130,13 @@ func (fake *Protobuf) UnmarshalCallCount() int {
 	return len(fake.unmarshalArgsForCall)
 }
 
-func (fake *Protobuf) UnmarshalCalls(stub func([]byte, protoiface.MessageV1) error) {
+func (fake *Protobuf) UnmarshalCalls(stub func([]byte, proto.Message) error) {
 	fake.unmarshalMutex.Lock()
 	defer fake.unmarshalMutex.Unlock()
 	fake.UnmarshalStub = stub
 }
 
-func (fake *Protobuf) UnmarshalArgsForCall(i int) ([]byte, protoiface.MessageV1) {
+func (fake *Protobuf) UnmarshalArgsForCall(i int) ([]byte, proto.Message) {
 	fake.unmarshalMutex.RLock()
 	defer fake.unmarshalMutex.RUnlock()
 	argsForCall := fake.unmarshalArgsForCall[i]

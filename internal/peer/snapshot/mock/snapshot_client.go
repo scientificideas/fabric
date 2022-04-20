@@ -5,13 +5,13 @@ import (
 	"context"
 	"sync"
 
+	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type SnapshotClient struct {
-	CancelStub        func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*emptypb.Empty, error)
+	CancelStub        func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*empty.Empty, error)
 	cancelMutex       sync.RWMutex
 	cancelArgsForCall []struct {
 		arg1 context.Context
@@ -19,14 +19,14 @@ type SnapshotClient struct {
 		arg3 []grpc.CallOption
 	}
 	cancelReturns struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}
 	cancelReturnsOnCall map[int]struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}
-	GenerateStub        func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*emptypb.Empty, error)
+	GenerateStub        func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*empty.Empty, error)
 	generateMutex       sync.RWMutex
 	generateArgsForCall []struct {
 		arg1 context.Context
@@ -34,11 +34,11 @@ type SnapshotClient struct {
 		arg3 []grpc.CallOption
 	}
 	generateReturns struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}
 	generateReturnsOnCall map[int]struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}
 	QueryPendingsStub        func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*peer.QueryPendingSnapshotsResponse, error)
@@ -60,7 +60,7 @@ type SnapshotClient struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *SnapshotClient) Cancel(arg1 context.Context, arg2 *peer.SignedSnapshotRequest, arg3 ...grpc.CallOption) (*emptypb.Empty, error) {
+func (fake *SnapshotClient) Cancel(arg1 context.Context, arg2 *peer.SignedSnapshotRequest, arg3 ...grpc.CallOption) (*empty.Empty, error) {
 	fake.cancelMutex.Lock()
 	ret, specificReturn := fake.cancelReturnsOnCall[len(fake.cancelArgsForCall)]
 	fake.cancelArgsForCall = append(fake.cancelArgsForCall, struct {
@@ -68,16 +68,15 @@ func (fake *SnapshotClient) Cancel(arg1 context.Context, arg2 *peer.SignedSnapsh
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
-	stub := fake.CancelStub
-	fakeReturns := fake.cancelReturns
 	fake.recordInvocation("Cancel", []interface{}{arg1, arg2, arg3})
 	fake.cancelMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3...)
+	if fake.CancelStub != nil {
+		return fake.CancelStub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.cancelReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -87,7 +86,7 @@ func (fake *SnapshotClient) CancelCallCount() int {
 	return len(fake.cancelArgsForCall)
 }
 
-func (fake *SnapshotClient) CancelCalls(stub func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*emptypb.Empty, error)) {
+func (fake *SnapshotClient) CancelCalls(stub func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*empty.Empty, error)) {
 	fake.cancelMutex.Lock()
 	defer fake.cancelMutex.Unlock()
 	fake.CancelStub = stub
@@ -100,33 +99,33 @@ func (fake *SnapshotClient) CancelArgsForCall(i int) (context.Context, *peer.Sig
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *SnapshotClient) CancelReturns(result1 *emptypb.Empty, result2 error) {
+func (fake *SnapshotClient) CancelReturns(result1 *empty.Empty, result2 error) {
 	fake.cancelMutex.Lock()
 	defer fake.cancelMutex.Unlock()
 	fake.CancelStub = nil
 	fake.cancelReturns = struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *SnapshotClient) CancelReturnsOnCall(i int, result1 *emptypb.Empty, result2 error) {
+func (fake *SnapshotClient) CancelReturnsOnCall(i int, result1 *empty.Empty, result2 error) {
 	fake.cancelMutex.Lock()
 	defer fake.cancelMutex.Unlock()
 	fake.CancelStub = nil
 	if fake.cancelReturnsOnCall == nil {
 		fake.cancelReturnsOnCall = make(map[int]struct {
-			result1 *emptypb.Empty
+			result1 *empty.Empty
 			result2 error
 		})
 	}
 	fake.cancelReturnsOnCall[i] = struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *SnapshotClient) Generate(arg1 context.Context, arg2 *peer.SignedSnapshotRequest, arg3 ...grpc.CallOption) (*emptypb.Empty, error) {
+func (fake *SnapshotClient) Generate(arg1 context.Context, arg2 *peer.SignedSnapshotRequest, arg3 ...grpc.CallOption) (*empty.Empty, error) {
 	fake.generateMutex.Lock()
 	ret, specificReturn := fake.generateReturnsOnCall[len(fake.generateArgsForCall)]
 	fake.generateArgsForCall = append(fake.generateArgsForCall, struct {
@@ -134,16 +133,15 @@ func (fake *SnapshotClient) Generate(arg1 context.Context, arg2 *peer.SignedSnap
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
-	stub := fake.GenerateStub
-	fakeReturns := fake.generateReturns
 	fake.recordInvocation("Generate", []interface{}{arg1, arg2, arg3})
 	fake.generateMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3...)
+	if fake.GenerateStub != nil {
+		return fake.GenerateStub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.generateReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -153,7 +151,7 @@ func (fake *SnapshotClient) GenerateCallCount() int {
 	return len(fake.generateArgsForCall)
 }
 
-func (fake *SnapshotClient) GenerateCalls(stub func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*emptypb.Empty, error)) {
+func (fake *SnapshotClient) GenerateCalls(stub func(context.Context, *peer.SignedSnapshotRequest, ...grpc.CallOption) (*empty.Empty, error)) {
 	fake.generateMutex.Lock()
 	defer fake.generateMutex.Unlock()
 	fake.GenerateStub = stub
@@ -166,28 +164,28 @@ func (fake *SnapshotClient) GenerateArgsForCall(i int) (context.Context, *peer.S
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *SnapshotClient) GenerateReturns(result1 *emptypb.Empty, result2 error) {
+func (fake *SnapshotClient) GenerateReturns(result1 *empty.Empty, result2 error) {
 	fake.generateMutex.Lock()
 	defer fake.generateMutex.Unlock()
 	fake.GenerateStub = nil
 	fake.generateReturns = struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *SnapshotClient) GenerateReturnsOnCall(i int, result1 *emptypb.Empty, result2 error) {
+func (fake *SnapshotClient) GenerateReturnsOnCall(i int, result1 *empty.Empty, result2 error) {
 	fake.generateMutex.Lock()
 	defer fake.generateMutex.Unlock()
 	fake.GenerateStub = nil
 	if fake.generateReturnsOnCall == nil {
 		fake.generateReturnsOnCall = make(map[int]struct {
-			result1 *emptypb.Empty
+			result1 *empty.Empty
 			result2 error
 		})
 	}
 	fake.generateReturnsOnCall[i] = struct {
-		result1 *emptypb.Empty
+		result1 *empty.Empty
 		result2 error
 	}{result1, result2}
 }
@@ -200,16 +198,15 @@ func (fake *SnapshotClient) QueryPendings(arg1 context.Context, arg2 *peer.Signe
 		arg2 *peer.SignedSnapshotRequest
 		arg3 []grpc.CallOption
 	}{arg1, arg2, arg3})
-	stub := fake.QueryPendingsStub
-	fakeReturns := fake.queryPendingsReturns
 	fake.recordInvocation("QueryPendings", []interface{}{arg1, arg2, arg3})
 	fake.queryPendingsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2, arg3...)
+	if fake.QueryPendingsStub != nil {
+		return fake.QueryPendingsStub(arg1, arg2, arg3...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
+	fakeReturns := fake.queryPendingsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

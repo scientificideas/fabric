@@ -63,7 +63,6 @@ require (
 	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
 	golang.org/x/tools v0.0.0-20201201210846-92771a23d8e3
 	google.golang.org/grpc v1.33.2
-	google.golang.org/protobuf v1.28.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.4.0
@@ -77,6 +76,4 @@ replace (
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
 	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b
 	github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
-// https://github.com/golang/go/issues/34610
-//golang.org/x/sys => golang.org/x/sys v0.0.0-20190920190810-ef0ce1748380
 )

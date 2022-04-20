@@ -5,16 +5,16 @@ import (
 	"context"
 	"sync"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric/common/deliver"
-	"google.golang.org/protobuf/runtime/protoiface"
 )
 
 type Inspector struct {
-	InspectStub        func(context.Context, protoiface.MessageV1) error
+	InspectStub        func(context.Context, proto.Message) error
 	inspectMutex       sync.RWMutex
 	inspectArgsForCall []struct {
 		arg1 context.Context
-		arg2 protoiface.MessageV1
+		arg2 proto.Message
 	}
 	inspectReturns struct {
 		result1 error
@@ -26,23 +26,22 @@ type Inspector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Inspector) Inspect(arg1 context.Context, arg2 protoiface.MessageV1) error {
+func (fake *Inspector) Inspect(arg1 context.Context, arg2 proto.Message) error {
 	fake.inspectMutex.Lock()
 	ret, specificReturn := fake.inspectReturnsOnCall[len(fake.inspectArgsForCall)]
 	fake.inspectArgsForCall = append(fake.inspectArgsForCall, struct {
 		arg1 context.Context
-		arg2 protoiface.MessageV1
+		arg2 proto.Message
 	}{arg1, arg2})
-	stub := fake.InspectStub
-	fakeReturns := fake.inspectReturns
 	fake.recordInvocation("Inspect", []interface{}{arg1, arg2})
 	fake.inspectMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
+	if fake.InspectStub != nil {
+		return fake.InspectStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
+	fakeReturns := fake.inspectReturns
 	return fakeReturns.result1
 }
 
@@ -52,13 +51,13 @@ func (fake *Inspector) InspectCallCount() int {
 	return len(fake.inspectArgsForCall)
 }
 
-func (fake *Inspector) InspectCalls(stub func(context.Context, protoiface.MessageV1) error) {
+func (fake *Inspector) InspectCalls(stub func(context.Context, proto.Message) error) {
 	fake.inspectMutex.Lock()
 	defer fake.inspectMutex.Unlock()
 	fake.InspectStub = stub
 }
 
-func (fake *Inspector) InspectArgsForCall(i int) (context.Context, protoiface.MessageV1) {
+func (fake *Inspector) InspectArgsForCall(i int) (context.Context, proto.Message) {
 	fake.inspectMutex.RLock()
 	defer fake.inspectMutex.RUnlock()
 	argsForCall := fake.inspectArgsForCall[i]
