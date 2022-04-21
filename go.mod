@@ -69,11 +69,11 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
+	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c
 	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./
-	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
-	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b
+	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
+	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
 	github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
 )

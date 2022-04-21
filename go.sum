@@ -292,12 +292,12 @@ github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 h1:N/ElC8H3+5X
 github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2 h1:cj1WqevHwaMwCsIvIrO54U7V67DdJficnTd7NJ6MiPo=
-github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2/go.mod h1:ZOD/ZiAdH9HpqdsJLlUTlbzYBr/qYEzyYx7wClbrH+w=
-github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486 h1:Z9Zkg0Tt3a27Mxp4T3N/P7w4mgrFa5HN/oXGt/FP8Es=
-github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486/go.mod h1:d/J2pgPKvmYzT3fpRc5lXf1WZlWCvf+SidAtLH7IEek=
-github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b h1:v8CyuvfpOFBMLX4wOUu3uim0KJJ0sE84bI3wAr7ajaw=
-github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b/go.mod h1:J1/KRdF1nT1O65ary1Hbf9ViR7z1FOQNMszPvgswMBw=
+github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c h1:Msxp+Zt/7y7XBsIo86jY6dx7gFe7Ny8BpLrYFo8v0TU=
+github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c/go.mod h1:gj3iD1/lz06pMRrGOLvzpqVtLUfgBBCzzyAt9TsDtgg=
+github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26 h1:5Yl/L9TbOzcSrp6bCyYTmtmB7GnS8GOUJVLqAhPcWQo=
+github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26/go.mod h1:w3A6ezMvoMjxujiCifTvB32ABUlChvnUii48voxD30g=
+github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66 h1:pJaFDSPzOynCDuhbu2L7Sp9qW/7oBboGtIdUUuNHp6I=
+github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66/go.mod h1:LwiOhpQdmxUDARBiNGPR7Gz7usZTv5oCF1WUS0/RoWs=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.0.5/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
@@ -485,6 +485,7 @@ google.golang.org/grpc v1.23.1/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyac
 google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQciAY=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
 google.golang.org/grpc v1.31.0/go.mod h1:N36X2cJ7JwdamYAgDz+s+rVMFjt3numwzf/HckM8pak=
+google.golang.org/grpc v1.33.1/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTpR3n0=
 google.golang.org/grpc v1.33.2 h1:EQyQC3sa8M+p6Ulc8yy9SWSS2GVwyRc83gAbG8lrl4o=
 google.golang.org/grpc v1.33.2/go.mod h1:JMHMWHQWaTccqQQlmk3MJZS+GWXOdAesneDmEnv2fbc=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
@@ -496,9 +497,8 @@ google.golang.org/protobuf v1.22.0/go.mod h1:EGpADcykh3NcUnDUJcl1+ZksZNG86OlYog2
 google.golang.org/protobuf v1.23.1-0.20200526195155-81db48ad09cc/go.mod h1:EGpADcykh3NcUnDUJcl1+ZksZNG86OlYog2l/sGQquU=
 google.golang.org/protobuf v1.25.0/go.mod h1:9JNX74DMeImyA3h4bdi1ymwjUzf21/xIlbajtzgsN7c=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
+google.golang.org/protobuf v1.26.0 h1:bxAC2xTBsZGibn2RTntX0oH50xLsqy1OxA9tTL3p/lk=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
-google.golang.org/protobuf v1.27.1 h1:SnqbnDw1V7RiZcXPx5MEeqPv2s79L9i7BJUlG/+RurQ=
-google.golang.org/protobuf v1.27.1/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 gopkg.in/airbrake/gobrake.v2 v2.0.9/go.mod h1:/h5ZAUhDkGaJfjzjKLSjv6zCL6O0LLBxU4K+aSYdM/U=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6 h1:jMFz6MfLP0/4fUyZle81rXUoxOBFi19VUFKVDOQfozc=
 gopkg.in/alecthomas/kingpin.v2 v2.2.6/go.mod h1:FMv+mEhP44yOT+4EoQTLFTRgOQ1FBLkstjWtayDeSgw=

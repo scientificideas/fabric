@@ -59,7 +59,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
+# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c
 ## explicit
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
@@ -216,7 +216,7 @@ github.com/hyperledger/fabric-chaincode-go/pkg/statebased
 github.com/hyperledger/fabric-chaincode-go/shim
 github.com/hyperledger/fabric-chaincode-go/shim/internal
 github.com/hyperledger/fabric-chaincode-go/shimtest
-# github.com/hyperledger/fabric-config v0.1.0 => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
+# github.com/hyperledger/fabric-config v0.1.0 => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 ## explicit
 github.com/hyperledger/fabric-config/configtx
 github.com/hyperledger/fabric-config/configtx/internal/policydsl
@@ -232,7 +232,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.0.0-20211118165945-23d738fc3553 => github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b
+# github.com/hyperledger/fabric-protos-go v0.0.0-20211118165945-23d738fc3553 => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
 ## explicit
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -582,7 +582,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.27.1
+# google.golang.org/protobuf v1.26.0
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -629,8 +629,8 @@ gopkg.in/tomb.v1
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220406165736-b31f6b34b0b2
+# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
-# github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220414193208-fde6650ed486
-# github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220414192029-5b9506d1ae4b
+# github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
+# github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
 # github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
