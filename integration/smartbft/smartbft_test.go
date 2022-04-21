@@ -23,8 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tedsuo/ifrit/grouper"
-
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/msp"
@@ -39,6 +37,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	"github.com/tedsuo/ifrit/ginkgomon"
+	"github.com/tedsuo/ifrit/grouper"
 )
 
 func init() {
