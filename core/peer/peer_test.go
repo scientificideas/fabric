@@ -65,6 +65,7 @@ func NewTestPeer(t *testing.T) (*Peer, func()) {
 	deserManager := peergossip.NewDeserializersManager(localMSP)
 	messageCryptoService := peergossip.NewMCS(
 		&mocks.ChannelPolicyManagerGetter{},
+		&mocks.Id2IdentitiesFetcherMock{},
 		signer,
 		deserManager,
 		cryptoProvider,
