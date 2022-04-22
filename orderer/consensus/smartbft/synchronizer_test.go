@@ -10,12 +10,11 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/hyperledger/fabric-protos-go/msp"
-
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
+	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/common/flogging"
 	mocks2 "github.com/hyperledger/fabric/orderer/consensus/mocks"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
