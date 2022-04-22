@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/hyperledger/fabric-protos-go/msp"
+
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
@@ -86,7 +88,7 @@ func TestSynchronizerSync(t *testing.T) {
 				"example.com:1": 100,
 				"example.com:2": 102,
 				"example.com:3": 103,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
@@ -128,10 +130,16 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		assert.Equal(t, (*decision).Latest, d.Latest)
+		assert.Equal(t, (*decision).Reconfig, d.Reconfig)
 	})
 
 	t.Run("3/4 nodes present", func(t *testing.T) {
@@ -140,7 +148,7 @@ func TestSynchronizerSync(t *testing.T) {
 			map[string]uint64{
 				"example.com:1": 100,
 				"example.com:2": 102,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
@@ -193,7 +201,7 @@ func TestSynchronizerSync(t *testing.T) {
 		bp.HeightsByEndpointsReturns(
 			map[string]uint64{
 				"example.com:1": 101,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
