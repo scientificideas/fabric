@@ -189,10 +189,16 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, *decision, d)
+		assert.Equal(t, (*decision).Latest, d.Latest)
+		assert.Equal(t, (*decision).Reconfig, d.Reconfig)
 	})
 
 	t.Run("2/4 nodes present", func(t *testing.T) {
@@ -242,6 +248,11 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
@@ -297,6 +308,11 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
