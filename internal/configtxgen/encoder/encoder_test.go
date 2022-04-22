@@ -496,7 +496,7 @@ var _ = Describe("Encoder", func() {
 				Expect(metadata.Options.CollectTimeout).To(Equal("1m"))
 				Expect(metadata.Options.SyncOnStart).To(Equal(false))
 				Expect(metadata.Options.SpeedUpViewChange).To(Equal(false))
-				Expect(metadata.Options.RequestMaxBytes).To(Equal(10 * 1024))
+				Expect(metadata.Options.RequestMaxBytes).To(Equal(uint64(10 * 1024)))
 				Expect(metadata.Options.RequestPoolSubmitTimeout).To(Equal("5s"))
 			})
 

@@ -612,13 +612,13 @@ func (bv *BlockValidationPolicyVerifier) Id2Identity(envelope *common.ConfigEnve
 	ct := &orderer.ConsensusType{}
 	err := proto.Unmarshal(consensusType, ct)
 	if err != nil {
-		bv.Logger.Panicf("Failed unmarshaling ConsensusType from consensusType: %v", err)
+		bv.Logger.Panicf("Failed unmarshalling ConsensusType from consensusType: %v", err)
 	}
 
 	m := &smartbft.ConfigMetadata{}
 	err = proto.Unmarshal(ct.Metadata, m)
 	if err != nil {
-		bv.Logger.Panicf("Failed unmarshaling ConfigMetadata from metadata: %v", err)
+		bv.Logger.Panicf("Failed unmarshalling ConfigMetadata from metadata: %v", err)
 	}
 
 	res := make(map[uint64][]byte)

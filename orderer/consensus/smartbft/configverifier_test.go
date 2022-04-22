@@ -76,7 +76,7 @@ func TestValidateConfig(t *testing.T) {
 				env.Payload = []byte{1, 2, 3}
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "error unmarshaling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedError:              "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
 		},
 		{
 			name:     "empty header",
@@ -105,7 +105,7 @@ func TestValidateConfig(t *testing.T) {
 				}})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError: "channel header unmarshalling error: error unmarshaling ChannelHeader: " +
+			expectedError: "channel header unmarshalling error: error unmarshalling ChannelHeader: " +
 				"proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
 		},
 		{
@@ -194,7 +194,7 @@ func TestValidateConfig(t *testing.T) {
 				})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "error unmarshaling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedError:              "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
 		},
 		{
 			name:     "invalid inner payload header",

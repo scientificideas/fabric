@@ -124,7 +124,7 @@ func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte)
 	}
 	metadata, err := GetMetadataFromBlock(block, common.BlockMetadataIndex_SIGNATURES)
 	if err != nil {
-		return nil, errors.Errorf("failed unmarshaling medatata for signatures: %v", err)
+		return nil, errors.Errorf("failed unmarshalling medatata for signatures: %v", err)
 	}
 
 	var signatureSet []*SignedData
@@ -133,7 +133,7 @@ func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte)
 		if len(metadataSignature.SignatureHeader) > 0 {
 			sigHdr, err := GetSignatureHeader(metadataSignature.SignatureHeader)
 			if err != nil {
-				return nil, errors.Errorf("failed unmarshaling signature header for block with id %d: %v",
+				return nil, errors.Errorf("failed unmarshalling signature header for block with id %d: %v",
 					block.Header.Number, err)
 			}
 			identity = sigHdr.Creator
