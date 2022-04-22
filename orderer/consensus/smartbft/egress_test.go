@@ -49,7 +49,7 @@ func TestEgressSendConsensus(t *testing.T) {
 func TestEgressSendTransaction(t *testing.T) {
 	logger := flogging.MustGetLogger("test")
 	rpc := &mocks.RPC{}
-	rpc.On("SendSubmit", mock.Anything, mock.Anything).Return(nil)
+	rpc.On("SendSubmit", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	egress := &smartbft.Egress{
 		Logger:  logger,
 		Channel: "test",
@@ -75,5 +75,7 @@ func TestEgressSendTransaction(t *testing.T) {
 		Payload: &cb.Envelope{
 			Payload: []byte{1, 2, 3},
 		},
-	})
+	},
+		mock.Anything,
+	)
 }
