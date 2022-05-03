@@ -14,15 +14,19 @@ import (
 	"github.com/hyperledger/fabric/core/config"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
-
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
 
 const (
-	DefaultReConnectBackoffThreshold   = time.Hour * 1
-	DefaultReConnectTotalTimeThreshold = time.Second * 60 * 60
-	DefaultConnectionTimeout           = time.Second * 3
+	DefaultReConnectBackoffThreshold    = time.Hour * 1
+	DefaultReConnectTotalTimeThreshold  = time.Hour * 1
+	DefaultConnectionTimeout            = time.Second * 3
+	DefaultBftMinBackoffDelay           = 10 * time.Millisecond
+	DefaultBftMaxBackoffDelay           = 10 * time.Second
+	DefaultBftBlockRcvTotalBackoffDelay = 20 * time.Second
+	DefaultBftBlockCensorshipTimeout    = 20 * time.Second
+	DefaultWrongStatusThreshold         = 10
 )
 
 // DeliverServiceConfig is the struct that defines the deliverservice configuration.
@@ -44,6 +48,10 @@ type DeliverServiceConfig struct {
 	SecOpts comm.SecureOptions
 	// Is BFT client flag
 	IsBFT bool
+
+	MinBackoffDelayBFT        time.Duration
+	MaxBackoffDelayBFT        time.Duration
+	BlockCensorshipTimeoutBFT time.Duration
 
 	// OrdererEndpointOverrides is a map of orderer addresses which should be
 	// re-mapped to a different orderer endpoint.
@@ -181,6 +189,22 @@ func (c *DeliverServiceConfig) loadDeliverServiceConfig() {
 	}
 
 	c.IsBFT = viper.GetBool("peer.deliveryclient.bft.enabled")
+	if c.IsBFT {
+		c.MinBackoffDelayBFT = viper.GetDuration("peer.deliveryclient.bft.minBackoffDelay")
+		if c.MinBackoffDelayBFT == 0 {
+			c.MinBackoffDelayBFT = DefaultBftMinBackoffDelay
+		}
+
+		c.MaxBackoffDelayBFT = viper.GetDuration("peer.deliveryclient.bft.maxBackoffDelay")
+		if c.MaxBackoffDelayBFT == 0 {
+			c.MaxBackoffDelayBFT = DefaultBftMaxBackoffDelay
+		}
+
+		c.BlockCensorshipTimeoutBFT = viper.GetDuration("peer.deliveryclient.bft.blockCensorshipTimeout")
+		if c.BlockCensorshipTimeoutBFT == 0 {
+			c.BlockCensorshipTimeoutBFT = DefaultBftBlockCensorshipTimeout
+		}
+	}
 
 	overridesMap, err := LoadOverridesMap()
 	if err != nil {

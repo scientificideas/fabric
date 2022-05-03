@@ -7,14 +7,17 @@ SPDX-License-Identifier: Apache-2.0
 package deliverservice
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/core/deliverservice/fake"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
+	"github.com/hyperledger/fabric/internal/pkg/peer/bftblocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
-
+	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,6 +84,32 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 		require.Equal(t, "76f7a03f8dfdb0ef7c4b28b3901fe163c730e906c70e4cdf887054ad5f608bed", fmt.Sprintf("%x", bp.(*blocksprovider.Deliverer).TLSCertHash))
 	})
 
+	t.Run("Green Path With Mutual TLS BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{
+			DeliverServiceConfig: &DeliverServiceConfig{
+				SecOpts: secOpts,
+				IsBFT:   true,
+			},
+			OrdererSource: orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"), nil),
+		}).(*deliverServiceImpl)
+
+		finalized := make(chan struct{})
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {
+			close(finalized)
+		})
+		require.NoError(t, err)
+
+		select {
+		case <-finalized:
+		case <-time.After(time.Second):
+			require.FailNow(t, "finalizer should have executed")
+		}
+
+		bp, ok := ds.blockProviders["channel-id"]
+		require.True(t, ok, "map entry must exist")
+		require.Equal(t, "76f7a03f8dfdb0ef7c4b28b3901fe163c730e906c70e4cdf887054ad5f608bed", fmt.Sprintf("%x", bp.(*bftblocksprovider.Deliverer).TLSCertHash))
+	})
+
 	t.Run("Green Path without mutual TLS", func(t *testing.T) {
 		ds := NewDeliverService(&Config{
 			DeliverServiceConfig: &DeliverServiceConfig{},
@@ -103,9 +132,49 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 		require.Nil(t, bp.(*blocksprovider.Deliverer).TLSCertHash)
 	})
 
+	t.Run("Green Path without mutual TLS BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{
+			DeliverServiceConfig: &DeliverServiceConfig{
+				IsBFT: true,
+			},
+			OrdererSource: orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"), nil),
+		}).(*deliverServiceImpl)
+
+		finalized := make(chan struct{})
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {
+			close(finalized)
+		})
+		require.NoError(t, err)
+
+		select {
+		case <-finalized:
+		case <-time.After(time.Second):
+			require.FailNow(t, "finalizer should have executed")
+		}
+
+		bp, ok := ds.blockProviders["channel-id"]
+		require.True(t, ok, "map entry must exist")
+		require.Nil(t, bp.(*bftblocksprovider.Deliverer).TLSCertHash)
+	})
+
 	t.Run("Exists", func(t *testing.T) {
 		ds := NewDeliverService(&Config{
 			DeliverServiceConfig: &DeliverServiceConfig{},
+		}).(*deliverServiceImpl)
+
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
+		require.NoError(t, err)
+
+		err = ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
+		require.EqualError(t, err, "Delivery service - block provider already exists for channel-id found, can't start delivery")
+	})
+
+	t.Run("Exists BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{
+			DeliverServiceConfig: &DeliverServiceConfig{
+				IsBFT: true,
+			},
+			OrdererSource: orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"), nil),
 		}).(*deliverServiceImpl)
 
 		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
@@ -125,13 +194,27 @@ eUCutqn1KYDMYh54i6p723cXbdDkmvL2UCciHyHdSWS9lmkKVdyNGIJ6
 		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
 		require.EqualError(t, err, "Delivery service is stopping cannot join a new channel channel-id")
 	})
+
+	t.Run("Stopping BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{
+			DeliverServiceConfig: &DeliverServiceConfig{
+				IsBFT: true,
+			},
+			OrdererSource: orderers.NewConnectionSource(flogging.MustGetLogger("peer.orderers"), nil),
+		}).(*deliverServiceImpl)
+
+		ds.Stop()
+
+		err := ds.StartDeliverForChannel("channel-id", fakeLedgerInfo, func() {})
+		require.EqualError(t, err, "Delivery service is stopping cannot join a new channel channel-id")
+	})
 }
 
 func TestStopDeliverForChannel(t *testing.T) {
 	t.Run("Green path", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
 		doneA := make(chan struct{})
-		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+		ds.blockProviders = map[string]BlocksProvider{
 			"a": &blocksprovider.Deliverer{
 				DoneC: doneA,
 			},
@@ -151,9 +234,35 @@ func TestStopDeliverForChannel(t *testing.T) {
 		}
 	})
 
+	t.Run("Green path BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
+		ctxA, cancelA := context.WithCancel(context.Background())
+		ctxB, cancelB := context.WithCancel(context.Background())
+		ds.blockProviders = map[string]BlocksProvider{
+			"a": &bftblocksprovider.Deliverer{
+				Ctx:    ctxA,
+				Cancel: cancelA,
+			},
+			"b": &bftblocksprovider.Deliverer{
+				Ctx:    ctxB,
+				Cancel: cancelB,
+			},
+		}
+		err := ds.StopDeliverForChannel("a")
+		require.NoError(t, err)
+		require.Len(t, ds.blockProviders, 1)
+		_, ok := ds.blockProviders["a"]
+		require.False(t, ok)
+		select {
+		case <-ctxA.Done():
+		default:
+			require.Fail(t, "should have stopped the blocksprovider")
+		}
+	})
+
 	t.Run("Already stopping", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+		ds.blockProviders = map[string]BlocksProvider{
 			"a": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
@@ -167,9 +276,29 @@ func TestStopDeliverForChannel(t *testing.T) {
 		require.EqualError(t, err, "Delivery service is stopping, cannot stop delivery for channel a")
 	})
 
+	t.Run("Already stopping BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
+		ctxA, cancelA := context.WithCancel(context.Background())
+		ctxB, cancelB := context.WithCancel(context.Background())
+		ds.blockProviders = map[string]BlocksProvider{
+			"a": &bftblocksprovider.Deliverer{
+				Ctx:    ctxA,
+				Cancel: cancelA,
+			},
+			"b": &bftblocksprovider.Deliverer{
+				Ctx:    ctxB,
+				Cancel: cancelB,
+			},
+		}
+
+		ds.Stop()
+		err := ds.StopDeliverForChannel("a")
+		require.EqualError(t, err, "Delivery service is stopping, cannot stop delivery for channel a")
+	})
+
 	t.Run("Non-existent", func(t *testing.T) {
 		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-		ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+		ds.blockProviders = map[string]BlocksProvider{
 			"a": &blocksprovider.Deliverer{
 				DoneC: make(chan struct{}),
 			},
@@ -181,11 +310,30 @@ func TestStopDeliverForChannel(t *testing.T) {
 		err := ds.StopDeliverForChannel("c")
 		require.EqualError(t, err, "Delivery service - no block provider for c found, can't stop delivery")
 	})
+
+	t.Run("Non-existent BFT", func(t *testing.T) {
+		ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
+		ctxA, cancelA := context.WithCancel(context.Background())
+		ctxB, cancelB := context.WithCancel(context.Background())
+		ds.blockProviders = map[string]BlocksProvider{
+			"a": &bftblocksprovider.Deliverer{
+				Ctx:    ctxA,
+				Cancel: cancelA,
+			},
+			"b": &bftblocksprovider.Deliverer{
+				Ctx:    ctxB,
+				Cancel: cancelB,
+			},
+		}
+
+		err := ds.StopDeliverForChannel("c")
+		require.EqualError(t, err, "Delivery service - no block provider for c found, can't stop delivery")
+	})
 }
 
 func TestStop(t *testing.T) {
 	ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
-	ds.blockProviders = map[string]blocksprovider.BlocksProvider{
+	ds.blockProviders = map[string]BlocksProvider{
 		"a": &blocksprovider.Deliverer{
 			DoneC: make(chan struct{}),
 		},
@@ -208,6 +356,41 @@ func TestStop(t *testing.T) {
 	for _, bp := range ds.blockProviders {
 		select {
 		case <-bp.(*blocksprovider.Deliverer).DoneC:
+		default:
+			require.Fail(t, "block providers should te closed")
+		}
+	}
+}
+
+func TestStopBFT(t *testing.T) {
+	ds := NewDeliverService(&Config{}).(*deliverServiceImpl)
+	ctxA, cancelA := context.WithCancel(context.Background())
+	ctxB, cancelB := context.WithCancel(context.Background())
+	ds.blockProviders = map[string]BlocksProvider{
+		"a": &bftblocksprovider.Deliverer{
+			Ctx:    ctxA,
+			Cancel: cancelA,
+		},
+		"b": &bftblocksprovider.Deliverer{
+			Ctx:    ctxB,
+			Cancel: cancelB,
+		},
+	}
+	require.False(t, ds.stopping)
+	for _, bp := range ds.blockProviders {
+		select {
+		case <-bp.(*bftblocksprovider.Deliverer).Ctx.Done():
+			require.Fail(t, "block providers should not be closed")
+		default:
+		}
+	}
+
+	ds.Stop()
+	require.True(t, ds.stopping)
+	require.Len(t, ds.blockProviders, 2)
+	for _, bp := range ds.blockProviders {
+		select {
+		case <-bp.(*bftblocksprovider.Deliverer).Ctx.Done():
 		default:
 			require.Fail(t, "block providers should te closed")
 		}

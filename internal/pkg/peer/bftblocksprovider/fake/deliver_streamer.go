@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/hyperledger/fabric-protos-go/orderer"
-	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
+	"github.com/hyperledger/fabric/internal/pkg/peer/bftblocksprovider"
 	"google.golang.org/grpc"
 )
 
@@ -118,4 +118,4 @@ func (fake *DeliverStreamer) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ blocksprovider.DeliverStreamer = new(DeliverStreamer)
+var _ bftblocksprovider.DeliverStreamer = new(DeliverStreamer)

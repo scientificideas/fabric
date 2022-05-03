@@ -13,19 +13,28 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/util"
-	bftBlocksprovider "github.com/hyperledger/fabric/core/deliverservice/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
+	"github.com/hyperledger/fabric/internal/pkg/peer/bftblocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	"google.golang.org/grpc"
 )
 
 var logger = flogging.MustGetLogger("deliveryClient")
+
+// BlocksProvider used to read blocks from the ordering service
+// for specified chain it subscribed to
+type BlocksProvider interface {
+	// DeliverBlocks starts delivering and disseminating blocks
+	DeliverBlocks()
+
+	// Stop shutdowns blocks provider and stops delivering new blocks
+	Stop()
+}
 
 // DeliverService used to communicate with orderers to obtain
 // new blocks and send them to the committer service
@@ -51,7 +60,7 @@ type DeliverService interface {
 // blocks providers
 type deliverServiceImpl struct {
 	conf           *Config
-	blockProviders map[string]blocksprovider.BlocksProvider
+	blockProviders map[string]BlocksProvider
 	lock           sync.RWMutex
 	stopping       bool
 }
@@ -64,10 +73,10 @@ type Config struct {
 	IsStaticLeader bool
 	// CryptoSvc performs cryptographic actions like message verification and signing
 	// and identity validation.
-	CryptoSvc blocksprovider.BlockVerifier
+	CryptoSvc bftblocksprovider.BlockVerifier
 	// Gossip enables to enumerate peers in the channel, send a message to peers,
 	// and add a block to the gossip state transfer layer.
-	Gossip bftBlocksprovider.GossipServiceAdapter
+	Gossip bftblocksprovider.GossipServiceAdapter
 	// OrdererSource provides orderer endpoints, complete with TLS cert pools.
 	OrdererSource *orderers.ConnectionSource
 	// Signer is the identity used to sign requests.
@@ -83,7 +92,7 @@ type Config struct {
 func NewDeliverService(conf *Config) DeliverService {
 	ds := &deliverServiceImpl{
 		conf:           conf,
-		blockProviders: make(map[string]blocksprovider.BlocksProvider),
+		blockProviders: make(map[string]BlocksProvider),
 	}
 	return ds
 }
@@ -102,41 +111,8 @@ func (da DialerAdapter) Dial(address string, rootCerts [][]byte) (*grpc.ClientCo
 // DeliverAdapter implements the creation of a stream client
 type DeliverAdapter struct{}
 
-// Deliver returns a stream client
-func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (blocksprovider.StreamClient, error) {
-	abc, err := orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return &deliverClient{abc: abc}, nil
-}
-
-type deliverClient struct {
-	abc orderer.AtomicBroadcast_DeliverClient
-}
-
-// Send sends an envelope to the ordering service
-func (d deliverClient) Send(envelope *common.Envelope) error {
-	return d.abc.Send(envelope)
-}
-
-// Recv receives a chaincode message
-func (d deliverClient) Recv() (*orderer.DeliverResponse, error) {
-	return d.abc.Recv()
-}
-
-// CloseSend closes the client connection
-func (d deliverClient) CloseSend() error {
-	d.abc.CloseSend()
-	return nil
-}
-
-// Disconnect does nothing
-func (d deliverClient) Disconnect() {
-}
-
-// UpdateReceived does nothing
-func (d deliverClient) UpdateReceived(blockNumber uint64) {
+func (DeliverAdapter) Deliver(ctx context.Context, clientConn *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
+	return orderer.NewAtomicBroadcastClient(clientConn).Deliver(ctx)
 }
 
 // StartDeliverForChannel starts blocks delivery for channel
@@ -158,7 +134,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 	}
 	logger.Info("This peer will retrieve blocks from ordering service and disseminate to other peers in the organization for channel", chainID)
 
-	var bp blocksprovider.BlocksProvider
+	var bp BlocksProvider
 
 	dialer := DialerAdapter{
 		ClientConfig: comm.ClientConfig{
@@ -169,17 +145,42 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 	}
 
 	if d.conf.DeliverServiceConfig.IsBFT {
-		var tlsCertHash []byte
+		ctx, cancel := context.WithCancel(context.Background())
+
+		dc := &bftblocksprovider.Deliverer{
+			Ctx:                    ctx,
+			Cancel:                 cancel,
+			ChainID:                chainID,
+			Gossip:                 d.conf.Gossip,
+			Ledger:                 ledgerInfo,
+			BlockVerifier:          d.conf.CryptoSvc,
+			Signer:                 d.conf.Signer,
+			DeliverStreamer:        DeliverAdapter{},
+			TLSCertHash:            nil,
+			Dialer:                 dialer,
+			Logger:                 flogging.MustGetLogger("peer.blocksproviderbft").With("channel", chainID),
+			MinBackoffDelay:        d.conf.DeliverServiceConfig.MinBackoffDelayBFT,
+			MaxBackoffDelay:        d.conf.DeliverServiceConfig.MaxBackoffDelayBFT,
+			BlockCensorshipTimeout: d.conf.DeliverServiceConfig.BlockCensorshipTimeoutBFT,
+			UpdateEndpointsCh:      d.conf.OrdererSource.InitUpdateEndpointsChannel(),
+			Endpoints:              bftblocksprovider.Shuffle(d.conf.OrdererSource.GetAllEndpoints()),
+			BlockGossipDisabled:    !d.conf.DeliverServiceConfig.BlockGossipEnabled,
+		}
+
 		if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
 			cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
 			if err != nil {
 				return fmt.Errorf("failed to access client TLS configuration: %w", err)
 			}
-			tlsCertHash = util.ComputeSHA256(cert.Certificate[0])
+			dc.TLSCertHash = util.ComputeSHA256(cert.Certificate[0])
 		}
 
-		bftClient, _ := NewBFTDeliveryClient(chainID, d.conf.OrdererSource, ledgerInfo, d.conf.CryptoSvc, d.conf.Signer, tlsCertHash, dialer)
-		bp = bftBlocksprovider.NewBlocksProvider(chainID, bftClient, d.conf.Gossip, d.conf.CryptoSvc)
+		dc.Logger.Infof("[%s] Created BFT Delivery Client", chainID)
+		for i, e := range dc.Endpoints {
+			dc.Logger.Infof("[%s] %d: %s", chainID, i, e.Address)
+		}
+
+		bp = dc
 	} else {
 		dc := &blocksprovider.Deliverer{
 			ChannelID:           chainID,
@@ -239,7 +240,7 @@ func (d *deliverServiceImpl) StopDeliverForChannel(chainID string) error {
 	return nil
 }
 
-// Stop all services and release resources
+// Stop all service and release resources
 func (d *deliverServiceImpl) Stop() {
 	d.lock.Lock()
 	defer d.lock.Unlock()
