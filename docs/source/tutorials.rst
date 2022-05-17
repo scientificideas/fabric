@@ -36,6 +36,7 @@ Finally, we provide an introduction to how to write a basic smart contract,
    test_network
    deploy_chaincode.md
    write_first_app
+   cc_basic.md
    private_data_tutorial
    secured_asset_transfer/secured_private_asset_transfer_tutorial.md
    couchdb_tutorial
