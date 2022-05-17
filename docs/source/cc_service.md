@@ -1,6 +1,8 @@
-# Chaincode as an external service
+# Running Chaincode as an External Service
 
-Fabric v2.0 supports chaincode deployment and execution outside of Fabric that enables users to manage a chaincode runtime independently of the peer. This facilitates deployment of chaincode on Fabric cloud deployments such as Kubernetes. Instead of building and launching the chaincode on every peer, chaincode can now run as a service whose lifecycle is managed outside of Fabric. This capability leverages the Fabric v2.0 external builder and launcher functionality which enables operators to extend a peer with programs to build, launch, and discover chaincode. Before reading this topic you should become familiar with the [External Builder and Launcher](./cc_launcher.html) content.
+**Attention: This page is for advanced users who choose to configure chaincode as a service external to the Fabric peer. Proceed with caution!** New users of chaincode should start with [deploying a smart contract to a channel](deploy_chaincode.html) before proceeding with this tutorial.
+
+Fabric v2.0 supports chaincode deployment and execution outside of Fabric that enables users to manage a chaincode runtime independently of the peer. This facilitates deployment of chaincode on Fabric cloud deployments, such as Kubernetes. Instead of building and launching the chaincode on every peer, chaincode can be run as a service, external to Fabric. This capability leverages the Fabric v2.0 external builder and launcher functionality, which enables operators to extend a peer with programs to build, launch, and discover chaincode. Before reading this topic you should become familiar with the [External Builder and Launcher](./cc_launcher.html) content.
 
 Prior to the availability of the external builders, the chaincode package content was required to be a set of source code files for a particular language which could be built and launched as a chaincode binary. The new external build and launcher functionality now allows users to optionally customize the build process. With respect to running the chaincode as an external service, the build process allows you to specify the endpoint information of the server where the chaincode is running. Hence the package simply consists of the externally running chaincode server endpoint information and TLS artifacts for secure connection. TLS is optional but highly recommended for all environments except a simple test environment.
 
@@ -27,7 +29,7 @@ code.tar.gz
 
 The chaincode package should be used to provide two pieces of information to the external builder and launcher process
 * identify if the chaincode is an external service. The `bin/detect` section describes an approach using the `metadata.json` file
-* provide chaincode endpoint information in a `connection.json` file placed in the release directory. The `bin/run` section describes the `connection.json` file
+* provide chaincode endpoint information in a `connection.json` file placed in the release directory. 
 
 There is plenty of flexibility to gathering the above information. The sample scripts in the [External builder and launcher sample scripts](#external-builder-and-launcher-sample-scripts) illustrate a simple approach to providing the information.
 As an example of flexibility, consider packaging couchdb index files (see [Add the index to your chaincode folder](couchdb_tutorial.html#add-the-index-to-your-chaincode-folder)). Sample scripts below describe an approach to packaging the files into myccpackage.tar.gz.
@@ -64,7 +66,7 @@ externalBuilders:
 
 ### External builder and launcher sample scripts
 
-To help understand what each script needs to contain to work with the chaincode as an external service, this section contains samples of  `bin/detect` `bin/build`, `bin/release`, and `bin/run` scripts.
+To help understand what each script needs to contain to work with the chaincode as an external service, this section contains samples of  `bin/detect` `bin/build` and `bin/release` scripts.
 
 **Note:** These samples use the `jq` command to parse json. You can run `jq --version` to check if you have it installed. Otherwise, install `jq` or suitably modify the scripts.
 
