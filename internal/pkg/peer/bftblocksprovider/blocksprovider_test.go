@@ -59,8 +59,10 @@ var _ = Describe("BlocksproviderBFT", func() {
 		ctx := ctx
 		cancel := cancel
 
+		mutex.Lock()
 		fakeDialer = &fake.Dialer{}
 		ccs = nil
+
 		fakeDialer.DialStub = func(string, [][]byte) (*grpc.ClientConn, error) {
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -70,6 +72,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 			Expect(cc.GetState()).NotTo(Equal(connectivity.Shutdown))
 			return cc, nil
 		}
+		mutex.Unlock()
 
 		fakeGossipServiceAdapter = &fake.GossipServiceAdapter{}
 		fakeBlockVerifier = &fake.BlockVerifier{}
@@ -88,6 +91,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		updateEndpointsCh = make(chan []*orderers.Endpoint)
 		fakeOrdererConnectionSource.InitUpdateEndpointsChannelReturns(updateEndpointsCh)
 
+		mutex.Lock()
 		fakeDeliverClient = &fake.DeliverClient{}
 		fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
 			select {
@@ -108,6 +112,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 		fakeDeliverStreamer = &fake.DeliverStreamer{}
 		fakeDeliverStreamer.DeliverReturns(fakeDeliverClient, nil)
+		mutex.Unlock()
 
 		d = &bftblocksprovider.Deliverer{
 			Ctx:                    ctx,
@@ -214,6 +219,8 @@ var _ = Describe("BlocksproviderBFT", func() {
 	When("the dialer returns an error", func() {
 		BeforeEach(func() {
 			fakeDialer.DialCalls(func(string, [][]byte) (*grpc.ClientConn, error) {
+				mutex.Lock()
+				defer mutex.Unlock()
 				if fakeDialer.DialCallCount() == 1 {
 					return nil, fmt.Errorf("fake-dial-error")
 				}
@@ -226,7 +233,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("retries until dial is successful", func() {
-			Eventually(fakeDialer.DialCallCount).Should(Equal(5))
+			Eventually(fakeDialer.DialCallCount).Should(BeNumerically(">=", 4))
 		})
 	})
 
@@ -237,6 +244,8 @@ var _ = Describe("BlocksproviderBFT", func() {
 	When("the deliver client cannot be created", func() {
 		BeforeEach(func() {
 			fakeDeliverStreamer.DeliverCalls(func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
+				mutex.Lock()
+				defer mutex.Unlock()
 				if fakeDialer.DialCallCount() == 1 {
 					return nil, fmt.Errorf("deliver-error")
 				}
@@ -252,6 +261,8 @@ var _ = Describe("BlocksproviderBFT", func() {
 	When("there are consecutive errors", func() {
 		BeforeEach(func() {
 			fakeDeliverStreamer.DeliverCalls(func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
+				mutex.Lock()
+				defer mutex.Unlock()
 				if fakeDialer.DialCallCount() <= 12 {
 					return nil, fmt.Errorf("deliver-error")
 				}
@@ -360,7 +371,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("disconnects, and retries until the recv is successful and resets the failure count", func() {
-			Eventually(fakeDeliverClient.RecvCallCount).Should(Equal(5))
+			Eventually(fakeDeliverClient.RecvCallCount).Should(BeNumerically(">=", 5))
 		})
 	})
 
@@ -374,7 +385,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 			recvStep := recvStep
 			fakeDeliverStreamer := fakeDeliverStreamer
 			fakeDeliverStreamer.DeliverCalls(func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
-				fakeDeliverClient = &fake.DeliverClient{}
+				fakeDeliverClient := &fake.DeliverClient{}
 				fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
 					if fakeDeliverClient.RecvCallCount() == 1 {
 						return &orderer.DeliverResponse{
@@ -403,7 +414,9 @@ var _ = Describe("BlocksproviderBFT", func() {
 					return nil
 				}
 
+				mutex.Lock()
 				fakeDeliverClients = append(fakeDeliverClients, fakeDeliverClient)
+				mutex.Unlock()
 
 				return fakeDeliverClient, nil
 			})
@@ -411,12 +424,30 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 		It("receives the block and loops, not sleeping", func() {
 			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
 				return len(fakeDeliverClients)
-			}).Should(Equal(4))
-			Eventually(fakeDeliverClients[0].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[1].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[2].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[3].RecvCallCount).Should(Equal(2))
+			}).Should(BeNumerically(">=", 4))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[0].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[1].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[2].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[3].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
 		})
 
 		It("checks the validity of the block", func() {
@@ -438,7 +469,11 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 			It("disconnects, sleeps, and tries again", func() {
 				Eventually(fakeBlockVerifier.VerifyBlockCallCount).Should(Equal(1))
-				Expect(fakeDeliverClients[0].CloseSendCallCount()).To(Equal(1))
+				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return fakeDeliverClients[0].RecvCallCount()
+				}).Should(Equal(2))
 				mutex.Lock()
 				defer mutex.Unlock()
 				Expect(len(ccs)).To(Equal(4))
@@ -468,6 +503,8 @@ var _ = Describe("BlocksproviderBFT", func() {
 				Eventually(fakeBlockVerifier.VerifyBlockCallCount).Should(Equal(1))
 				Eventually(func() int {
 					runtime.Gosched()
+					mutex.Lock()
+					defer mutex.Unlock()
 					return fakeDeliverClients[0].CloseSendCallCount()
 				}).Should(Equal(1))
 				mutex.Lock()
@@ -528,15 +565,19 @@ var _ = Describe("BlocksproviderBFT", func() {
 		)
 
 		BeforeEach(func() {
+			status := status
 			status = common.Status_SUCCESS
 
 			// appease the race detector
+			mutex.Lock()
 			fakeDeliverClients = nil
+			mutex.Unlock()
+
 			ctx := ctx
 			recvStep := recvStep
 			fakeDeliverStreamer := fakeDeliverStreamer
 			fakeDeliverStreamer.DeliverCalls(func(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error) {
-				fakeDeliverClient = &fake.DeliverClient{}
+				fakeDeliverClient := &fake.DeliverClient{}
 				fakeDeliverClient.RecvStub = func() (*orderer.DeliverResponse, error) {
 					if fakeDeliverClient.RecvCallCount() == 1 {
 						return &orderer.DeliverResponse{
@@ -561,7 +602,9 @@ var _ = Describe("BlocksproviderBFT", func() {
 					return nil
 				}
 
+				mutex.Lock()
 				fakeDeliverClients = append(fakeDeliverClients, fakeDeliverClient)
+				mutex.Unlock()
 
 				return fakeDeliverClient, nil
 			})
@@ -569,12 +612,30 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 		It("disconnects with an error, because the block request is infinite and should never complete", func() {
 			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
 				return len(fakeDeliverClients)
-			}).Should(Equal(4))
-			Eventually(fakeDeliverClients[0].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[1].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[2].RecvCallCount).Should(Equal(2))
-			Eventually(fakeDeliverClients[3].RecvCallCount).Should(Equal(2))
+			}).Should(BeNumerically(">=", 4))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[0].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[1].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[2].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
+			Eventually(func() int {
+				mutex.Lock()
+				defer mutex.Unlock()
+				return fakeDeliverClients[3].RecvCallCount()
+			}).Should(BeNumerically(">=", 2))
 		})
 
 		When("the status is not successful", func() {
@@ -584,12 +645,30 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 			It("still disconnects with an error", func() {
 				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
 					return len(fakeDeliverClients)
 				}).Should(BeNumerically(">=", 4))
-				Eventually(fakeDeliverClients[0].RecvCallCount).Should(BeNumerically(">=", 1))
-				Eventually(fakeDeliverClients[1].RecvCallCount).Should(BeNumerically(">=", 1))
-				Eventually(fakeDeliverClients[2].RecvCallCount).Should(BeNumerically(">=", 1))
-				Eventually(fakeDeliverClients[3].RecvCallCount).Should(BeNumerically(">=", 1))
+				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return fakeDeliverClients[0].RecvCallCount()
+				}).Should(BeNumerically(">=", 1))
+				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return fakeDeliverClients[1].RecvCallCount()
+				}).Should(BeNumerically(">=", 1))
+				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return fakeDeliverClients[2].RecvCallCount()
+				}).Should(BeNumerically(">=", 1))
+				Eventually(func() int {
+					mutex.Lock()
+					defer mutex.Unlock()
+					return fakeDeliverClients[3].RecvCallCount()
+				}).Should(BeNumerically(">=", 1))
 			})
 		})
 	})
