@@ -590,7 +590,6 @@ func (d *Deliverer) workBlockReceiver(ch chan *common.Block) func(ctx context.Co
 	return func(ctx context.Context, block *common.Block) {
 		select {
 		case <-ctx.Done():
-			close(ch)
 		case ch <- block:
 		}
 	}
@@ -606,7 +605,6 @@ func (d *Deliverer) workHeadReceiver(ch chan *common.Block) func(ctx context.Con
 	return func(ctx context.Context, block *common.Block) {
 		select {
 		case <-ctx.Done():
-			close(ch)
 		case ch <- block:
 		}
 	}
