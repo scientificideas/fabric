@@ -156,7 +156,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 	})
 
 	It("checks the ledger height", func() {
-		Eventually(fakeLedgerInfo.LedgerHeightCallCount).Should(BeNumerically(">=", 1))
+		Eventually(fakeLedgerInfo.LedgerHeightCallCount).Should(Equal(2))
 	})
 
 	When("the ledger returns an error", func() {
@@ -170,7 +170,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 	})
 
 	It("signs the seek info request", func() {
-		Eventually(fakeSigner.SignCallCount).Should(BeNumerically(">=", 1))
+		Eventually(fakeSigner.SignCallCount).Should(Equal(2))
 		// Note, the signer is used inside a util method
 		// which has its own set of tests, so checking the args
 		// in this test is unnecessary
@@ -233,7 +233,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("retries until dial is successful", func() {
-			Eventually(fakeDialer.DialCallCount).Should(BeNumerically(">=", 4))
+			Eventually(fakeDialer.DialCallCount).Should(Equal(4))
 		})
 	})
 
@@ -254,7 +254,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("closes the grpc connection, and tries again", func() {
-			Eventually(fakeDeliverStreamer.DeliverCallCount).Should(BeNumerically(">=", 4))
+			Eventually(fakeDeliverStreamer.DeliverCallCount).Should(Equal(4))
 		})
 	})
 
@@ -271,7 +271,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("sleeps in an exponential fashion and retries until dial is successful", func() {
-			Eventually(fakeDeliverStreamer.DeliverCallCount).Should(BeNumerically(">=", 12))
+			Eventually(fakeDeliverStreamer.DeliverCallCount).Should(Equal(12))
 		})
 	})
 
@@ -279,7 +279,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		Eventually(fakeDeliverClient.SendCallCount).Should(Equal(4))
 		mutex.Lock()
 		defer mutex.Unlock()
-		Expect(len(ccs)).To(BeNumerically(">=", 4))
+		Expect(len(ccs)).To(Equal(4))
 	})
 
 	When("the send fails", func() {
@@ -371,7 +371,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		})
 
 		It("disconnects, and retries until the recv is successful and resets the failure count", func() {
-			Eventually(fakeDeliverClient.RecvCallCount).Should(BeNumerically(">=", 5))
+			Eventually(fakeDeliverClient.RecvCallCount).Should(Equal(5))
 		})
 	})
 
@@ -427,27 +427,27 @@ var _ = Describe("BlocksproviderBFT", func() {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return len(fakeDeliverClients)
-			}).Should(BeNumerically(">=", 4))
+			}).Should(Equal(4))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[0].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[1].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[2].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[3].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 		})
 
 		It("checks the validity of the block", func() {
@@ -615,27 +615,27 @@ var _ = Describe("BlocksproviderBFT", func() {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return len(fakeDeliverClients)
-			}).Should(BeNumerically(">=", 4))
+			}).Should(Equal(4))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[0].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[1].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[2].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 			Eventually(func() int {
 				mutex.Lock()
 				defer mutex.Unlock()
 				return fakeDeliverClients[3].RecvCallCount()
-			}).Should(BeNumerically(">=", 2))
+			}).Should(Equal(2))
 		})
 
 		When("the status is not successful", func() {
@@ -648,27 +648,27 @@ var _ = Describe("BlocksproviderBFT", func() {
 					mutex.Lock()
 					defer mutex.Unlock()
 					return len(fakeDeliverClients)
-				}).Should(BeNumerically(">=", 4))
+				}).Should(Equal(4))
 				Eventually(func() int {
 					mutex.Lock()
 					defer mutex.Unlock()
 					return fakeDeliverClients[0].RecvCallCount()
-				}).Should(BeNumerically(">=", 1))
+				}).Should(Equal(2))
 				Eventually(func() int {
 					mutex.Lock()
 					defer mutex.Unlock()
 					return fakeDeliverClients[1].RecvCallCount()
-				}).Should(BeNumerically(">=", 1))
+				}).Should(Equal(2))
 				Eventually(func() int {
 					mutex.Lock()
 					defer mutex.Unlock()
 					return fakeDeliverClients[2].RecvCallCount()
-				}).Should(BeNumerically(">=", 1))
+				}).Should(Equal(2))
 				Eventually(func() int {
 					mutex.Lock()
 					defer mutex.Unlock()
 					return fakeDeliverClients[3].RecvCallCount()
-				}).Should(BeNumerically(">=", 1))
+				}).Should(Equal(2))
 			})
 		})
 	})
