@@ -74,7 +74,7 @@ func NewUnitDeliver(
 		workHeader:        workHeader,
 		workFunc:          workFunc,
 		endFunc:           endFunc,
-		logger: flogging.MustGetLogger("peer.blocksproviderbft").
+		logger: flogging.MustGetLogger("peer.bftblocksprovider").
 			With("channel", channelID, "orderer-address", endpoint.Address),
 		seekInfoEnv: seekInfoEnv,
 	}
@@ -207,7 +207,9 @@ func (u *UnitDeliver) processMsg(msg *orderer.DeliverResponse) error {
 		// do not verify, just save for later, in case the block-receiver is suspected of censorship
 		u.logger.Debugf("saving block with header and metadata, blockNum = [%d], block = [%v]", blockNum, t.Block)
 
-		u.workFunc(u.ctx, t.Block)
+		if u.workFunc != nil {
+			u.workFunc(u.ctx, t.Block)
+		}
 
 		return nil
 	default:

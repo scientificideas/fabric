@@ -145,7 +145,7 @@ func (d *Deliverer) DeliverBlocks() {
 		default:
 		}
 
-		block, err := d.Recv()
+		block, err := d.recv()
 		if err != nil {
 			d.Logger.Warningf("receive error: %v", err)
 			delay, verErrCounter = d.computeBackOffDelay(verErrCounter)
@@ -161,7 +161,7 @@ func (d *Deliverer) DeliverBlocks() {
 			delay, verErrCounter = d.computeBackOffDelay(verErrCounter)
 			d.sleep(delay)
 
-			d.blockReceiver.Stop()
+			d.stopAndWaitReciever(d.blockReceiver, d.chBlockReceiver)
 			d.blockReceiver = nil
 			continue
 		}
@@ -181,7 +181,7 @@ func (d *Deliverer) DeliverBlocks() {
 			return
 		}
 
-		d.UpdateReceived(blockNum)
+		d.updateReceived(blockNum)
 
 		if d.BlockGossipDisabled {
 			continue
@@ -203,6 +203,12 @@ func (d *Deliverer) Stop() {
 	d.Cancel()
 }
 
+func (d *Deliverer) stopAndWaitReciever(recv *UnitDeliver, chClose chan *common.Block) {
+	recv.Stop()
+	for range chClose {
+	}
+}
+
 func (d *Deliverer) sleep(dt time.Duration) {
 	select {
 	case <-d.Ctx.Done():
@@ -210,7 +216,7 @@ func (d *Deliverer) sleep(dt time.Duration) {
 	}
 }
 
-func (d *Deliverer) Recv() (block *common.Block, err error) {
+func (d *Deliverer) recv() (block *common.Block, err error) {
 	d.Logger.Debugf("entry")
 
 	d.startOnce.Do(func() {
@@ -239,7 +245,7 @@ OuterLoop:
 			return block, nil // the normal return path
 		}
 
-		if err == errClientReconnectTimeout {
+		if errors.Is(err, errClientReconnectTimeout) {
 			d.closeBlockReceiver(true)
 		} else {
 			d.closeBlockReceiver(false)
@@ -280,7 +286,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
 		ep := d.Endpoints[d.blockReceiverIndex]
 		if headerReceiver, exists := d.headerReceivers[ep.Address]; exists {
-			headerReceiver.ud.Stop()
+			d.stopAndWaitReciever(headerReceiver.ud, headerReceiver.ch)
 			delete(d.headerReceivers, ep.Address)
 			d.Logger.Debugf("closed header receiver to: %s", ep.Address)
 		}
@@ -352,7 +358,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			d.MinBackoffDelay,
 			true,
 			d.workHeadReceiver(ch),
-			nil,
+			d.endBlockReceiver(ch),
 			seekInfoEnv,
 		)
 
@@ -430,10 +436,15 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 
 	addr := receiver.GetEndpoint()
 
+	t := time.Until(d.lastBlockTime.Add(d.BlockCensorshipTimeout))
+	if t < d.BlockCensorshipTimeout/100 {
+		t = d.BlockCensorshipTimeout / 100
+	}
+
 	select {
 	case <-d.Ctx.Done():
 		return nil, errClientClosing
-	case <-time.After(time.Until(d.lastBlockTime.Add(d.BlockCensorshipTimeout))):
+	case <-time.After(t):
 		if d.collectDataFromHeaders() {
 			return nil, errClientReconnectTimeout
 		}
@@ -564,7 +575,7 @@ func (d *Deliverer) closeBlockReceiver(updateLastBlockTime bool) {
 	}
 
 	if d.blockReceiver != nil {
-		d.blockReceiver.Stop()
+		d.stopAndWaitReciever(d.blockReceiver, d.chBlockReceiver)
 		d.blockReceiver = nil
 	}
 }
@@ -650,9 +661,9 @@ OuterLoop:
 	d.Logger.Debugf("exit")
 }
 
-// UpdateReceived allows the client to track the reception of valid blocks.
+// updateReceived allows the client to track the reception of valid blocks.
 // This is needed because blocks are verified by the blockprovider, not here.
-func (d *Deliverer) UpdateReceived(blockNumber uint64) {
+func (d *Deliverer) updateReceived(blockNumber uint64) {
 	d.Logger.Infof("received blockNumber=%d", blockNumber)
 	d.nextBlockNumber = blockNumber + 1
 	d.lastBlockTime = time.Now()
@@ -681,13 +692,13 @@ func (d *Deliverer) UpdateEndpoints(endpoints []*orderers.Endpoint) {
 
 func (d *Deliverer) disconnectAll() {
 	if d.blockReceiver != nil {
-		d.blockReceiver.Stop()
-		d.Logger.Debug("closed block receiver")
+		d.stopAndWaitReciever(d.blockReceiver, d.chBlockReceiver)
 		d.blockReceiver = nil
+		d.Logger.Debug("closed block receiver")
 	}
 
 	for ep, hRcv := range d.headerReceivers {
-		hRcv.ud.Stop()
+		d.stopAndWaitReciever(hRcv.ud, hRcv.ch)
 		d.Logger.Debugf("closed header receiver to: %s", ep)
 		delete(d.headerReceivers, ep)
 	}

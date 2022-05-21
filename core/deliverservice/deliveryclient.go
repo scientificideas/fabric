@@ -158,7 +158,7 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 			DeliverStreamer:        DeliverAdapter{},
 			TLSCertHash:            nil,
 			Dialer:                 dialer,
-			Logger:                 flogging.MustGetLogger("peer.blocksproviderbft").With("channel", chainID),
+			Logger:                 flogging.MustGetLogger("peer.bftblocksprovider").With("channel", chainID),
 			MinBackoffDelay:        d.conf.DeliverServiceConfig.MinBackoffDelayBFT,
 			MaxBackoffDelay:        d.conf.DeliverServiceConfig.MaxBackoffDelayBFT,
 			BlockCensorshipTimeout: d.conf.DeliverServiceConfig.BlockCensorshipTimeoutBFT,
@@ -271,5 +271,5 @@ func (d *deliverServiceImpl) UpdateEndpoints(chainID string, endpoints []*ordere
 		}
 		return nil
 	}
-	return errors.New(fmt.Sprintf("Channel with %s id was not found", chainID))
+	return fmt.Errorf("Channel with %s id was not found", chainID)
 }
