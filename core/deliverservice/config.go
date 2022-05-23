@@ -19,14 +19,12 @@ import (
 )
 
 const (
-	DefaultReConnectBackoffThreshold    = time.Hour * 1
-	DefaultReConnectTotalTimeThreshold  = time.Hour * 1
-	DefaultConnectionTimeout            = time.Second * 3
-	DefaultBftMinBackoffDelay           = 10 * time.Millisecond
-	DefaultBftMaxBackoffDelay           = 10 * time.Second
-	DefaultBftBlockRcvTotalBackoffDelay = 20 * time.Second
-	DefaultBftBlockCensorshipTimeout    = 20 * time.Second
-	DefaultWrongStatusThreshold         = 10
+	DefaultReConnectBackoffThreshold   = time.Hour * 1
+	DefaultReConnectTotalTimeThreshold = time.Hour * 1
+	DefaultConnectionTimeout           = time.Second * 3
+	DefaultBftMinBackoffDelay          = 10 * time.Millisecond
+	DefaultBftMaxBackoffDelay          = 10 * time.Second
+	DefaultBftBlockCensorshipTimeout   = 20 * time.Second
 )
 
 // DeliverServiceConfig is the struct that defines the deliverservice configuration.
