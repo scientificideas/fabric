@@ -224,6 +224,11 @@ func (d *Deliverer) recv() (block *common.Block, err error) {
 		go d.updateEndpoints()
 	})
 
+	var (
+		verErrCounter uint64
+		delay         time.Duration
+	)
+
 OuterLoop:
 	for {
 		select {
@@ -250,6 +255,9 @@ OuterLoop:
 		} else {
 			d.closeBlockReceiver(false)
 		}
+
+		delay, verErrCounter = d.computeBackOffDelay(verErrCounter)
+		d.sleep(delay)
 	}
 
 	d.Logger.Debugf("exit: %v", errClientClosing)
@@ -613,7 +621,7 @@ func (d *Deliverer) workHeadReceiver(ch chan *common.Block) func(ctx context.Con
 // computeBackOffDelay computes an exponential back-off delay and increments the counter,
 // as long as the computed delay is below the maximal delay.
 func (d *Deliverer) computeBackOffDelay(count uint64) (time.Duration, uint64) {
-	currentDelayNano := math.Pow(2.0, float64(count)) * float64(10*time.Millisecond.Nanoseconds())
+	currentDelayNano := math.Pow(2.0, float64(count)) * float64(d.MinBackoffDelay.Nanoseconds())
 	if currentDelayNano > float64(d.MaxBackoffDelay.Nanoseconds()) {
 		return d.MaxBackoffDelay, count
 	}
