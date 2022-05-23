@@ -13,6 +13,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -1201,7 +1202,7 @@ func extractTarGZ(archive []byte, baseDir string) error {
 
 	for {
 		header, err := tarReader.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
@@ -1212,7 +1213,7 @@ func extractTarGZ(archive []byte, baseDir string) error {
 		filePath := filepath.Join(baseDir, header.Name)
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if err := os.Mkdir(filePath, 0755); err != nil {
+			if err := os.Mkdir(filePath, 0o755); err != nil {
 				return err
 			}
 		case tar.TypeReg:

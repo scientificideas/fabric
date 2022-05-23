@@ -4,16 +4,23 @@ Copyright IBM Corp. All Rights Reserved.
 SPDX-License-Identifier: Apache-2.0
 */
 
-package blocksprovider_test
+package bftblocksprovider_test
 
 import (
 	"testing"
 
 	"github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/internal/pkg/identity"
+	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+//go:generate counterfeiter -o fake/orderer_connection_source.go --fake-name OrdererConnectionSource . ordererConnectionSource
+type ordererConnectionSource interface {
+	GetAllEndpoints() []*orderers.Endpoint
+	InitUpdateEndpointsChannel() chan []*orderers.Endpoint
+}
 
 //go:generate counterfeiter -o fake/signer.go --fake-name Signer . signer
 type signer interface {
@@ -27,5 +34,5 @@ type abDeliverClient interface {
 
 func TestBlocksprovider(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Blocksprovider Suite")
+	RunSpecs(t, "Blocksprovider BFT Suite")
 }

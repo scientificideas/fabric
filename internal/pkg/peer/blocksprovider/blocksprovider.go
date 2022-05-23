@@ -11,6 +11,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/gossip"
 	"github.com/hyperledger/fabric-protos-go/orderer"
@@ -19,46 +20,9 @@ import (
 	"github.com/hyperledger/fabric/internal/pkg/identity"
 	"github.com/hyperledger/fabric/internal/pkg/peer/orderers"
 	"github.com/hyperledger/fabric/protoutil"
-
-	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 )
-
-// BlocksProvider used to read blocks from the ordering service
-// for specified chain it subscribed to
-type BlocksProvider interface {
-	// DeliverBlocks starts delivering and disseminating blocks
-	DeliverBlocks()
-
-	// Stop shutdowns blocks provider and stops delivering new blocks
-	Stop()
-}
-
-// DeliverClient used to receive blocks from the ordering service
-type DeliverClient interface {
-	// Send sends the request and returns a error on failure
-	Send(*common.Envelope) error
-
-	// Recv receives a chaincode message
-	Recv() (*orderer.DeliverResponse, error)
-
-	// CloseSend closes the send direction of the stream. It closes the stream
-	// when non-nil error is met. It is also not safe to call CloseSend
-	// concurrently with SendMsg.
-	CloseSend() error
-}
-
-// StreamClient used to receive blocks from the ordering service
-type StreamClient interface {
-	DeliverClient
-
-	// Disconnect disconnects from the remote node.
-	Disconnect()
-
-	// Update the client on the last valid block number
-	UpdateReceived(blockNumber uint64)
-}
 
 type sleeper struct {
 	sleep func(time.Duration)
@@ -99,23 +63,11 @@ type GossipServiceAdapter interface {
 //go:generate counterfeiter -o fake/block_verifier.go --fake-name BlockVerifier . BlockVerifier
 type BlockVerifier interface {
 	VerifyBlock(channelID gossipcommon.ChannelID, blockNum uint64, block *common.Block) error
-
-	// VerifyHeader returns nil when the header matches the metadata signature, but it does not compute the
-	// block.Data.Hash() and compare it to the block.Header.DataHash, or otherwise inspect the block.Data.
-	// This is used when the orderer delivers a block with header & metadata only (i.e. block.Data==nil).
-	// See: gossip/api/MessageCryptoService
-	VerifyHeader(chainID string, signedBlock *common.Block) error
 }
 
 //go:generate counterfeiter -o fake/orderer_connection_source.go --fake-name OrdererConnectionSource . OrdererConnectionSource
 type OrdererConnectionSource interface {
 	RandomEndpoint() (*orderers.Endpoint, error)
-
-	// GetAllEndpoints retrieves all endpoints
-	GetAllEndpoints() []*orderers.Endpoint
-
-	// InitUpdateEndpointsChannel returns channel to retrieve endpoints
-	InitUpdateEndpointsChannel() chan []*orderers.Endpoint
 }
 
 //go:generate counterfeiter -o fake/dialer.go --fake-name Dialer . Dialer
@@ -125,7 +77,7 @@ type Dialer interface {
 
 //go:generate counterfeiter -o fake/deliver_streamer.go --fake-name DeliverStreamer . DeliverStreamer
 type DeliverStreamer interface {
-	Deliver(context.Context, *grpc.ClientConn) (StreamClient, error)
+	Deliver(context.Context, *grpc.ClientConn) (orderer.AtomicBroadcast_DeliverClient, error)
 }
 
 // Deliverer the actual implementation for BlocksProvider interface
@@ -245,7 +197,7 @@ func (d *Deliverer) DeliverBlocks() {
 					failureCounter++
 					break RecvLoop
 				}
-				err = d.processMsg(response, deliverClient)
+				err = d.processMsg(response)
 				if err != nil {
 					connLogger.Warningf("Got error while attempting to receive blocks: %v", err)
 					failureCounter++
@@ -263,23 +215,22 @@ func (d *Deliverer) DeliverBlocks() {
 	}
 }
 
-func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient StreamClient) error {
+func (d *Deliverer) processMsg(msg *orderer.DeliverResponse) error {
 	switch t := msg.Type.(type) {
 	case *orderer.DeliverResponse_Status:
 		if t.Status == common.Status_SUCCESS {
 			return errors.Errorf("received success for a seek that should never complete")
 		}
+
 		return errors.Errorf("received bad status %v from orderer", t.Status)
 	case *orderer.DeliverResponse_Block:
 		blockNum := t.Block.Header.Number
 		if err := d.BlockVerifier.VerifyBlock(gossipcommon.ChannelID(d.ChannelID), blockNum, t.Block); err != nil {
-			deliverClient.Disconnect()
 			return errors.WithMessage(err, "block from orderer could not be verified")
 		}
 
 		marshaledBlock, err := proto.Marshal(t.Block)
 		if err != nil {
-			deliverClient.Disconnect()
 			return errors.WithMessage(err, "block from orderer could not be re-marshaled")
 		}
 
@@ -313,10 +264,6 @@ func (d *Deliverer) processMsg(msg *orderer.DeliverResponse, deliverClient Strea
 		// Gossip messages with other nodes
 		d.Logger.Debugf("Gossiping block [%d]", blockNum)
 		d.Gossip.Gossip(gossipMsg)
-
-		// Update received block
-		deliverClient.UpdateReceived(blockNum)
-
 		return nil
 	default:
 		d.Logger.Warningf("Received unknown: %v", t)
@@ -335,7 +282,7 @@ func (d *Deliverer) Stop() {
 	}
 }
 
-func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (StreamClient, *orderers.Endpoint, func(), error) {
+func (d *Deliverer) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, *orderers.Endpoint, func(), error) {
 	endpoint, err := d.Orderers.RandomEndpoint()
 	if err != nil {
 		return nil, nil, nil, errors.WithMessage(err, "could not get orderer endpoints")

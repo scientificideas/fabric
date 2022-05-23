@@ -6,7 +6,7 @@ import (
 
 	commona "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/gossip/common"
-	"github.com/hyperledger/fabric/internal/pkg/peer/blocksprovider"
+	"github.com/hyperledger/fabric/internal/pkg/peer/bftblocksprovider"
 )
 
 type BlockVerifier struct {
@@ -21,6 +21,18 @@ type BlockVerifier struct {
 		result1 error
 	}
 	verifyBlockReturnsOnCall map[int]struct {
+		result1 error
+	}
+	VerifyHeaderStub        func(string, *commona.Block) error
+	verifyHeaderMutex       sync.RWMutex
+	verifyHeaderArgsForCall []struct {
+		arg1 string
+		arg2 *commona.Block
+	}
+	verifyHeaderReturns struct {
+		result1 error
+	}
+	verifyHeaderReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -90,11 +102,75 @@ func (fake *BlockVerifier) VerifyBlockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *BlockVerifier) VerifyHeader(arg1 string, arg2 *commona.Block) error {
+	fake.verifyHeaderMutex.Lock()
+	ret, specificReturn := fake.verifyHeaderReturnsOnCall[len(fake.verifyHeaderArgsForCall)]
+	fake.verifyHeaderArgsForCall = append(fake.verifyHeaderArgsForCall, struct {
+		arg1 string
+		arg2 *commona.Block
+	}{arg1, arg2})
+	stub := fake.VerifyHeaderStub
+	fakeReturns := fake.verifyHeaderReturns
+	fake.recordInvocation("VerifyHeader", []interface{}{arg1, arg2})
+	fake.verifyHeaderMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *BlockVerifier) VerifyHeaderCallCount() int {
+	fake.verifyHeaderMutex.RLock()
+	defer fake.verifyHeaderMutex.RUnlock()
+	return len(fake.verifyHeaderArgsForCall)
+}
+
+func (fake *BlockVerifier) VerifyHeaderCalls(stub func(string, *commona.Block) error) {
+	fake.verifyHeaderMutex.Lock()
+	defer fake.verifyHeaderMutex.Unlock()
+	fake.VerifyHeaderStub = stub
+}
+
+func (fake *BlockVerifier) VerifyHeaderArgsForCall(i int) (string, *commona.Block) {
+	fake.verifyHeaderMutex.RLock()
+	defer fake.verifyHeaderMutex.RUnlock()
+	argsForCall := fake.verifyHeaderArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *BlockVerifier) VerifyHeaderReturns(result1 error) {
+	fake.verifyHeaderMutex.Lock()
+	defer fake.verifyHeaderMutex.Unlock()
+	fake.VerifyHeaderStub = nil
+	fake.verifyHeaderReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *BlockVerifier) VerifyHeaderReturnsOnCall(i int, result1 error) {
+	fake.verifyHeaderMutex.Lock()
+	defer fake.verifyHeaderMutex.Unlock()
+	fake.VerifyHeaderStub = nil
+	if fake.verifyHeaderReturnsOnCall == nil {
+		fake.verifyHeaderReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.verifyHeaderReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *BlockVerifier) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.verifyBlockMutex.RLock()
 	defer fake.verifyBlockMutex.RUnlock()
+	fake.verifyHeaderMutex.RLock()
+	defer fake.verifyHeaderMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -114,4 +190,4 @@ func (fake *BlockVerifier) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ blocksprovider.BlockVerifier = new(BlockVerifier)
+var _ bftblocksprovider.BlockVerifier = new(BlockVerifier)
