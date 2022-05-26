@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +24,8 @@ import (
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/common/crypto/tlsgen"
+	"github.com/hyperledger/fabric/common/flogging"
+	"github.com/hyperledger/fabric/common/flogging/mock"
 	commonledger "github.com/hyperledger/fabric/common/ledger"
 	"github.com/hyperledger/fabric/gossip/api"
 	"github.com/hyperledger/fabric/gossip/common"
@@ -36,6 +39,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -167,6 +171,8 @@ type preparedTest struct {
 	ledgerProvider *mocks.LedgerProvider
 	ledger         *mocks.Ledger
 	blockIterator  *mocks.ResultsIterator
+	logLevel       string
+	logFields      []string
 }
 
 type contextKey string
@@ -715,6 +721,33 @@ func TestEndorse(t *testing.T) {
 			errString:     "no endorsers found in the gateway's organization; retry specifying endorsing organization(s) to protect transient data",
 		},
 		{
+			name: "local and non-local endorsers with transient data will fail",
+			plan: endorsementPlan{
+				"g1": {{endorser: localhostMock, height: 3}}, // msp1
+				"g2": {{endorser: peer3Mock, height: 4}},     // msp2
+			},
+			layouts: []endorsementLayout{
+				{"g1": 1, "g2": 1},
+			},
+			members: []networkMember{
+				{"id1", "localhost:7051", "msp1", 3},
+				{"id3", "peer3:10051", "msp2", 4},
+			},
+			interest: &peer.ChaincodeInterest{
+				Chaincodes: []*peer.ChaincodeCall{{
+					Name:            testChaincode,
+					CollectionNames: []string{"mycollection1", "mycollection2"},
+					NoPrivateReads:  true,
+				}},
+			},
+			transientData: map[string][]byte{"transient-key": []byte("transient-value")},
+			postSetup: func(t *testing.T, def *preparedTest) {
+				def.discovery.PeersForEndorsementReturnsOnCall(0, nil, errors.New("protect-transient"))
+			},
+			errCode:   codes.FailedPrecondition,
+			errString: "requires endorsement from organisation(s) that are not in the distribution policy of the private data collection(s): [mycollection1 mycollection2]; retry specifying trusted endorsing organizations to protect transient data",
+		},
+		{
 			name: "extra endorsers with transient data",
 			plan: endorsementPlan{
 				"g1": {{endorser: localhostMock, height: 4}, {endorser: peer1Mock, height: 4}}, // msp1
@@ -769,6 +802,58 @@ func TestEndorse(t *testing.T) {
 					MspId:   "msp2",
 					Message: "ProposalResponsePayloads do not match",
 				},
+			},
+			postSetup: func(t *testing.T, def *preparedTest) {
+				logObserver := &mock.Observer{}
+				logObserver.WriteEntryStub = func(entry zapcore.Entry, fields []zapcore.Field) {
+					if strings.HasPrefix(entry.Message, "Proposal response mismatch") {
+						for _, field := range fields {
+							def.logFields = append(def.logFields, field.String)
+						}
+					}
+				}
+				flogging.SetObserver(logObserver)
+			},
+			postTest: func(t *testing.T, def *preparedTest) {
+				require.Equal(t, "chaincode response mismatch", def.logFields[0])
+				require.Equal(t, "status: 200, message: , payload: different_response", def.logFields[1])
+				require.Equal(t, "status: 200, message: , payload: mock_response", def.logFields[2])
+				flogging.SetObserver(nil)
+			},
+		},
+		{
+			name: "non-matching response logging suppressed",
+			plan: endorsementPlan{
+				"g1": {{endorser: localhostMock, height: 4}}, // msp1
+				"g2": {{endorser: peer2Mock, height: 5}},     // msp2
+			},
+			localResponse: "different_response",
+			errCode:       codes.Aborted,
+			errString:     "failed to collect enough transaction endorsements",
+			errDetails: []*pb.ErrorDetail{
+				{
+					Address: "peer2:9051",
+					MspId:   "msp2",
+					Message: "ProposalResponsePayloads do not match",
+				},
+			},
+			postSetup: func(t *testing.T, def *preparedTest) {
+				def.logLevel = flogging.LoggerLevel("gateway.responsechecker")
+				flogging.ActivateSpec("error")
+				logObserver := &mock.Observer{}
+				logObserver.WriteEntryStub = func(entry zapcore.Entry, fields []zapcore.Field) {
+					if strings.HasPrefix(entry.Message, "Proposal response mismatch") {
+						for _, field := range fields {
+							def.logFields = append(def.logFields, field.String)
+						}
+					}
+				}
+				flogging.SetObserver(logObserver)
+			},
+			postTest: func(t *testing.T, def *preparedTest) {
+				require.Empty(t, def.logFields)
+				flogging.ActivateSpec(def.logLevel)
+				flogging.SetObserver(nil)
 			},
 		},
 		{
@@ -963,6 +1048,9 @@ func TestEndorse(t *testing.T) {
 
 			if checkError(t, &tt, err) {
 				require.Nil(t, response, "response on error")
+				if tt.postTest != nil {
+					tt.postTest(t, test)
+				}
 				return
 			}
 
@@ -979,6 +1067,10 @@ func TestEndorse(t *testing.T) {
 
 			// check the correct endorsers (mocks) were called with the right parameters
 			checkEndorsers(t, tt.expectedEndorsers, test)
+
+			if tt.postTest != nil {
+				tt.postTest(t, test)
+			}
 		})
 	}
 }
@@ -1772,6 +1864,7 @@ func TestNilArgs(t *testing.T) {
 		"msp1",
 		&comm.SecureOptions{},
 		config.GetOptions(viper.New()),
+		nil,
 	)
 	ctx := context.Background()
 
@@ -1914,7 +2007,7 @@ func prepareTest(t *testing.T, tt *testDef) *preparedTest {
 		Endpoint: "localhost:7051",
 	}
 
-	server := newServer(localEndorser, disc, mockFinder, mockPolicy, mockLedgerProvider, member, "msp1", &comm.SecureOptions{}, options)
+	server := newServer(localEndorser, disc, mockFinder, mockPolicy, mockLedgerProvider, member, "msp1", &comm.SecureOptions{}, options, nil)
 
 	dialer := &mocks.Dialer{}
 	dialer.Returns(nil, nil)

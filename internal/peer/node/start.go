@@ -830,6 +830,7 @@ func serve(args []string) error {
 				aclProvider,
 				coreConfig.LocalMSPID,
 				coreConfig.GatewayOptions,
+				builtinSCCs,
 			)
 			gatewayprotos.RegisterGatewayServer(peerServer.Server(), gatewayServer)
 		} else {
