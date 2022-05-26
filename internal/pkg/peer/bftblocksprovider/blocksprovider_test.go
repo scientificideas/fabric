@@ -156,7 +156,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 	})
 
 	It("checks the ledger height", func() {
-		Eventually(fakeLedgerInfo.LedgerHeightCallCount).Should(Equal(2))
+		Eventually(fakeLedgerInfo.LedgerHeightCallCount).Should(Equal(1))
 	})
 
 	When("the ledger returns an error", func() {
