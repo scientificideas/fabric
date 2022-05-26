@@ -131,11 +131,6 @@ func (d *Deliverer) DeliverBlocks() {
 
 	defer d.Cancel()
 
-	num, err := d.Ledger.LedgerHeight()
-	if err != nil {
-		return
-	}
-	d.nextBlockNumber = num
 	d.lastBlockTime = time.Now()
 
 	for {
@@ -181,7 +176,8 @@ func (d *Deliverer) DeliverBlocks() {
 			return
 		}
 
-		d.updateReceived(blockNum)
+		d.Logger.Infof("received blockNumber=%d", blockNum)
+		d.lastBlockTime = time.Now()
 
 		if d.BlockGossipDisabled {
 			continue
@@ -281,6 +277,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		d.Logger.Error("Did not return ledger height, something is critically wrong", err)
 		return numEP, err
 	}
+	d.nextBlockNumber = ledgerHeight
 
 	if d.blockReceiver == nil {
 		seekInfoEnv, err := d.createSeekInfo(ledgerHeight, false)
@@ -665,14 +662,6 @@ OuterLoop:
 	}
 
 	d.Logger.Debugf("exit")
-}
-
-// updateReceived allows the client to track the reception of valid blocks.
-// This is needed because blocks are verified by the blockprovider, not here.
-func (d *Deliverer) updateReceived(blockNumber uint64) {
-	d.Logger.Infof("received blockNumber=%d", blockNumber)
-	d.nextBlockNumber = blockNumber + 1
-	d.lastBlockTime = time.Now()
 }
 
 // UpdateEndpoints assigns the new endpoints for the delivery client
