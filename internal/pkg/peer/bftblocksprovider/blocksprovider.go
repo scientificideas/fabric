@@ -268,13 +268,13 @@ func (d *Deliverer) assignReceivers() (int, error) {
 	numEP := len(d.Endpoints)
 	if numEP <= 0 {
 		d.Cancel()
-
 		return numEP, errors.New("no endpoints")
 	}
 
 	ledgerHeight, err := d.Ledger.LedgerHeight()
 	if err != nil {
 		d.Logger.Error("Did not return ledger height, something is critically wrong", err)
+		d.Cancel()
 		return numEP, err
 	}
 	d.nextBlockNumber = ledgerHeight
