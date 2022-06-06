@@ -744,7 +744,7 @@ func computeBackoff(
 	}
 
 	jitter := 0.2
-	multiplier := 1.2
+	multiplier := 1.6
 
 	backoff, max := float64(baseDelay), float64(maxDelay)
 	for backoff < max && retries > 0 {
