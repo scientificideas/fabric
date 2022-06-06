@@ -2,7 +2,6 @@ package bftblocksprovider
 
 import (
 	"context"
-	"math"
 	"time"
 
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -96,12 +95,6 @@ func (u *UnitDeliver) DeliverBlocks() {
 
 	failureCounter := 0
 
-	// InitialRetryDelay * backoffExponentBase^n > MaxRetryDelay
-	// backoffExponentBase^n > MaxRetryDelay / InitialRetryDelay
-	// n * log(backoffExponentBase) > log(MaxRetryDelay / InitialRetryDelay)
-	// n > log(MaxRetryDelay / InitialRetryDelay) / log(backoffExponentBase)
-	maxFailures := int(math.Log(float64(u.maxRetryDelay)/float64(u.initialRetryDelay)) / math.Log(backoffExponentBase))
-
 	for {
 		select {
 		case <-u.ctx.Done():
@@ -110,13 +103,7 @@ func (u *UnitDeliver) DeliverBlocks() {
 		}
 
 		if failureCounter > 0 {
-			var sleepDuration time.Duration
-			if failureCounter-1 > maxFailures {
-				sleepDuration = u.maxRetryDelay
-			} else {
-				sleepDuration = time.Duration(math.Pow(1.2, float64(failureCounter-1))*100) * time.Millisecond
-			}
-
+			sleepDuration := computeBackoff(failureCounter, u.initialRetryDelay, u.maxRetryDelay)
 			u.sleep(sleepDuration)
 		}
 

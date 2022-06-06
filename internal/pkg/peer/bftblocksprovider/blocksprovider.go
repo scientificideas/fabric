@@ -618,11 +618,9 @@ func (d *Deliverer) workHeadReceiver(ch chan *common.Block) func(ctx context.Con
 // computeBackOffDelay computes an exponential back-off delay and increments the counter,
 // as long as the computed delay is below the maximal delay.
 func (d *Deliverer) computeBackOffDelay(count uint64) (time.Duration, uint64) {
-	currentDelayNano := math.Pow(2.0, float64(count)) * float64(d.MinBackoffDelay.Nanoseconds())
-	if currentDelayNano > float64(d.MaxBackoffDelay.Nanoseconds()) {
-		return d.MaxBackoffDelay, count
-	}
-	return time.Duration(currentDelayNano), count + 1
+	delay := computeBackoff(int(count), d.MinBackoffDelay, d.MaxBackoffDelay)
+
+	return delay, count + 1
 }
 
 func createPayload(seqNum uint64, marshaledBlock []byte) *gossip.Payload {
@@ -734,4 +732,33 @@ func Shuffle(a []*orderers.Endpoint) []*orderers.Endpoint {
 		returnedSlice[i] = a[idx]
 	}
 	return returnedSlice
+}
+
+func computeBackoff(
+	retries int,
+	baseDelay time.Duration,
+	maxDelay time.Duration,
+) time.Duration {
+	if retries == 0 {
+		return baseDelay
+	}
+
+	jitter := 0.2
+	multiplier := 1.2
+
+	backoff, max := float64(baseDelay), float64(maxDelay)
+	for backoff < max && retries > 0 {
+		backoff *= multiplier
+		retries--
+	}
+	if backoff > max {
+		backoff = max
+	}
+	// Randomize backoff delays so that if a cluster of requests start at
+	// the same time, they won't operate in lockstep.
+	backoff *= 1 + jitter*(rand.New(rand.NewSource(time.Now().UnixNano())).Float64()*2-1)
+	if backoff < 0 {
+		return 0
+	}
+	return time.Duration(backoff)
 }
