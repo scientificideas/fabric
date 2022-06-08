@@ -14,8 +14,6 @@ import (
 	"go.uber.org/atomic"
 )
 
-const backoffExponentBase = 1.2
-
 type UnitDeliver struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
@@ -94,13 +92,16 @@ func (u *UnitDeliver) DeliverBlocks() {
 	}()
 
 	failureCounter := 0
-
+	u.logger.Info("PFI003")
+	defer u.logger.Info("PFI004")
 	for {
 		select {
 		case <-u.ctx.Done():
 			return
 		default:
 		}
+
+		u.logger.Info("PFI61")
 
 		if failureCounter > 0 {
 			sleepDuration := computeBackoff(failureCounter, u.initialRetryDelay, u.maxRetryDelay)
@@ -111,6 +112,7 @@ func (u *UnitDeliver) DeliverBlocks() {
 		if err != nil {
 			u.logger.Warningf("Could not connect to ordering service: %v", err)
 			failureCounter++
+			u.logger.Info("PFI62")
 			continue
 		}
 
@@ -119,6 +121,7 @@ func (u *UnitDeliver) DeliverBlocks() {
 			for {
 				resp, err := deliverClient.Recv()
 				if err != nil {
+					u.logger.Info("PFI62")
 					u.logger.Warningf("Encountered an error reading from deliver stream: %v", err)
 					close(recv)
 					return
@@ -128,8 +131,10 @@ func (u *UnitDeliver) DeliverBlocks() {
 				case recv <- resp:
 				case <-u.ctx.Done():
 					close(recv)
+					u.logger.Info("PFI63")
 					return
 				}
+				u.logger.Info("PFI64")
 			}
 		}()
 
@@ -138,9 +143,11 @@ func (u *UnitDeliver) DeliverBlocks() {
 			select {
 			case <-u.endpoint.Refreshed:
 				u.logger.Infof("Ordering endpoints have been refreshed, disconnecting from deliver to reconnect using updated endpoints")
+				u.logger.Info("PFI65")
 				break RecvLoop
 			case response, ok := <-recv:
 				if !ok {
+					u.logger.Info("PFI66")
 					u.logger.Warningf("Orderer hung up without sending status")
 					failureCounter++
 					break RecvLoop
@@ -149,14 +156,17 @@ func (u *UnitDeliver) DeliverBlocks() {
 				if err != nil {
 					u.logger.Warningf("Got error while attempting to receive blocks: %v", err)
 					failureCounter++
+					u.logger.Info("PFI67")
 					break RecvLoop
 				}
+				u.logger.Info("PFI68")
 				failureCounter = 0
 			case <-u.ctx.Done():
 				break RecvLoop
 			}
 		}
 
+		u.logger.Info("PFI69")
 		// cancel and wait for our spawned go routine to exit
 		cancel()
 		<-recv
@@ -167,9 +177,10 @@ func (u *UnitDeliver) processMsg(msg *orderer.DeliverResponse) error {
 	switch t := msg.Type.(type) {
 	case *orderer.DeliverResponse_Status:
 		if t.Status == common.Status_SUCCESS {
+			u.logger.Info("PFI71")
 			return errors.Errorf("received success for a seek that should never complete")
 		}
-
+		u.logger.Info("PFI72")
 		return errors.Errorf("received bad status %v from orderer", t.Status)
 	case *orderer.DeliverResponse_Block:
 		blockNum := t.Block.Header.Number
@@ -179,6 +190,7 @@ func (u *UnitDeliver) processMsg(msg *orderer.DeliverResponse) error {
 				u.channelID,
 				t.Block,
 			); err != nil {
+				u.logger.Info("PFI73")
 				return errors.WithMessage(err, "block header from orderer could not be verified")
 			}
 		} else {
@@ -187,13 +199,14 @@ func (u *UnitDeliver) processMsg(msg *orderer.DeliverResponse) error {
 				t.Block.Header.Number,
 				t.Block,
 			); err != nil {
+				u.logger.Info("PFI74")
 				return errors.WithMessage(err, "block from orderer could not be verified")
 			}
 		}
 
 		// do not verify, just save for later, in case the block-receiver is suspected of censorship
 		u.logger.Debugf("saving block with header and metadata, blockNum = [%d], block = [%v]", blockNum, t.Block)
-
+		u.logger.Info("PFI75")
 		if u.workFunc != nil {
 			u.workFunc(u.ctx, t.Block)
 		}
@@ -221,6 +234,7 @@ func (u *UnitDeliver) GetEndpoint() string {
 func (u *UnitDeliver) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroadcast_DeliverClient, func(), error) {
 	conn, err := u.dialer.Dial(u.endpoint.Address, u.endpoint.RootCerts)
 	if err != nil {
+		u.logger.Info("PFI81")
 		return nil, nil, errors.WithMessagef(err, "could not dial endpoint '%s'", u.endpoint.Address)
 	}
 
@@ -228,6 +242,7 @@ func (u *UnitDeliver) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroad
 
 	deliverClient, err := u.deliverStream.Deliver(ctx, conn)
 	if err != nil {
+		u.logger.Info("PFI82")
 		_ = conn.Close()
 		ctxCancel()
 		return nil, nil, errors.WithMessagef(err, "could not create deliver client to endpoints '%s'", u.endpoint.Address)
@@ -235,12 +250,13 @@ func (u *UnitDeliver) connect(seekInfoEnv *common.Envelope) (orderer.AtomicBroad
 
 	err = deliverClient.Send(seekInfoEnv)
 	if err != nil {
+		u.logger.Info("PFI83")
 		_ = deliverClient.CloseSend()
 		_ = conn.Close()
 		ctxCancel()
 		return nil, nil, errors.WithMessagef(err, "could not send deliver seek info handshake to '%s'", u.endpoint.Address)
 	}
-
+	u.logger.Info("PFI84")
 	return deliverClient, func() {
 		_ = deliverClient.CloseSend()
 		ctxCancel()

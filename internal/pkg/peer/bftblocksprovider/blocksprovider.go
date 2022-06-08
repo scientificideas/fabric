@@ -133,12 +133,17 @@ func (d *Deliverer) DeliverBlocks() {
 
 	d.lastBlockTime = time.Now()
 
+	d.Logger.Info("PFI001")
+	defer d.Logger.Info("PFI002")
+
 	for {
 		select {
 		case <-d.Ctx.Done():
 			return
 		default:
 		}
+
+		d.Logger.Info("PFI11")
 
 		block, err := d.recv()
 		if err != nil {
@@ -149,6 +154,8 @@ func (d *Deliverer) DeliverBlocks() {
 		}
 
 		blockNum := block.Header.Number
+
+		d.Logger.Info("PFI12")
 
 		marshaledBlock, err := proto.Marshal(block)
 		if err != nil {
@@ -169,6 +176,8 @@ func (d *Deliverer) DeliverBlocks() {
 		// Use payload to create gossip message
 		gossipMsg := createGossipMsg(d.ChainID, payload)
 
+		d.Logger.Info("PFI13")
+
 		d.Logger.Debugf("adding payload to local buffer, blockNum = [%d]", blockNum)
 		// Add payload to local state payloads buffer
 		if err = d.Gossip.AddPayload(d.ChainID, payload); err != nil {
@@ -176,12 +185,16 @@ func (d *Deliverer) DeliverBlocks() {
 			return
 		}
 
+		d.Logger.Info("PFI14")
+
 		d.Logger.Infof("received blockNumber=%d", blockNum)
 		d.lastBlockTime = time.Now()
 
 		if d.BlockGossipDisabled {
 			continue
 		}
+
+		d.Logger.Info("PFI15")
 
 		// Gossip messages with other nodes
 		d.Logger.Debugf("gossiping block [%d], peers number [%d]", blockNum, numberOfPeers)
@@ -232,23 +245,25 @@ OuterLoop:
 			break OuterLoop
 		default:
 		}
-
+		d.Logger.Info("PFI21")
 		if _, err = d.assignReceivers(); err != nil {
 			d.Logger.Debugf("exit: error=%v", err)
 			return nil, err
 		}
-
+		d.Logger.Info("PFI22")
 		d.launchHeaderReceivers()
-
+		d.Logger.Info("PFI23")
 		block, err = d.receiveBlock()
 		if err == nil {
 			d.Logger.Debugf("exit: response=%v", block)
 			return block, nil // the normal return path
 		}
-
+		d.Logger.Info("PFI24")
 		if errors.Is(err, errClientReconnectTimeout) {
+			d.Logger.Info("PFI25")
 			d.closeBlockReceiver(true)
 		} else {
+			d.Logger.Info("PFI26")
 			d.closeBlockReceiver(false)
 		}
 
@@ -278,6 +293,8 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		return numEP, err
 	}
 	d.nextBlockNumber = ledgerHeight
+
+	d.Logger.Info("PFI31")
 
 	if d.blockReceiver == nil {
 		seekInfoEnv, err := d.createSeekInfo(ledgerHeight, false)
@@ -317,7 +334,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		)
 
 		go d.blockReceiver.DeliverBlocks()
-
+		d.Logger.Info("PFI32")
 		d.Logger.Debugf("created block receiver to: %s", ep.Address)
 	}
 
@@ -346,6 +363,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		return numEP, err
 	}
 
+	d.Logger.Info("PFI33")
 	for _, ep := range hRcvToCreate {
 		ch := make(chan *common.Block, 10)
 
@@ -371,10 +389,10 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			ud: headerReceiver,
 			ch: ch,
 		}
-
+		d.Logger.Info("PFI34")
 		d.Logger.Debugf("created header receiver to: %s", ep.Address)
 	}
-
+	d.Logger.Info("PFI35")
 	d.Logger.Debugf("exit: number of endpoints: %d", numEP)
 	return numEP, nil
 }
@@ -446,25 +464,32 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 		t = d.BlockCensorshipTimeout / 100
 	}
 
+	d.Logger.Info("PFI41")
 	select {
 	case <-d.Ctx.Done():
+		d.Logger.Info("PFI42")
 		return nil, errClientClosing
 	case <-time.After(t):
 		if d.collectDataFromHeaders() {
+			d.Logger.Info("PFI43")
 			return nil, errClientReconnectTimeout
 		}
+		d.Logger.Info("PFI44")
 		return nil, errNoBlockReceiver
 	case block, ok := <-d.chBlockReceiver:
 		if !ok {
+			d.Logger.Info("PFI45")
 			d.Logger.Warnf("channel block receiver is closed: %s", addr)
 			return nil, errChanBlockRecvIsClosed
 		}
 		if block.Header.Number > d.nextBlockNumber {
+			d.Logger.Info("PFI46")
 			d.Logger.Warnf("ignoring out-of-order block from orderer: %s; received block number: %d, expected: %d",
 				addr, block.Header.Number, d.nextBlockNumber)
 			return nil, errOutOfOrderBlock
 		}
 		if block.Header.Number < d.nextBlockNumber {
+			d.Logger.Info("PFI47")
 			d.Logger.Warnf("ignoring duplicate block from orderer: %s; received block number: %d, expected: %d",
 				addr, block.Header.Number, d.nextBlockNumber)
 			return nil, errDuplicateBlock
@@ -484,14 +509,17 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 			}
 
 			if d.collectDataFromHeaders() && d.checkDataHashFrom(block.Header.DataHash) {
+				d.Logger.Info("PFI48")
 				break
 			}
 
 			if d.lastBlockTime.Add(d.BlockCensorshipTimeout).Before(time.Now()) {
+				d.Logger.Info("PFI49")
 				return nil, errClientReconnectTimeout
 			}
 		}
 
+		d.Logger.Info("PFI40")
 		return block, nil
 	}
 }
@@ -533,11 +561,13 @@ func (d *Deliverer) collectDataFromHeaders() bool {
 	numEP := uint64(len(d.Endpoints))
 	_, f := computeQuorum(numEP)
 	if numAhead > f {
+		d.Logger.Info("PFI51")
 		d.Logger.Warnf("suspected block censorship: %d header receivers are ahead of block receiver, out of %d endpoints",
 			numAhead, numEP)
 		return true
 	}
 
+	d.Logger.Info("PFI52")
 	return false
 }
 
@@ -562,12 +592,13 @@ func (d *Deliverer) checkDataHashFrom(hash []byte) bool {
 		numAhead++
 
 		if numAhead > f {
+			d.Logger.Info("PFI53")
 			d.Logger.Warnf("suspected block censorship: %d header receivers are ahead of block receiver, out of %d endpoints",
 				numAhead, numEP)
 			return true
 		}
 	}
-
+	d.Logger.Info("PFI54")
 	return false
 }
 
@@ -576,10 +607,12 @@ func (d *Deliverer) closeBlockReceiver(updateLastBlockTime bool) {
 	defer d.mutex.Unlock()
 
 	if updateLastBlockTime {
+		d.Logger.Info("PFI55")
 		d.lastBlockTime = time.Now()
 	}
 
 	if d.blockReceiver != nil {
+		d.Logger.Info("PFI56")
 		d.stopAndWaitReciever(d.blockReceiver, d.chBlockReceiver)
 		d.blockReceiver = nil
 	}
@@ -595,7 +628,9 @@ func (d *Deliverer) workBlockReceiver(ch chan *common.Block) func(ctx context.Co
 	return func(ctx context.Context, block *common.Block) {
 		select {
 		case <-ctx.Done():
+			d.Logger.Info("PFI91")
 		case ch <- block:
+			d.Logger.Info("PFI92")
 		}
 	}
 }
@@ -610,7 +645,9 @@ func (d *Deliverer) workHeadReceiver(ch chan *common.Block) func(ctx context.Con
 	return func(ctx context.Context, block *common.Block) {
 		select {
 		case <-ctx.Done():
+			d.Logger.Info("PFI93")
 		case ch <- block:
+			d.Logger.Info("PFI94")
 		}
 	}
 }
