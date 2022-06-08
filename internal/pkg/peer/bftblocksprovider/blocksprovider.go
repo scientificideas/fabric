@@ -188,6 +188,7 @@ func (d *Deliverer) DeliverBlocks() {
 		d.Logger.Info("PFI14")
 
 		d.Logger.Infof("received blockNumber=%d", blockNum)
+		d.nextBlockNumber = blockNum + 1
 		d.lastBlockTime = time.Now()
 
 		if d.BlockGossipDisabled {
@@ -292,12 +293,15 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		d.Cancel()
 		return numEP, err
 	}
-	d.nextBlockNumber = ledgerHeight
+
+	if ledgerHeight > d.nextBlockNumber {
+		d.nextBlockNumber = ledgerHeight
+	}
 
 	d.Logger.Info("PFI31")
 
 	if d.blockReceiver == nil {
-		seekInfoEnv, err := d.createSeekInfo(ledgerHeight, false)
+		seekInfoEnv, err := d.createSeekInfo(d.nextBlockNumber, false)
 		if err != nil {
 			d.Logger.Error("Could not create a signed Deliver SeekInfo message, something is critically wrong", err)
 			d.Cancel()
@@ -305,12 +309,26 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			return numEP, err
 		}
 
-		d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
-		ep := d.Endpoints[d.blockReceiverIndex]
-		if headerReceiver, exists := d.headerReceivers[ep.Address]; exists {
-			d.stopAndWaitReciever(headerReceiver.ud, headerReceiver.ch)
-			delete(d.headerReceivers, ep.Address)
-			d.Logger.Debugf("closed header receiver to: %s", ep.Address)
+		var ep *orderers.Endpoint
+
+		oldInd := d.blockReceiverIndex
+		cycle := false
+		for {
+			d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
+			if !cycle && oldInd == d.blockReceiverIndex {
+				cycle = true
+			}
+
+			ep = d.Endpoints[d.blockReceiverIndex]
+			if headerReceiver, exists := d.headerReceivers[ep.Address]; exists {
+				if !cycle && !headerReceiver.ud.IsSuccessed() {
+					continue
+				}
+				d.stopAndWaitReciever(headerReceiver.ud, headerReceiver.ch)
+				delete(d.headerReceivers, ep.Address)
+				d.Logger.Debugf("closed header receiver to: %s", ep.Address)
+			}
+			break
 		}
 
 		d.chBlockReceiver = make(chan *common.Block)
@@ -355,7 +373,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		hRcvToCreate = append(hRcvToCreate, ep)
 	}
 
-	seekInfoEnv, err := d.createSeekInfo(ledgerHeight, true)
+	seekInfoEnv, err := d.createSeekInfo(d.nextBlockNumber, true)
 	if err != nil {
 		d.Logger.Error("Could not create a signed Deliver SeekInfo message, something is critically wrong", err)
 		d.Cancel()
