@@ -309,26 +309,12 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			return numEP, err
 		}
 
-		var ep *orderers.Endpoint
-
-		oldInd := d.blockReceiverIndex
-		cycle := false
-		for {
-			d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
-			if !cycle && oldInd == d.blockReceiverIndex {
-				cycle = true
-			}
-
-			ep = d.Endpoints[d.blockReceiverIndex]
-			if headerReceiver, exists := d.headerReceivers[ep.Address]; exists {
-				if !cycle && !headerReceiver.ud.IsSuccessed() {
-					continue
-				}
-				d.stopAndWaitReciever(headerReceiver.ud, headerReceiver.ch)
-				delete(d.headerReceivers, ep.Address)
-				d.Logger.Debugf("closed header receiver to: %s", ep.Address)
-			}
-			break
+		d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
+		ep := d.Endpoints[d.blockReceiverIndex]
+		if headerReceiver, exists := d.headerReceivers[ep.Address]; exists {
+			d.stopAndWaitReciever(headerReceiver.ud, headerReceiver.ch)
+			delete(d.headerReceivers, ep.Address)
+			d.Logger.Debugf("closed header receiver to: %s", ep.Address)
 		}
 
 		d.chBlockReceiver = make(chan *common.Block)

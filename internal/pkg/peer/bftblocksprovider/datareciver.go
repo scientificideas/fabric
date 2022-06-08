@@ -33,7 +33,6 @@ type UnitDeliver struct {
 	workFunc          func(ctx context.Context, block *common.Block)
 	endFunc           func()
 	stop              atomic.Int32
-	successConnect    atomic.Int32
 	seekInfoEnv       *common.Envelope
 }
 
@@ -112,13 +111,10 @@ func (u *UnitDeliver) DeliverBlocks() {
 		deliverClient, cancel, err := u.connect(u.seekInfoEnv)
 		if err != nil {
 			u.logger.Warningf("Could not connect to ordering service: %v", err)
-			u.successConnect.CAS(0, 1)
 			failureCounter++
 			u.logger.Info("PFI62")
 			continue
 		}
-
-		u.successConnect.CAS(1, 0)
 
 		recv := make(chan *orderer.DeliverResponse)
 		go func() {
@@ -229,10 +225,6 @@ func (u *UnitDeliver) Stop() {
 
 func (u *UnitDeliver) IsStopped() bool {
 	return u.stop.Load() == 0
-}
-
-func (u *UnitDeliver) IsSuccessed() bool {
-	return u.successConnect.Load() == 0
 }
 
 func (u *UnitDeliver) GetEndpoint() string {
