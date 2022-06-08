@@ -380,7 +380,9 @@ var _ = Describe("BlocksproviderBFT", func() {
 
 		BeforeEach(func() {
 			// appease the race detector
+			mutex.Lock()
 			fakeDeliverClients = nil
+			mutex.Unlock()
 			ctx := ctx
 			recvStep := recvStep
 			fakeDeliverStreamer := fakeDeliverStreamer
