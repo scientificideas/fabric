@@ -232,7 +232,7 @@ func (u *UnitDeliver) IsStopped() bool {
 }
 
 func (u *UnitDeliver) IsSuccessed() bool {
-	return u.stop.Load() == 0
+	return u.successConnect.Load() == 0
 }
 
 func (u *UnitDeliver) GetEndpoint() string {
