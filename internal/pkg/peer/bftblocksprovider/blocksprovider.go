@@ -321,6 +321,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		)
 
 		go d.blockReceiver.DeliverBlocks()
+
 		d.Logger.Debugf("created block receiver to: %s", ep.Address)
 	}
 
@@ -456,7 +457,6 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 		if d.collectDataFromHeaders() {
 			return nil, errClientReconnectTimeout
 		}
-
 		return nil, errNoBlockReceiver
 	case block, ok := <-d.chBlockReceiver:
 		if !ok {

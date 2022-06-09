@@ -92,6 +92,7 @@ func (u *UnitDeliver) DeliverBlocks() {
 	}()
 
 	failureCounter := 0
+
 	for {
 		select {
 		case <-u.ctx.Done():
@@ -142,14 +143,12 @@ func (u *UnitDeliver) DeliverBlocks() {
 					failureCounter++
 					break RecvLoop
 				}
-
 				err = u.processMsg(response)
 				if err != nil {
 					u.logger.Warningf("Got error while attempting to receive blocks: %v", err)
 					failureCounter++
 					break RecvLoop
 				}
-
 				failureCounter = 0
 			case <-u.ctx.Done():
 				break RecvLoop
