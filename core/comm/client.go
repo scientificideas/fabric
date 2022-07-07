@@ -14,6 +14,7 @@ import (
 
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -56,6 +57,24 @@ func NewGRPCClient(config ClientConfig) (*GRPCClient, error) {
 	kap.PermitWithoutStream = true
 	// set keepalive
 	client.dialOpts = append(client.dialOpts, grpc.WithKeepaliveParams(kap))
+
+	if config.BaOpts.BaseDelay != 0 &&
+		config.BaOpts.MaxDelay != 0 &&
+		config.BaOpts.Multiplier != 0 {
+		// backoff options
+		cp := grpc.ConnectParams{
+			Backoff: backoff.Config{
+				BaseDelay:  config.BaOpts.BaseDelay,
+				Multiplier: config.BaOpts.Multiplier,
+				Jitter:     0.2,
+				MaxDelay:   config.BaOpts.MaxDelay,
+			},
+			MinConnectTimeout: 20 * time.Second,
+		}
+		// set backoff
+		client.dialOpts = append(client.dialOpts, grpc.WithConnectParams(cp))
+	}
+
 	// Unless asynchronous connect is set, make connection establishment blocking.
 	if !config.AsyncConnect {
 		client.dialOpts = append(client.dialOpts, grpc.WithBlock())

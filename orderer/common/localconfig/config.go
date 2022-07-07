@@ -46,6 +46,7 @@ type General struct {
 	TLS               TLS
 	Cluster           Cluster
 	Keepalive         Keepalive
+	Backoff           Backoff
 	ConnectionTimeout time.Duration
 	GenesisMethod     string
 	GenesisProfile    string
@@ -83,6 +84,13 @@ type Keepalive struct {
 	ServerMinInterval time.Duration
 	ServerInterval    time.Duration
 	ServerTimeout     time.Duration
+}
+
+// Backoff defines the configuration options for GRPC client.
+type Backoff struct {
+	BaseDelay  time.Duration
+	Multiplier float64
+	MaxDelay   time.Duration
 }
 
 // TLS contains configuration for TLS connections.
