@@ -46,10 +46,11 @@ require (
 	github.com/prometheus/procfs v0.0.0-20190521135221-be78308d8a4f // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	github.com/spf13/cobra v0.0.4
+	github.com/spf13/cast v1.3.0 // indirect
+	github.com/spf13/cobra v0.0.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.3
-	github.com/spf13/viper v1.3.2
+	github.com/spf13/viper v0.0.0-20150908122457-1967d93db724
 	github.com/stretchr/testify v1.7.0
 	github.com/sykesm/zap-logfmt v0.0.2
 	github.com/syndtr/goleveldb v1.0.1-0.20190318030020-c3a204f8e965
