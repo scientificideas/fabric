@@ -1,10 +1,6 @@
-/*
-
-Copyright IBM Corp. All Rights Reserved.
-
-SPDX-License-Identifier: Apache-2.0
-
-*/
+// Copyright the Hyperledger Fabric contributors. All rights reserved.
+//
+// SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
@@ -40,23 +36,23 @@ message Options {
     uint64 request_batch_max_count = 2;
     uint64 request_batch_max_bytes = 3;
     string request_batch_max_interval = 4;
-    
-	uint64 incoming_message_buffer_size = 5;
-	uint64 request_pool_size = 6;
 
-	string request_forward_timeout = 7;
+    uint64 incoming_message_buffer_size = 5;
+    uint64 request_pool_size = 6;
+
+    string request_forward_timeout = 7;
     string request_complain_timeout = 8;
-	string request_auto_remove_timeout = 9;
+    string request_auto_remove_timeout = 9;
 
-	string view_change_resend_interval = 10;
+    string view_change_resend_interval = 10;
     string view_change_timeout = 11;
 
-	string leader_heartbeat_timeout = 12;
+    string leader_heartbeat_timeout = 12;
     uint64 leader_heartbeat_count = 13;
 
     string collect_timeout = 14;
     bool sync_on_start = 15;
-	bool speed_up_view_change = 16;
+    bool speed_up_view_change = 16;
 
     enum Rotation {
         UNDEFINED = 0;
@@ -67,4 +63,7 @@ message Options {
     Rotation leader_rotation = 17;
 
     uint64 decisions_per_leader = 18;
+
+    uint64 request_max_bytes = 19;
+    string request_pool_submit_timeout = 20;
 }
