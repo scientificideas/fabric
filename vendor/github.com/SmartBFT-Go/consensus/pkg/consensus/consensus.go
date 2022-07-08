@@ -25,33 +25,35 @@ import (
 // and delivers to the application proposals by invoking Deliver() on it.
 // The proposals contain batches of requests assembled together by the Assembler.
 type Consensus struct {
-	Config            types.Configuration
-	Application       bft.Application
-	Assembler         bft.Assembler
-	WAL               bft.WriteAheadLog
-	WALInitialContent [][]byte
-	Comm              bft.Comm
-	Signer            bft.Signer
-	Verifier          bft.Verifier
-	RequestInspector  bft.RequestInspector
-	Synchronizer      bft.Synchronizer
-	Logger            bft.Logger
-	Metadata          protos.ViewMetadata
-	LastProposal      types.Proposal
-	LastSignatures    []types.Signature
-	Scheduler         <-chan time.Time
-	ViewChangerTicker <-chan time.Time
+	Config             types.Configuration
+	Application        bft.Application
+	Assembler          bft.Assembler
+	WAL                bft.WriteAheadLog
+	WALInitialContent  [][]byte
+	Comm               bft.Comm
+	Signer             bft.Signer
+	Verifier           bft.Verifier
+	MembershipNotifier bft.MembershipNotifier
+	RequestInspector   bft.RequestInspector
+	Synchronizer       bft.Synchronizer
+	Logger             bft.Logger
+	Metadata           protos.ViewMetadata
+	LastProposal       types.Proposal
+	LastSignatures     []types.Signature
+	Scheduler          <-chan time.Time
+	ViewChangerTicker  <-chan time.Time
 
 	submittedChan chan struct{}
 	inFlight      *algorithm.InFlightData
 	checkpoint    *types.Checkpoint
-	pool          *algorithm.Pool
+	Pool          *algorithm.Pool
 	viewChanger   *algorithm.ViewChanger
 	controller    *algorithm.Controller
 	collector     *algorithm.StateCollector
 	state         *algorithm.PersistedState
 	numberOfNodes uint64
 	nodes         []uint64
+	nodeMap       sync.Map
 
 	consensusDone sync.WaitGroup
 	stopOnce      sync.Once
@@ -132,9 +134,11 @@ func (c *Consensus) Start() error {
 		ForwardTimeout:    c.Config.RequestForwardTimeout,
 		ComplainTimeout:   c.Config.RequestComplainTimeout,
 		AutoRemoveTimeout: c.Config.RequestAutoRemoveTimeout,
+		RequestMaxBytes:   c.Config.RequestMaxBytes,
+		SubmitTimeout:     c.Config.RequestPoolSubmitTimeout,
 	}
 	c.submittedChan = make(chan struct{}, 1)
-	c.pool = algorithm.NewPool(c.Logger, c.RequestInspector, c.controller, opts, c.submittedChan)
+	c.Pool = algorithm.NewPool(c.Logger, c.RequestInspector, c.controller, opts, c.submittedChan)
 	c.continueCreateComponents()
 
 	c.Logger.Debugf("Application started with view %d, seq %d, and decisions %d", c.Metadata.ViewId, c.Metadata.LatestSequence, c.Metadata.DecisionsInView)
@@ -142,10 +146,7 @@ func (c *Consensus) Start() error {
 
 	c.waitForEachOther()
 
-	go func() {
-		defer c.consensusDone.Done()
-		c.run()
-	}()
+	go c.run()
 
 	c.startComponents(view, seq, dec, true)
 
@@ -157,7 +158,11 @@ func (c *Consensus) Start() error {
 func (c *Consensus) run() {
 	defer func() {
 		c.Logger.Infof("Exiting")
+		atomic.StoreUint64(&c.running, 0)
+		c.Stop()
 	}()
+
+	defer c.consensusDone.Done()
 
 	for {
 		select {
@@ -179,6 +184,20 @@ func (c *Consensus) reconfig(reconfig types.Reconfig) {
 	c.controller.StopWithPoolPause()
 	c.collector.Stop()
 
+	var exist bool
+	for _, n := range reconfig.CurrentNodes {
+		if c.Config.SelfID == n {
+			exist = true
+			break
+		}
+	}
+
+	if !exist {
+		c.Logger.Infof("Evicted in reconfiguration, shutting down")
+		c.close()
+		return
+	}
+
 	c.Config = reconfig.CurrentConfig
 	if err := c.ValidateConfiguration(reconfig.CurrentNodes); err != nil {
 		if strings.Contains(err.Error(), "nodes does not contain the SelfID") {
@@ -197,8 +216,10 @@ func (c *Consensus) reconfig(reconfig types.Reconfig) {
 		ForwardTimeout:    c.Config.RequestForwardTimeout,
 		ComplainTimeout:   c.Config.RequestComplainTimeout,
 		AutoRemoveTimeout: c.Config.RequestAutoRemoveTimeout,
+		RequestMaxBytes:   c.Config.RequestMaxBytes,
+		SubmitTimeout:     c.Config.RequestPoolSubmitTimeout,
 	}
-	c.pool.ChangeTimeouts(c.controller, opts) // TODO handle reconfiguration of queue size in the pool
+	c.Pool.ChangeTimeouts(c.controller, opts) // TODO handle reconfiguration of queue size in the pool
 	c.continueCreateComponents()
 
 	proposal, _ := c.checkpoint.Get()
@@ -214,7 +235,7 @@ func (c *Consensus) reconfig(reconfig types.Reconfig) {
 
 	c.startComponents(view, seq, dec, false)
 
-	c.pool.RestartTimers()
+	c.Pool.RestartTimers()
 
 	c.Logger.Debugf("Reconfig is done")
 }
@@ -234,7 +255,6 @@ func (c *Consensus) close() {
 
 func (c *Consensus) Stop() {
 	c.consensusLock.RLock()
-	atomic.StoreUint64(&c.running, 0)
 	c.viewChanger.Stop()
 	c.controller.Stop()
 	c.collector.Stop()
@@ -244,6 +264,10 @@ func (c *Consensus) Stop() {
 }
 
 func (c *Consensus) HandleMessage(sender uint64, m *protos.Message) {
+	if _, exists := c.nodeMap.Load(sender); !exists {
+		c.Logger.Warnf("Received message from unexpected node %d", sender)
+		return
+	}
 	c.consensusLock.RLock()
 	defer c.consensusLock.RUnlock()
 	c.controller.ProcessMessages(sender, m)
@@ -258,6 +282,9 @@ func (c *Consensus) HandleRequest(sender uint64, req []byte) {
 func (c *Consensus) SubmitRequest(req []byte) error {
 	c.consensusLock.RLock()
 	defer c.consensusLock.RUnlock()
+	if c.GetLeaderID() == 0 {
+		return errors.Errorf("no leader")
+	}
 	c.Logger.Debugf("Submit Request: %s", c.RequestInspector.RequestID(req))
 	return c.controller.SubmitRequest(req)
 }
@@ -271,6 +298,7 @@ func (c *Consensus) proposalMaker() *algorithm.ProposalMaker {
 		Decider:            c.controller,
 		Logger:             c.Logger,
 		Signer:             c.Signer,
+		MembershipNotifier: c.MembershipNotifier,
 		SelfID:             c.Config.SelfID,
 		Sync:               c.controller,
 		FailureDetector:    c,
@@ -306,8 +334,15 @@ func (c *Consensus) ValidateConfiguration(nodes []uint64) error {
 }
 
 func (c *Consensus) setNodes(nodes []uint64) {
+	for _, n := range c.nodes {
+		c.nodeMap.Delete(n)
+	}
+
 	c.numberOfNodes = uint64(len(nodes))
 	c.nodes = sortNodes(nodes)
+	for _, n := range nodes {
+		c.nodeMap.Store(n, struct{}{})
+	}
 }
 
 func sortNodes(nodes []uint64) []uint64 {
@@ -330,7 +365,6 @@ func (c *Consensus) createComponents() {
 		Logger:             c.Logger,
 		Signer:             c.Signer,
 		Verifier:           c.Verifier,
-		Application:        c,
 		Checkpoint:         c.checkpoint,
 		InFlight:           c.inFlight,
 		State:              c.state,
@@ -370,8 +404,9 @@ func (c *Consensus) createComponents() {
 		ViewSequences:      &atomic.Value{},
 		Collector:          c.collector,
 		State:              c.state,
+		InFlight:           c.inFlight,
 	}
-
+	c.viewChanger.Application = &algorithm.MutuallyExclusiveDeliver{C: c.controller}
 	c.viewChanger.Comm = c.controller
 	c.viewChanger.Synchronizer = c.controller
 
@@ -379,15 +414,15 @@ func (c *Consensus) createComponents() {
 }
 
 func (c *Consensus) continueCreateComponents() {
-	batchBuilder := algorithm.NewBatchBuilder(c.pool, c.submittedChan, c.Config.RequestBatchMaxCount, c.Config.RequestBatchMaxBytes, c.Config.RequestBatchMaxInterval)
+	batchBuilder := algorithm.NewBatchBuilder(c.Pool, c.submittedChan, c.Config.RequestBatchMaxCount, c.Config.RequestBatchMaxBytes, c.Config.RequestBatchMaxInterval)
 	leaderMonitor := algorithm.NewHeartbeatMonitor(c.Scheduler, c.Logger, c.Config.LeaderHeartbeatTimeout, c.Config.LeaderHeartbeatCount, c.controller, c.numberOfNodes, c.controller, c.controller.ViewSequences, c.Config.NumOfTicksBehindBeforeSyncing)
-	c.controller.RequestPool = c.pool
+	c.controller.RequestPool = c.Pool
 	c.controller.Batcher = batchBuilder
 	c.controller.LeaderMonitor = leaderMonitor
 
 	c.viewChanger.Controller = c.controller
 	c.viewChanger.Pruner = c.controller
-	c.viewChanger.RequestsTimer = c.pool
+	c.viewChanger.RequestsTimer = c.Pool
 	c.viewChanger.ViewSequences = c.controller.ViewSequences
 }
 

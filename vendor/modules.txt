@@ -15,7 +15,7 @@ github.com/Nvveen/Gotty
 # github.com/Shopify/sarama v1.20.1
 github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
-# github.com/SmartBFT-Go/consensus v0.0.0-20210129012020-24d22ca105d5
+# github.com/SmartBFT-Go/consensus v0.0.0-20210129012020-24d22ca105d5 => github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
 github.com/SmartBFT-Go/consensus/pkg/consensus
@@ -205,7 +205,7 @@ github.com/pelletier/go-toml
 # github.com/pierrec/lz4 v2.6.1+incompatible
 github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
-# github.com/pkg/errors v0.8.1
+# github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
@@ -243,7 +243,7 @@ github.com/spf13/pflag
 github.com/spf13/viper
 # github.com/stretchr/objx v0.1.1
 github.com/stretchr/objx
-# github.com/stretchr/testify v1.3.0
+# github.com/stretchr/testify v1.7.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/mock
 github.com/stretchr/testify/require
@@ -279,11 +279,11 @@ go.etcd.io/etcd/raft
 go.etcd.io/etcd/raft/raftpb
 go.etcd.io/etcd/wal
 go.etcd.io/etcd/wal/walpb
-# go.uber.org/atomic v1.4.0
+# go.uber.org/atomic v1.7.0
 go.uber.org/atomic
-# go.uber.org/multierr v1.1.0
+# go.uber.org/multierr v1.6.0
 go.uber.org/multierr
-# go.uber.org/zap v1.10.0
+# go.uber.org/zap v1.19.0
 go.uber.org/zap
 go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
@@ -294,7 +294,7 @@ go.uber.org/zap/zapgrpc
 go.uber.org/zap/zaptest/observer
 # golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 golang.org/x/crypto/sha3
-# golang.org/x/net v0.0.0-20190520210107-018c4d40a106
+# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/context
 golang.org/x/net/html
 golang.org/x/net/html/atom
@@ -305,7 +305,7 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
-# golang.org/x/sync v0.0.0-20190423024810-112230192c58
+# golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/semaphore
 # golang.org/x/sys v0.0.0-20190520201301-c432e742b0af
 golang.org/x/sys/cpu
@@ -332,7 +332,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135
+# golang.org/x/tools v0.0.0-20191108193012-7d206e10da11
 golang.org/x/tools/go/gcexportdata
 golang.org/x/tools/go/internal/gcimporter
 golang.org/x/tools/go/internal/packagesdriver
@@ -340,6 +340,7 @@ golang.org/x/tools/go/packages
 golang.org/x/tools/internal/fastwalk
 golang.org/x/tools/internal/gopathwalk
 golang.org/x/tools/internal/semver
+golang.org/x/tools/internal/span
 # google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.27.0
@@ -420,5 +421,7 @@ gopkg.in/cheggaaa/pb.v1
 gopkg.in/fsnotify.v1
 # gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 gopkg.in/tomb.v1
-# gopkg.in/yaml.v2 v2.2.2
+# gopkg.in/yaml.v2 v2.2.8
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+gopkg.in/yaml.v3
