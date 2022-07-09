@@ -1,9 +1,10 @@
 module github.com/hyperledger/fabric
 
-go 1.14
+go 1.13
 
 require (
 	code.cloudfoundry.org/clock v1.0.0
+	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/DataDog/zstd v1.4.0 // indirect
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/Microsoft/go-winio v0.4.12 // indirect
@@ -20,11 +21,11 @@ require (
 	github.com/eapache/go-resiliency v1.1.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/frankban/quicktest v1.14.3 // indirect
 	github.com/fsouza/go-dockerclient v1.3.0
 	github.com/go-kit/kit v0.8.0
 	github.com/gogo/protobuf v1.2.1
 	github.com/golang/protobuf v1.3.3
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.7.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
@@ -40,7 +41,7 @@ require (
 	github.com/onsi/ginkgo v1.7.0
 	github.com/onsi/gomega v1.5.0
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
-	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
+	github.com/pierrec/lz4 v1.0.2-0.20190501090746-d705d4371bfc // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v0.9.3
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
@@ -65,7 +66,7 @@ require (
 	golang.org/x/sys v0.0.0-20190520201301-c432e742b0af // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20191108193012-7d206e10da11
-	google.golang.org/grpc v1.23.1
+	google.golang.org/grpc v1.15.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.2.8

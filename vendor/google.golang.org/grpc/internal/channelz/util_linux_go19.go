@@ -1,4 +1,4 @@
-// +build !linux appengine !go1.7
+// +build linux,go1.9,!appengine
 
 /*
  *
@@ -20,19 +20,20 @@
 
 package channelz
 
-import "google.golang.org/grpc/grpclog"
+import (
+	"syscall"
+)
 
-func init() {
-	grpclog.Infof("Channelz: socket options are not supported on non-linux os and appengine.")
+// GetSocketOption gets the socket option info of the conn.
+func GetSocketOption(socket interface{}) *SocketOptionData {
+	c, ok := socket.(syscall.Conn)
+	if !ok {
+		return nil
+	}
+	data := &SocketOptionData{}
+	if rawConn, err := c.SyscallConn(); err == nil {
+		rawConn.Control(data.Getsockopt)
+		return data
+	}
+	return nil
 }
-
-// SocketOptionData defines the struct to hold socket option data, and related
-// getter function to obtain info from fd.
-// Windows OS doesn't support Socket Option
-type SocketOptionData struct {
-}
-
-// Getsockopt defines the function to get socket options requested by channelz.
-// It is to be passed to syscall.RawConn.Control().
-// Windows OS doesn't support Socket Option
-func (s *SocketOptionData) Getsockopt(fd uintptr) {}
