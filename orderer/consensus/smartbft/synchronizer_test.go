@@ -138,6 +138,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
+		d.RequestDel = nil
 		assert.Equal(t, *decision, d)
 	})
 
@@ -199,6 +200,7 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
+		d.RequestDel = nil
 		assert.Equal(t, *decision, d)
 	})
 
