@@ -4,7 +4,7 @@
 export GOROOT=$(go env GOROOT)
 export GOPATH=$(go env GOPATH)
 
-go get -u golang.org/x/tools/cmd/goimports
+go get -u golang.org/x/tools/cmd/goimports@f60e5f99f0816fc2d9ecb338008ea420248d2943
 
 bash ./scripts/golinter.sh
 
