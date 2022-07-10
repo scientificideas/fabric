@@ -18,6 +18,7 @@ import (
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
 	"github.com/hyperledger/fabric/protos/common"
+	"github.com/hyperledger/fabric/protos/msp"
 	"github.com/hyperledger/fabric/protos/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -85,7 +86,7 @@ func TestSynchronizerSync(t *testing.T) {
 				"example.com:1": 100,
 				"example.com:2": 102,
 				"example.com:3": 103,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
@@ -129,6 +130,11 @@ func TestSynchronizerSync(t *testing.T) {
 			BlockPuller: bp,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
@@ -141,7 +147,7 @@ func TestSynchronizerSync(t *testing.T) {
 			map[string]uint64{
 				"example.com:1": 100,
 				"example.com:2": 102,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
@@ -185,6 +191,11 @@ func TestSynchronizerSync(t *testing.T) {
 			BlockPuller: bp,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
@@ -196,7 +207,7 @@ func TestSynchronizerSync(t *testing.T) {
 		bp.HeightsByEndpointsReturns(
 			map[string]uint64{
 				"example.com:1": 101,
-				"example.com:4": 200, //byzantine, lying
+				"example.com:4": 200, // byzantine, lying
 			},
 			nil,
 		)
@@ -240,6 +251,11 @@ func TestSynchronizerSync(t *testing.T) {
 			BlockPuller: bp,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
@@ -294,6 +310,11 @@ func TestSynchronizerSync(t *testing.T) {
 			BlockPuller: bp,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
+			RequestInspector: &smartbft.RequestInspector{
+				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
+					return nil
+				},
+			},
 		}
 
 		d := syn.Sync()
