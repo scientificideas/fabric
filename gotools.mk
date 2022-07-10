@@ -9,7 +9,7 @@ GOTOOLS_GOPATH ?= $(BUILD_DIR)/gotools
 GOTOOLS_BINDIR ?= $(GOPATH)/bin
 
 # go tool->path mapping
-go.fqp.counterfeiter := github.com/maxbrunsfeld/counterfeiter/v4
+go.fqp.counterfeiter := github.com/maxbrunsfeld/counterfeiter/v3
 go.fqp.gocov         := github.com/axw/gocov/gocov
 go.fqp.gocov-xml     := github.com/AlekSi/gocov-xml
 go.fqp.goimports     := golang.org/x/tools/cmd/goimports
