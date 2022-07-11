@@ -42,12 +42,11 @@ gotool.goimports:
 # Special override for golint since we want to use the version vendored with the project
 gotool.golint:
 	@echo "Building golang.org/x/lint/golint -> golint"
-	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ./vendor/golang.org/x/lint/golint
+	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.golint}
 
 # Special override for golint since we want to use the version vendored with the project
 gotool.counterfeiter:
 	@echo "Building github.com/maxbrunsfeld/counterfeiter/v6 -> counterfeiter"
-	go env
 	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.counterfeiter}
 
 # Default rule for gotools uses the name->path map for a generic 'go get' style build
