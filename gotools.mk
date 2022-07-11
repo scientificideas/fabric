@@ -16,6 +16,8 @@ go.fqp.goimports     := golang.org/x/tools/cmd/goimports
 go.fqp.golint        := golang.org/x/lint/golint
 go.fqp.manifest-tool := github.com/estesp/manifest-tool
 go.fqp.misspell      := github.com/client9/misspell/cmd/misspell
+go.fqp.protoc-gen-go := github.com/golang/protobuf/protoc-gen-go
+go.fqp.ginkgo        := github.com/onsi/ginkgo/ginkgo
 
 .PHONY: gotools-install
 gotools-install: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
@@ -27,17 +29,17 @@ gotools-clean:
 # Special override for protoc-gen-go since we want to use the version vendored with the project
 gotool.protoc-gen-go:
 	@echo "Building github.com/golang/protobuf/protoc-gen-go -> protoc-gen-go"
-	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ./vendor/github.com/golang/protobuf/protoc-gen-go
+	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.protoc-gen-go}
 
 # Special override for ginkgo since we want to use the version vendored with the project
 gotool.ginkgo:
 	@echo "Building github.com/onsi/ginkgo/ginkgo -> ginkgo"
-	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ./vendor/github.com/onsi/ginkgo/ginkgo
+	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.ginkgo}
 
 # Special override for goimports since we want to use the version vendored with the project
 gotool.goimports:
 	@echo "Building golang.org/x/tools/cmd/goimports -> goimports"
-	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ./vendor/golang.org/x/tools/cmd/goimports
+	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.goimports}
 
 # Special override for golint since we want to use the version vendored with the project
 gotool.golint:
