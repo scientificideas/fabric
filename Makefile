@@ -46,7 +46,7 @@
 
 BASE_VERSION = 1.4.7
 PREV_VERSION = 1.4.6
-#CHAINTOOL_RELEASE=1.1.3
+CHAINTOOL_RELEASE=1.1.3
 BASEIMAGE_RELEASE=0.4.22
 
 # Allow to build as a submodule setting the main project to
@@ -81,7 +81,7 @@ GO_LDFLAGS = $(patsubst %,-X $(PKGNAME)/common/metadata.%,$(METADATA_VAR))
 
 GO_TAGS ?=
 
-#CHAINTOOL_URL ?= https://hyperledger.jfrog.io/hyperledger/fabric-maven/org/hyperledger/fabric-chaintool/$(CHAINTOOL_RELEASE)/fabric-chaintool-$(CHAINTOOL_RELEASE).jar
+CHAINTOOL_URL ?= https://hyperledger.jfrog.io/hyperledger/fabric-maven/org/hyperledger/fabric-chaintool/$(CHAINTOOL_RELEASE)/fabric-chaintool-$(CHAINTOOL_RELEASE).jar
 
 export GO_LDFLAGS GO_TAGS
 
@@ -220,11 +220,11 @@ generate-metrics-doc: buildenv
 	@echo "Generating metrics reference documentation..."
 	@$(DRUN) $(DOCKER_NS)/fabric-buildenv:$(DOCKER_TAG) ./scripts/metrics_doc.sh generate
 
-#$(BUILD_DIR)/%/chaintool: Makefile
-#	@echo "Installing chaintool"
-#	@mkdir -p $(@D)
-#	curl -fL $(CHAINTOOL_URL) > $@
-#	chmod +x $@
+$(BUILD_DIR)/%/chaintool: Makefile
+	@echo "Installing chaintool"
+	@mkdir -p $(@D)
+	curl -fL $(CHAINTOOL_URL) > $@
+	chmod +x $@
 
 # We (re)build a package within a docker context but persist the $GOPATH/pkg
 # directory so that subsequent builds are faster
@@ -269,6 +269,7 @@ $(BUILD_DIR)/bin/%: $(PROJECT_FILES)
 
 # payload definitions'
 $(BUILD_DIR)/image/ccenv/payload:      $(BUILD_DIR)/docker/gotools/bin/protoc-gen-go \
+				$(BUILD_DIR)/bin/chaintool \
 				$(BUILD_DIR)/goshim.tar.bz2
 $(BUILD_DIR)/image/peer/payload:       $(BUILD_DIR)/docker/bin/peer \
 				$(BUILD_DIR)/sampleconfig.tar.bz2
