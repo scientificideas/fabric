@@ -47,7 +47,7 @@ gotool.golint:
 # Special override for golint since we want to use the version vendored with the project
 gotool.counterfeiter:
 	@echo "Building github.com/maxbrunsfeld/counterfeiter/v6 -> counterfeiter"
-	GO111MODULE=on GOPATH=$(abspath $(GOTOOLS_GOPATH)) GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.${TOOL}}
+	GO111MODULE=on GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.${TOOL}}
 
 # Default rule for gotools uses the name->path map for a generic 'go get' style build
 gotool.%:
