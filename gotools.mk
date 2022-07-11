@@ -20,7 +20,9 @@ go.fqp.protoc-gen-go := github.com/golang/protobuf/protoc-gen-go
 go.fqp.ginkgo        := github.com/onsi/ginkgo/ginkgo
 
 .PHONY: gotools-install
-gotools-install: $(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
+gotools-install:
+	@echo "PFI2"
+	$(patsubst %,$(GOTOOLS_BINDIR)/%, $(GOTOOLS))
 
 .PHONY: gotools-clean
 gotools-clean:
@@ -58,5 +60,6 @@ gotool.%:
 	@GOPATH=$(abspath $(GOTOOLS_GOPATH)) GOBIN=$(abspath $(GOTOOLS_BINDIR)) go get ${go.fqp.${TOOL}}
 
 $(GOTOOLS_BINDIR)/%:
+	@echo "PFI1"
 	$(eval TOOL = ${subst $(GOTOOLS_BINDIR)/,,${@}})
 	@$(MAKE) -f gotools.mk gotool.$(TOOL)
