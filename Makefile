@@ -225,6 +225,7 @@ $(BUILD_DIR)/%/chaintool: Makefile
 	@mkdir -p $(@D)
 	curl -fL $(CHAINTOOL_URL) > $@
 	chmod +x $@
+	@echo "PFI1"
 
 # We (re)build a package within a docker context but persist the $GOPATH/pkg
 # directory so that subsequent builds are faster
