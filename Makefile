@@ -286,7 +286,7 @@ $(BUILD_DIR)/image/%/payload:
 
 .PRECIOUS: $(BUILD_DIR)/image/%/Dockerfile
 
-$(BUILD_DIR)/image/tools/Dockerfile: images/tools/Dockerfile.in
+$(BUILD_DIR)/image/tools/Dockerfile: images/tools/Dockerfile
 	mkdir -p $(@D)
 	@cat $< \
 		| sed -e 's|_BASE_NS_|$(BASE_DOCKER_NS)|g' \
