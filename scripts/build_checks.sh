@@ -4,7 +4,7 @@
 export GOROOT=$(go env GOROOT)
 export GOPATH=$(go env GOPATH)
 
-go install golang.org/x/tools/cmd/goimports@f60e5f99f0816fc2d9ecb338008ea420248d2943
+go get -u golang.org/x/tools/cmd/goimports@f60e5f99f0816fc2d9ecb338008ea420248d2943
 
 bash ./scripts/golinter.sh
 
@@ -45,8 +45,8 @@ echo "Pulling hyperledger/fabric-couchdb"
 docker pull hyperledger/fabric-couchdb:latest
 
 #echo "Installing Ginkgo :( "
-#go install github.com/onsi/ginkgo/ginkgo
-#go install github.com/onsi/gomega/...
+#go get github.com/onsi/ginkgo/ginkgo
+#go get github.com/onsi/gomega/...
 
 make docker
 

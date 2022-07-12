@@ -14,14 +14,14 @@ fi
 fabric_dir="$(cd "$(dirname "$0")/.." && pwd)"
 source_dirs=$(go list -f '{{.Dir}}' ./... | sed s,"${fabric_dir}".,,g | cut -f 1 -d / | sort -u)
 
-#echo "Checking with gofmt"
-#OUTPUT="$(gofmt -l -s ${source_dirs})"
-#if [ -n "$OUTPUT" ]; then
-#    echo "The following files contain gofmt errors"
-#    echo "$OUTPUT"
-#    echo "The gofmt command 'gofmt -l -s -w' must be run for these files"
-#    exit 1
-#fi
+echo "Checking with gofmt"
+OUTPUT="$(gofmt -l -s ${source_dirs})"
+if [ -n "$OUTPUT" ]; then
+    echo "The following files contain gofmt errors"
+    echo "$OUTPUT"
+    echo "The gofmt command 'gofmt -l -s -w' must be run for these files"
+    exit 1
+fi
 
 echo "Checking with goimports"
 OUTPUT="$(goimports -l ${source_dirs} | grep -Ev '(^|/)testdata/' || true)"
