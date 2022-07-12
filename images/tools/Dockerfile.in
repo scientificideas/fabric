@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-GO_VER = 1.17.11
+GO_VER ?= 1.17
 ALPINE_VER ?= 3.14
 FROM golang:${GO_VER}-alpine${ALPINE_VER} as golang
 
