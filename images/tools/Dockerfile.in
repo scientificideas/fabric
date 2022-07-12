@@ -1,18 +1,35 @@
-# Copyright Greg Haskins All Rights Reserved
+# Copyright IBM Corp. All Rights Reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-FROM _BASE_NS_/fabric-baseimage:_BASE_TAG_ as builder
-WORKDIR /opt/gopath
-RUN mkdir src && mkdir pkg && mkdir bin
-ADD . src/github.com/hyperledger/fabric
-WORKDIR /opt/gopath/src/github.com/hyperledger/fabric
-ENV EXECUTABLES go git curl
-RUN make configtxgen configtxlator cryptogen peer discover idemixgen
 
-FROM _BASE_NS_/fabric-baseimage:_BASE_TAG_
+GO_VER = 1.17.11
+ALPINE_VER ?= 3.14
+FROM golang:${GO_VER}-alpine${ALPINE_VER} as golang
+
+RUN apk add --no-cache \
+	bash \
+	binutils-gold \
+	gcc \
+	git \
+	make \
+	musl-dev;
+
+ADD . $GOPATH/src/github.com/hyperledger/fabric
+WORKDIR $GOPATH/src/github.com/hyperledger/fabric
+
+FROM golang as tools
+ARG GO_TAGS
+RUN make tools GO_TAGS=${GO_TAGS}
+
+FROM golang:${GO_VER}-alpine${ALPINE_VER}
+# git is required to support `go list -m`
+RUN apk add --no-cache \
+	bash \
+	git \
+	jq \
+	tzdata \
+	softhsm;
 ENV FABRIC_CFG_PATH /etc/hyperledger/fabric
-RUN apt-get update && apt-get install -y jq
 VOLUME /etc/hyperledger/fabric
-COPY --from=builder /opt/gopath/src/github.com/hyperledger/fabric/.build/bin /usr/local/bin
-COPY --from=builder /opt/gopath/src/github.com/hyperledger/fabric/sampleconfig $FABRIC_CFG_PATH
+COPY --from=tools /go/src/github.com/hyperledger/fabric/build/bin /usr/local/bin
+COPY --from=tools /go/src/github.com/hyperledger/fabric/sampleconfig ${FABRIC_CFG_PATH}
