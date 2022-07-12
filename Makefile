@@ -225,7 +225,6 @@ $(BUILD_DIR)/%/chaintool: Makefile
 	@mkdir -p $(@D)
 	curl -fL $(CHAINTOOL_URL) > $@
 	chmod +x $@
-	@echo "PFI1"
 
 # We (re)build a package within a docker context but persist the $GOPATH/pkg
 # directory so that subsequent builds are faster
@@ -260,7 +259,6 @@ $(BUILD_DIR)/docker/gotools: gotools.mk
 		-e GOCACHE=/opt/gopath/cache \
 		$(BASE_DOCKER_NS)/fabric-baseimage:$(BASE_DOCKER_TAG) \
 		make -f gotools.mk GOTOOLS_BINDIR=/opt/gotools/bin GOTOOLS_GOPATH=/opt/gotools/obj
-	@echo "PFI2"
 
 $(BUILD_DIR)/bin/%: $(PROJECT_FILES)
 	@mkdir -p $(@D)
