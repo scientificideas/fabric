@@ -44,9 +44,9 @@ docker tag hyperledger/fabric-ccenv hyperledger/fabric-ccenv:amd64-latest
 echo "Pulling hyperledger/fabric-couchdb"
 docker pull hyperledger/fabric-couchdb:latest
 
-#echo "Installing Ginkgo :( "
-#go get github.com/onsi/ginkgo/ginkgo
-#go get github.com/onsi/gomega/...
+echo "Installing Ginkgo :( "
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega/...
 
 make docker
 
