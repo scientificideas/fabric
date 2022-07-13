@@ -52,9 +52,9 @@ var _ = Describe("Composite keys", func() {
 
 		Context("when a minRune namespace is passed", func() {
 			It("the error string is the same as from the function in the chaincode shim", func() {
-				_, err := createCompositeKey(string(0), []string{txID})
+				_, err := createCompositeKey(string(rune(minUnicodeRuneValue)), []string{txID})
 				Expect(err).To(HaveOccurred())
-				_, shimErr := chaincode.CreateCompositeKey(string(0), []string{txID})
+				_, shimErr := chaincode.CreateCompositeKey(string(rune(minUnicodeRuneValue)), []string{txID})
 				Expect(shimErr).To(HaveOccurred())
 				Expect(err.Error()).To(Equal(shimErr.Error()))
 			})
@@ -62,9 +62,9 @@ var _ = Describe("Composite keys", func() {
 
 		Context("when a minRune txID is passed", func() {
 			It("the error string is the same as from the function in the chaincode shim", func() {
-				_, err := createCompositeKey(namespace, []string{string(0)})
+				_, err := createCompositeKey(namespace, []string{string(rune(minUnicodeRuneValue))})
 				Expect(err).To(HaveOccurred())
-				_, shimErr := chaincode.CreateCompositeKey(namespace, []string{string(0)})
+				_, shimErr := chaincode.CreateCompositeKey(namespace, []string{string(rune(minUnicodeRuneValue))})
 				Expect(shimErr).To(HaveOccurred())
 				Expect(err.Error()).To(Equal(shimErr.Error()))
 			})

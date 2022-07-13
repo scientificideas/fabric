@@ -268,7 +268,7 @@ var _ = Describe("Verifier", func() {
 
 		Context("when a transaction has invalid characters in key", func() {
 			BeforeEach(func() {
-				importTxID = string(0)
+				importTxID = string(rune(0))
 			})
 
 			It("fails when creating the ledger key for the output", func() {
@@ -280,7 +280,7 @@ var _ = Describe("Verifier", func() {
 
 		Context("when a transaction has invalid characters in key", func() {
 			BeforeEach(func() {
-				importTxID = string(0)
+				importTxID = string(rune(0))
 			})
 
 			It("fails when creating the ledger key for the first output", func() {

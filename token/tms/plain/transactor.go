@@ -26,7 +26,7 @@ type Transactor struct {
 }
 
 // RequestTransfer creates a TokenTransaction of type transfer request
-//func (t *Transactor) RequestTransfer(inTokens []*token.InputId, tokensToTransfer []*token.RecipientTransferShare) (*token.TokenTransaction, error) {
+// func (t *Transactor) RequestTransfer(inTokens []*token.InputId, tokensToTransfer []*token.RecipientTransferShare) (*token.TokenTransaction, error) {
 func (t *Transactor) RequestTransfer(request *token.TransferRequest) (*token.TokenTransaction, error) {
 	var outputs []*token.PlainOutput
 
@@ -327,7 +327,7 @@ func (t *Transactor) isSpent(outputID string) (bool, error) {
 // Create a ledger key for an individual input in a token transaction, as a function of
 // the outputID
 func createInputKey(outputID string) (string, error) {
-	att := strings.Split(outputID, string(minUnicodeRuneValue))
+	att := strings.Split(outputID, string(rune(minUnicodeRuneValue)))
 	return createCompositeKey(tokenInput, att[1:])
 }
 
