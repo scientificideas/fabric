@@ -183,7 +183,8 @@ ccenv: $(BUILD_DIR)/image/ccenv/$(DUMMY)
 integration-test: gotool.ginkgo ccenv docker-thirdparty
 	./scripts/run-integration-tests.sh
 
-unit-test: unit-test-clean peer-docker docker-thirdparty ccenv
+# unit-test-clean
+unit-test: peer-docker docker-thirdparty ccenv
 	unit-test/run.sh
 
 unit-tests: unit-test
@@ -257,7 +258,7 @@ $(BUILD_DIR)/docker/gotools: gotools.mk
 		-w /opt/gopath/src/$(PKGNAME) \
 		-v $(abspath $(BUILD_DIR)/docker/gocache):/opt/gopath/cache \
 		-e GOCACHE=/opt/gopath/cache \
-		$(BASE_DOCKER_NS)/fabric-baseimage:$(BASE_DOCKER_TAG) \
+		golang:1.17 \
 		make -f gotools.mk GOTOOLS_BINDIR=/opt/gotools/bin GOTOOLS_GOPATH=/opt/gotools/obj
 
 $(BUILD_DIR)/bin/%: $(PROJECT_FILES)

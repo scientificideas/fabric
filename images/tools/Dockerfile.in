@@ -12,7 +12,7 @@ RUN make configtxgen configtxlator cryptogen peer discover idemixgen
 
 FROM _BASE_NS_/fabric-baseimage:_BASE_TAG_
 ENV FABRIC_CFG_PATH /etc/hyperledger/fabric
-RUN apt-get update && apt-get install -y jq
+RUN apt-get update && apt-get install -y jq softhsm
 VOLUME /etc/hyperledger/fabric
 COPY --from=builder /opt/gopath/src/github.com/hyperledger/fabric/.build/bin /usr/local/bin
 COPY --from=builder /opt/gopath/src/github.com/hyperledger/fabric/sampleconfig $FABRIC_CFG_PATH

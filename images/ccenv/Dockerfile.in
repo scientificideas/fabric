@@ -2,7 +2,16 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-FROM _BASE_NS_/fabric-baseimage:_BASE_TAG_
+FROM golang:1.17-alpine3.14
+RUN apk add --no-cache \
+    curl \
+    git \
+    nano \
+    sudo \
+    bash
+
+RUN apk add --update nodejs npm
+
 RUN npm install -g npm@latest-6
 COPY payload/chaintool payload/protoc-gen-go /usr/local/bin/
 ADD payload/goshim.tar.bz2 $GOPATH/src/

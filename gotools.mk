@@ -9,9 +9,9 @@ GOTOOLS_GOPATH ?= $(BUILD_DIR)/gotools
 GOTOOLS_BINDIR ?= $(GOPATH)/bin
 
 # go tool->path mapping
-go.fqp.counterfeiter := github.com/maxbrunsfeld/counterfeiter/v6
-go.fqp.gocov         := github.com/axw/gocov/gocov
-go.fqp.gocov-xml     := github.com/AlekSi/gocov-xml
+go.fqp.counterfeiter := github.com/maxbrunsfeld/counterfeiter/v6@v6.2.0
+go.fqp.gocov         := github.com/axw/gocov/gocov@v1.0.0
+go.fqp.gocov-xml     := github.com/AlekSi/gocov-xml@v1.0.0
 go.fqp.goimports     := golang.org/x/tools/cmd/goimports
 go.fqp.golint        := golang.org/x/lint/golint
 go.fqp.manifest-tool := github.com/estesp/manifest-tool
@@ -52,10 +52,15 @@ gotool.counterfeiter:
 	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.counterfeiter}
 
 # Default rule for gotools uses the name->path map for a generic 'go get' style build
+gotool.misspell:
+	@echo "Building github.com/client9/misspell/cmd/misspell -> misspell"
+	GOBIN=$(abspath $(GOTOOLS_BINDIR)) go get ${go.fqp.misspell}
+
+# Default rule for gotools uses the name->path map for a generic 'go get' style build
 gotool.%:
 	$(eval TOOL = ${subst gotool.,,${@}})
 	@echo "Building ${go.fqp.${TOOL}} -> $(TOOL)"
-	@GOPATH=$(abspath $(GOTOOLS_GOPATH)) GOBIN=$(abspath $(GOTOOLS_BINDIR)) go get ${go.fqp.${TOOL}}
+	@GOPATH=$(abspath $(GOTOOLS_GOPATH)) GOBIN=$(abspath $(GOTOOLS_BINDIR)) go install ${go.fqp.${TOOL}}
 
 $(GOTOOLS_BINDIR)/%:
 	$(eval TOOL = ${subst $(GOTOOLS_BINDIR)/,,${@}})
