@@ -45,7 +45,8 @@ echo "Pulling hyperledger/fabric-couchdb"
 docker pull hyperledger/fabric-couchdb:latest
 
 echo "Installing Ginkgo :( "
-go get github.com/onsi/ginkgo/ginkgo
+go version
+go get github.com/onsi/ginkgo/ginkgo@v1.7.0
 go get github.com/onsi/gomega/...
 
 make docker
