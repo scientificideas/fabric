@@ -112,6 +112,7 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 	}
 
 	// config.RequestMaxBytes = options.RequestMaxBytes
+	config.RequestMaxBytes = 512000
 	config.RequestBatchMaxCount = options.RequestBatchMaxCount
 	config.RequestBatchMaxBytes = options.RequestBatchMaxBytes
 	if config.RequestBatchMaxInterval, err = time.ParseDuration(options.RequestBatchMaxInterval); err != nil {
