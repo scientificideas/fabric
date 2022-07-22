@@ -233,7 +233,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.0.0-20211118165945-23d738fc3553 => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
+# github.com/hyperledger/fabric-protos-go v0.0.0-20211118165945-23d738fc3553 => github.com/scientificideas/fabric-protos-go v0.0.0-20220722214515-fd27d52dbd18
 ## explicit
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -600,5 +600,5 @@ gopkg.in/yaml.v3
 # github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
-# github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
+# github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220722214515-fd27d52dbd18
 # github.com/onsi/gomega => github.com/onsi/gomega v1.9.0

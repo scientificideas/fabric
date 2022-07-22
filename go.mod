@@ -75,6 +75,6 @@ replace (
 	// develop
 	//github.com/hyperledger/fabric => ./
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
-	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220421193657-d8da7e85ef66
+	github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220722214515-fd27d52dbd18
 	github.com/onsi/gomega => github.com/onsi/gomega v1.9.0
 )
