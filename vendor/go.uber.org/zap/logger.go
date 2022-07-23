@@ -50,8 +50,6 @@ type Logger struct {
 	addStack zapcore.LevelEnabler
 
 	callerSkip int
-
-	clock zapcore.Clock
 }
 
 // New constructs a new Logger from the provided zapcore.Core and Options. If

@@ -305,7 +305,6 @@ func TestWithStaticDeliverClientNotLeader(t *testing.T) {
 	for i := 0; i < n; i++ {
 		peerIndexes[i] = i
 	}
-
 	addPeersToChannel(channelName, gossips, peerIndexes)
 
 	waitForFullMembershipOrFailNow(t, channelName, gossips, n, TIMEOUT, time.Second*2)

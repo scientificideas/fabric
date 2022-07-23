@@ -286,6 +286,7 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 	for {
 		if seekInfo.Behavior == ab.SeekInfo_FAIL_IF_NOT_READY {
 			if number > chain.Reader().Height()-1 {
+				logger.Warningf("[channel: %s] Block %d not found, block number greater than chain length bounds", chdr.ChannelId, number)
 				return cb.Status_NOT_FOUND, nil
 			}
 		}
@@ -313,7 +314,7 @@ func (h *Handler) deliverBlocks(ctx context.Context, srv *Server, envelope *cb.E
 		}
 
 		if status != cb.Status_SUCCESS {
-			logger.Errorf("[channel: %s] Error reading from channel, cause was: %v", chdr.ChannelId, status)
+			logger.Warningf("[channel: %s] Error reading from channel, cause was: %v", chdr.ChannelId, status)
 			return status, nil
 		}
 
@@ -401,4 +402,22 @@ func (h *Handler) validateChannelHeader(ctx context.Context, chdr *cb.ChannelHea
 
 func noExpiration(_ []byte) time.Time {
 	return time.Time{}
+}
+
+func (h *Handler) HandleAttestation(ctx context.Context, srv *Server, env *cb.Envelope) error {
+	status, err := h.deliverBlocks(ctx, srv, env)
+	if err != nil {
+		return err
+	}
+
+	err = srv.SendStatusResponse(status)
+	if status != cb.Status_SUCCESS {
+		return err
+	}
+	if err != nil {
+		addr := util.ExtractRemoteAddress(ctx)
+		logger.Warningf("Error sending to %s: %s", addr, err)
+		return err
+	}
+	return nil
 }

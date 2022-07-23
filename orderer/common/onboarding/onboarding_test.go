@@ -1157,8 +1157,7 @@ func TestValidateBootstrapBlock(t *testing.T) {
 					Data: [][]byte{{1, 2, 3}},
 				},
 			},
-			expectedError: "failed extracting envelope from block: " +
-				"proto: common.Envelope: illegal tag 0 (wire type 1)",
+			expectedError: "failed extracting envelope from block",
 		},
 		{
 			description:   "application channel block",
@@ -1176,8 +1175,8 @@ func TestValidateBootstrapBlock(t *testing.T) {
 				require.NoError(t, err)
 				return
 			}
-
-			require.EqualError(t, err, testCase.expectedError)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), testCase.expectedError)
 		})
 	}
 }

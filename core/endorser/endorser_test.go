@@ -24,7 +24,7 @@ import (
 	"github.com/hyperledger/fabric/core/ledger"
 	ledgermock "github.com/hyperledger/fabric/core/ledger/mock"
 	"github.com/hyperledger/fabric/protoutil"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 )
@@ -742,13 +742,10 @@ var _ = Describe("Endorser", func() {
 
 		It("wraps and returns an error and responds to the client", func() {
 			proposalResponse, err := e.ProcessProposal(context.Background(), signedProposal)
-			Expect(err).To(MatchError("error unmarshalling Proposal: proto: can't skip unknown wire type 7"))
-			Expect(proposalResponse).To(Equal(&pb.ProposalResponse{
-				Response: &pb.Response{
-					Status:  500,
-					Message: "error unmarshalling Proposal: proto: can't skip unknown wire type 7",
-				},
-			}))
+			Expect(err).ToNot(BeNil())
+			Expect(err.Error()).To(HavePrefix("error unmarshalling Proposal"))
+			Expect(proposalResponse.Response.Status).To(Equal(int32(500)))
+			Expect(proposalResponse.Response.Message).To(HavePrefix("error unmarshalling Proposal"))
 		})
 	})
 
@@ -1000,10 +997,8 @@ var _ = Describe("Endorser", func() {
 			It("returns an error to the client", func() {
 				proposalResponse, err := e.ProcessProposal(context.TODO(), signedProposal)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(proposalResponse.Response).To(Equal(&pb.Response{
-					Status:  500,
-					Message: "error in simulation: error unmarshalling ChaincodeDeploymentSpec: unexpected EOF",
-				}))
+				Expect(proposalResponse.Response.Status).To(Equal(int32(500)))
+				Expect(proposalResponse.Response.Message).To(ContainSubstring("error in simulation: error unmarshalling ChaincodeDeploymentSpec"))
 				Expect(fakeSimulateFailure.AddCallCount()).To(Equal(1))
 			})
 		})

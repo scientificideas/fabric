@@ -11,11 +11,11 @@ import (
 	"encoding/binary"
 	"math"
 
+	"github.com/bits-and-blooms/bitset"
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset"
 	"github.com/hyperledger/fabric/core/ledger/internal/version"
 	"github.com/pkg/errors"
-	"github.com/willf/bitset"
 )
 
 var (
@@ -30,6 +30,9 @@ var (
 	elgDeprioritizedMissingDataGroup = []byte{8}
 	bootKVHashesKeyPrefix            = []byte{9}
 	lastBlockInBootSnapshotKey       = []byte{'a'}
+	hashedIndexKeyPrefix             = []byte{'b'}
+	purgeMarkerKeyPrefix             = []byte{'c'}
+	purgeMarkerCollKeyPrefix         = []byte{'d'}
 
 	nilByte    = byte(0)
 	emptyValue = []byte{}
@@ -262,9 +265,9 @@ func createRangeScanKeysForCollElg() (startKey, endKey []byte) {
 		encodeCollElgKey(0)
 }
 
-func datakeyRange(blockNum uint64) ([]byte, []byte) {
-	startKey := append(pvtDataKeyPrefix, version.NewHeight(blockNum, 0).ToBytes()...)
-	endKey := append(pvtDataKeyPrefix, version.NewHeight(blockNum, math.MaxUint64).ToBytes()...)
+func entireDatakeyRange() ([]byte, []byte) {
+	startKey := append(pvtDataKeyPrefix, version.NewHeight(0, 0).ToBytes()...)
+	endKey := append(pvtDataKeyPrefix, version.NewHeight(math.MaxUint64, math.MaxUint64).ToBytes()...)
 	return startKey, endKey
 }
 
@@ -272,6 +275,85 @@ func eligibleMissingdatakeyRange(blkNum uint64) ([]byte, []byte) {
 	startKey := append(elgPrioritizedMissingDataGroup, encodeReverseOrderVarUint64(blkNum)...)
 	endKey := append(elgPrioritizedMissingDataGroup, encodeReverseOrderVarUint64(blkNum-1)...)
 	return startKey, endKey
+}
+
+func encodeHashedIndexKey(k *hashedIndexKey) []byte {
+	encKey := append(hashedIndexKeyPrefix, []byte(k.ns)...)
+	encKey = append(encKey, nilByte)
+	encKey = append(encKey, []byte(k.coll)...)
+	encKey = append(encKey, nilByte)
+	encKey = append(encKey, k.pvtkeyHash...)
+	return append(encKey, version.NewHeight(k.blkNum, k.txNum).ToBytes()...)
+}
+
+func encodePurgeMarkerCollKey(k *purgeMarkerCollKey) []byte {
+	encKey := append(purgeMarkerCollKeyPrefix, []byte(k.ns)...)
+	encKey = append(encKey, nilByte)
+	encKey = append(encKey, []byte(k.coll)...)
+	return encKey
+}
+
+func encodePurgeMarkerKey(k *purgeMarkerKey) []byte {
+	encKey := append(purgeMarkerKeyPrefix, []byte(k.ns)...)
+	encKey = append(encKey, nilByte)
+	encKey = append(encKey, []byte(k.coll)...)
+	encKey = append(encKey, nilByte)
+	encKey = append(encKey, k.pvtkeyHash...)
+	return encKey
+}
+
+func rangeScanKeysForPurgeMarkers() ([]byte, []byte) {
+	return purgeMarkerKeyPrefix, []byte{purgeMarkerKeyPrefix[0] + 1}
+}
+
+// driveHashedIndexKeyRangeFromPurgeMarker returns the scan range for hashedIndexKeys for a key specified by the `purgeMarkerKey`.
+// The range covers all the hashedIndexKeys between block 0 and the height specified in the `purgeMarkerVal`
+func driveHashedIndexKeyRangeFromPurgeMarker(purgeMarkerKey, purgeMarkerVal []byte) ([]byte, []byte) {
+	startKey := append(hashedIndexKeyPrefix, purgeMarkerKey[1:]...)
+	endKey := append(startKey, purgeMarkerVal...)
+	return startKey, endKey
+}
+
+func encodePurgeMarkerVal(v *purgeMarkerVal) []byte {
+	return version.NewHeight(v.blkNum, v.txNum).ToBytes()
+}
+
+func decodePurgeMarkerVal(b []byte) (*version.Height, error) {
+	v, _, err := version.NewHeightFromBytes(b)
+	return v, err
+}
+
+func deriveDataKeyFromEncodedHashedIndexKey(encHashedIndexKey []byte) ([]byte, error) {
+	firstNilByteIndex := 0
+	secondNilByteIndex := 0
+	foundFirstNilByte := false
+	lengthHashedPvtKey := 32 // 256/8 bytes
+
+	for i, b := range encHashedIndexKey {
+		if b == 0x00 {
+			if !foundFirstNilByte {
+				firstNilByteIndex = i
+				foundFirstNilByte = true
+			} else {
+				secondNilByteIndex = i
+				break
+			}
+		}
+	}
+
+	if secondNilByteIndex == 0 {
+		return nil, errors.Errorf("unexpected bytes [%x] for HashedIndexed key", encHashedIndexKey)
+	}
+
+	ns := encHashedIndexKey[1:firstNilByteIndex]
+	coll := encHashedIndexKey[firstNilByteIndex+1 : secondNilByteIndex]
+	blkNumTxNumBytes := encHashedIndexKey[secondNilByteIndex+lengthHashedPvtKey+1:]
+
+	encDataKey := append(pvtDataKeyPrefix, blkNumTxNumBytes...)
+	encDataKey = append(encDataKey, ns...)
+	encDataKey = append(encDataKey, nilByte)
+	encDataKey = append(encDataKey, coll...)
+	return encDataKey, nil
 }
 
 // encodeReverseOrderVarUint64 returns a byte-representation for a uint64 number such that
