@@ -1,5 +1,3 @@
-// +build appengine
-
 /*
  *
  * Copyright 2020 gRPC authors.
@@ -22,7 +20,4 @@ package health
 
 import "google.golang.org/grpc/grpclog"
 
-// SPIFFEIDFromState is a no-op for appengine builds.
-func SPIFFEIDFromState(state tls.ConnectionState) *url.URL {
-	return nil
-}
+var logger = grpclog.Component("health_service")
