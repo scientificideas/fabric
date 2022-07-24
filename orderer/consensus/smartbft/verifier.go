@@ -129,7 +129,7 @@ func (v *Verifier) RequestsFromProposal(proposal types.Proposal) []types.Request
 		return []types.RequestInfo{}
 	}
 
-	var res []types.RequestInfo
+	res := make([]types.RequestInfo, 0, len(block.Data.Data))
 	for _, txn := range block.Data.Data {
 		req := v.ReqInspector.RequestID(txn)
 		res = append(res, req)
@@ -350,7 +350,7 @@ func validateTransactions(blockData [][]byte, verifyReq requestVerifier) ([]type
 		}
 	}
 
-	var res []types.RequestInfo
+	res := make([]types.RequestInfo, 0, len(blockData))
 	for indexInBlock := range blockData {
 		res = append(res, indexToRequestInfo[indexInBlock])
 	}

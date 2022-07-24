@@ -94,7 +94,7 @@ func (s *Synchronizer) synchronize() (*types.Decision, []types.RequestInfo, erro
 		return nil, nil, errors.New("no cluster members to synchronize with")
 	}
 
-	var heights []uint64
+	heights := make([]uint64, 0, len(heightByEndpoint))
 	for _, value := range heightByEndpoint {
 		heights = append(heights, value)
 	}
@@ -169,7 +169,7 @@ func (s *Synchronizer) synchronize() (*types.Decision, []types.RequestInfo, erro
 // clusterSize: the cluster size, must be >0.
 func (s *Synchronizer) computeTargetHeight(heights []uint64) uint64 {
 	sort.Slice(heights, func(i, j int) bool { return heights[i] > heights[j] }) // Descending
-	f := uint64(s.ClusterSize-1) / 3                                            // The number of tolerated byzantine faults
+	f := (s.ClusterSize - 1) / 3                                                // The number of tolerated byzantine faults
 	lenH := uint64(len(heights))
 
 	s.Logger.Debugf("Heights: %v", heights)

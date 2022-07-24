@@ -127,8 +127,8 @@ func newBlockPuller(
 	support consensus.ConsenterSupport,
 	baseDialer *cluster.PredicateDialer,
 	clusterConfig localconfig.Cluster,
-	bccsp bccsp.BCCSP) (BlockPuller, error) {
-
+	bccsp bccsp.BCCSP,
+) (BlockPuller, error) {
 	verifyBlockSequence := func(blocks []*cb.Block, _ string) error {
 		return cluster.VerifyBlocksBFT(blocks, support)
 	}
@@ -360,8 +360,8 @@ func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging
 		return nil, errors.New("failed to retrieve consensus metadata options")
 	}
 
-	var nodeIDs []uint64
-	var remoteNodes []cluster.RemoteNode
+	nodeIDs := make([]uint64, 0, len(m.Consenters))
+	remoteNodes := make([]cluster.RemoteNode, 0, len(m.Consenters))
 	id2Identies := map[uint64][]byte{}
 	for _, consenter := range m.Consenters {
 		sanitizedID, err := crypto.SanitizeIdentity(consenter.Identity)
@@ -412,7 +412,6 @@ func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging
 		id2Identities: id2Identies,
 		nodeIDs:       nodeIDs,
 	}, nil
-
 }
 
 type nodeConfig struct {

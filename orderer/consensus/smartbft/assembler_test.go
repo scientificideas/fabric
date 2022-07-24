@@ -7,9 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft_test
 
 import (
-	"testing"
-
+	"fmt"
+	"runtime/debug"
 	"sync/atomic"
+	"testing"
 
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -17,6 +18,7 @@ import (
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
 	"github.com/hyperledger/fabric/protoutil"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,8 +50,7 @@ func TestAssembler(t *testing.T) {
 		{
 			name: "Must not contain an invalid request",
 			panicVal: "Programming error, received bad envelope but should have" +
-				" validated it: error unmarshalling Envelope: proto: common.Envelope:" +
-				" illegal tag 0 (wire type 1)",
+				" validated it: error unmarshalling Envelope",
 			requests: [][]byte{{1, 2, 3}},
 		},
 		{
@@ -86,7 +87,7 @@ func TestAssembler(t *testing.T) {
 			assembler.RuntimeConfig.Store(rtc)
 
 			if testCase.panicVal != "" {
-				require.PanicsWithValue(t, testCase.panicVal, func() {
+				panicsContainValue(t, testCase.panicVal, func() {
 					assembler.AssembleProposal([]byte{1, 2, 3}, testCase.requests)
 				})
 				return
@@ -96,7 +97,6 @@ func TestAssembler(t *testing.T) {
 			require.Equal(t, testCase.expectedProposal, prop)
 		})
 	}
-
 }
 
 func makeTx(headerType int32) []byte {
@@ -121,10 +121,12 @@ func makeNonConfigBlock(seq, lastConfigSeq uint64) *common.Block {
 			Data: [][]byte{nonConfigTx},
 		},
 		Metadata: &common.BlockMetadata{
-			Metadata: [][]byte{{},
+			Metadata: [][]byte{
+				{},
 				protoutil.MarshalOrPanic(&common.Metadata{
 					Value: protoutil.MarshalOrPanic(&common.LastConfig{Index: lastConfigSeq}),
-				})},
+				}),
+			},
 		},
 	}
 }
@@ -146,10 +148,12 @@ func makeConfigBlock(seq uint64) *common.Block {
 			})},
 		},
 		Metadata: &common.BlockMetadata{
-			Metadata: [][]byte{{},
+			Metadata: [][]byte{
+				{},
 				protoutil.MarshalOrPanic(&common.Metadata{
 					Value: protoutil.MarshalOrPanic(&common.LastConfig{Index: 666}),
-				})},
+				}),
+			},
 		},
 	}
 }
@@ -183,4 +187,34 @@ func proposalFromRequests(verificationSeq, seq, lastConfigSeq uint64, lastBlockH
 		Metadata:             metadata,
 		VerificationSequence: int64(verificationSeq),
 	}
+}
+
+func panicsContainValue(t *testing.T, expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) bool {
+	funcDidPanic, panicValue, panickedStack := didPanic(f)
+	if !funcDidPanic {
+		return assert.Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
+	}
+	if !assert.Contains(t, panicValue, expected) {
+		return assert.Fail(t, fmt.Sprintf("func %#v should panic with value:\t%#v\n\tPanic value:\t%#v\n\tPanic stack:\t%s", f, expected, panicValue, panickedStack), msgAndArgs...)
+	}
+
+	return true
+}
+
+// didPanic returns true if the function passed to it panics. Otherwise, it returns false.
+func didPanic(f assert.PanicTestFunc) (didPanic bool, message interface{}, stack string) {
+	didPanic = true
+
+	defer func() {
+		message = recover()
+		if didPanic {
+			stack = string(debug.Stack())
+		}
+	}()
+
+	// call the target function
+	f()
+	didPanic = false
+
+	return
 }

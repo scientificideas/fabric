@@ -41,10 +41,8 @@ type Egress struct {
 // Nodes returns nodes from the runtime config
 func (e *Egress) Nodes() []uint64 {
 	nodes := e.RuntimeConfig.Load().(RuntimeConfig).Nodes
-	var res []uint64
-	for _, n := range nodes {
-		res = append(res, n)
-	}
+	res := make([]uint64, 0, len(nodes))
+	res = append(res, nodes...)
 	return res
 }
 
@@ -68,7 +66,7 @@ func (e *Egress) SendTransaction(targetID uint64, request []byte) {
 		Payload: env,
 	}
 	report := func(err error) {}
-	e.RPC.SendSubmit(targetID, msg, report)
+	_ = e.RPC.SendSubmit(targetID, msg, report)
 }
 
 func bftMsgToClusterMsg(message *protos.Message, channel string) *ab.ConsensusRequest {

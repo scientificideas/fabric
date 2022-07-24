@@ -137,8 +137,8 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, (*decision).Latest, d.Latest)
-		assert.Equal(t, (*decision).Reconfig, d.Reconfig)
+		assert.Equal(t, decision.Latest, d.Latest)
+		assert.Equal(t, decision.Reconfig, d.Reconfig)
 	})
 
 	t.Run("3/4 nodes present", func(t *testing.T) {
@@ -197,8 +197,8 @@ func TestSynchronizerSync(t *testing.T) {
 		}
 
 		d := syn.Sync()
-		assert.Equal(t, (*decision).Latest, d.Latest)
-		assert.Equal(t, (*decision).Reconfig, d.Reconfig)
+		assert.Equal(t, decision.Latest, d.Latest)
+		assert.Equal(t, decision.Reconfig, d.Reconfig)
 	})
 
 	t.Run("2/4 nodes present", func(t *testing.T) {

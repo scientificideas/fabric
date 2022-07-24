@@ -16,7 +16,6 @@ import (
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
 	"github.com/hyperledger/fabric/protoutil"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -60,8 +59,8 @@ func TestEgressSendTransaction(t *testing.T) {
 		badTransactionAttempt := func() {
 			egress.SendTransaction(42, []byte{1, 2, 3})
 		}
-		expectedErr := "Failed unmarshaling request [1 2 3] to envelope: proto: common.Envelope: illegal tag 0 (wire type 1)"
-		assert.PanicsWithValue(t, expectedErr, badTransactionAttempt)
+		expectedErr := "Failed unmarshaling request [1 2 3] to envelope"
+		panicsContainValue(t, expectedErr, badTransactionAttempt)
 	})
 
 	t.Run("valid transaction", func(t *testing.T) {

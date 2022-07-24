@@ -125,7 +125,7 @@ func New(
 
 	compareCert := cluster.CachePublicKeyComparisons(func(a, b []byte) bool {
 		err := crypto.CertificatesWithSamePublicKey(a, b)
-		if err != nil && err != crypto.ErrPubKeyMismatch {
+		if err != nil && !errors.Is(err, crypto.ErrPubKeyMismatch) {
 			crypto.LogNonPubKeyMismatchErr(logger.Errorf, err, a, b)
 		}
 		return err == nil
@@ -304,7 +304,7 @@ func pemToDER(pemBytes []byte, id uint64, certType string, logger *flogging.Fabr
 }
 
 func (c *Consenter) detectSelfID(consenters []*smartbft.Consenter) (uint64, error) {
-	var serverCertificates []string
+	serverCertificates := make([]string, 0, len(consenters))
 	for _, cst := range consenters {
 		serverCertificates = append(serverCertificates, string(cst.ServerTlsCert))
 		if bytes.Equal(c.Cert, cst.ServerTlsCert) {

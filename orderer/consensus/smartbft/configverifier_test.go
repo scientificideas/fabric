@@ -76,7 +76,7 @@ func TestValidateConfig(t *testing.T) {
 				env.Payload = []byte{1, 2, 3}
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedError:              "error unmarshalling Payload",
 		},
 		{
 			name:     "empty header",
@@ -105,8 +105,7 @@ func TestValidateConfig(t *testing.T) {
 				}})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError: "channel header unmarshalling error: error unmarshalling ChannelHeader: " +
-				"proto: common.ChannelHeader: illegal tag 0 (wire type 1)",
+			expectedError:              "channel header unmarshalling error: error unmarshalling ChannelHeader:",
 		},
 		{
 			name:     "invalid payload data",
@@ -120,7 +119,7 @@ func TestValidateConfig(t *testing.T) {
 				})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "data unmarshalling error: proto: common.ConfigEnvelope: illegal tag 0 (wire type 1)",
+			expectedError:              "data unmarshalling error",
 		},
 		{
 			name:     "invalid payload data",
@@ -132,7 +131,7 @@ func TestValidateConfig(t *testing.T) {
 				})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "data unmarshalling error: proto: common.ConfigEnvelope: illegal tag 0 (wire type 1)",
+			expectedError:              "data unmarshalling error",
 		},
 		{
 			name:     "invalid payload data",
@@ -194,7 +193,7 @@ func TestValidateConfig(t *testing.T) {
 				})
 			},
 			proposeConfigUpdateReturns: configEnvelope,
-			expectedError:              "error unmarshalling Payload: proto: common.Payload: illegal tag 0 (wire type 1)",
+			expectedError:              "error unmarshalling Payload",
 		},
 		{
 			name:     "invalid inner payload header",
@@ -286,9 +285,10 @@ func TestValidateConfig(t *testing.T) {
 				Return(testCase.proposeConfigUpdateReturns, testCase.proposeConfigUpdaterr)
 			err = cbv.ValidateConfig(env)
 			if testCase.expectedError == "" {
-				assert.NoError(t, err)
+				require.NoError(t, err)
 			} else {
-				assert.EqualError(t, err, testCase.expectedError)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), testCase.expectedError)
 			}
 		})
 	}

@@ -17,8 +17,8 @@ import (
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft/mocks"
 	"github.com/hyperledger/fabric/protoutil"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDispatchConsensus(t *testing.T) {
@@ -48,10 +48,10 @@ func TestDispatchConsensus(t *testing.T) {
 			Channel: "mychannel",
 			Payload: protoutil.MarshalOrPanic(expectedRequest),
 		})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		receivedMsg := <-receivedMessage
-		assert.True(t, proto.Equal(receivedMsg, expectedRequest))
+		require.True(t, proto.Equal(receivedMsg, expectedRequest))
 		mr.AssertNumberOfCalls(t, "HandleMessage", 1)
 
 		// Bad message
@@ -59,7 +59,7 @@ func TestDispatchConsensus(t *testing.T) {
 			Channel: "mychannel",
 			Payload: []byte{1, 2, 3},
 		})
-		assert.EqualError(t, err, "malformed message: proto: smartbftprotos.Message: illegal tag 0 (wire type 1)")
+		require.Contains(t, err.Error(), "malformed message")
 	})
 
 	t.Run("Channel does not exist", func(t *testing.T) {
@@ -69,7 +69,7 @@ func TestDispatchConsensus(t *testing.T) {
 		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnConsensus("notmychannel", 1, nil)
-		assert.EqualError(t, err, "channel notmychannel doesn't exist")
+		require.EqualError(t, err, "channel notmychannel doesn't exist")
 	})
 }
 
@@ -96,7 +96,7 @@ func TestDispatchSubmit(t *testing.T) {
 		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnSubmit("mychannel", 1, expectedRequest)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		mr.AssertCalled(t, "HandleRequest", uint64(1), protoutil.MarshalOrPanic(expectedRequest.Payload))
 	})
@@ -108,6 +108,6 @@ func TestDispatchSubmit(t *testing.T) {
 		ingress := &smartbft.Ingress{ChainSelector: rg, Logger: flogging.MustGetLogger("test")}
 
 		err := ingress.OnSubmit("notmychannel", 1, expectedRequest)
-		assert.EqualError(t, err, "channel notmychannel doesn't exist")
+		require.EqualError(t, err, "channel notmychannel doesn't exist")
 	})
 }

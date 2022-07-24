@@ -99,9 +99,7 @@ func NewChain(
 	support consensus.ConsenterSupport,
 	metrics *Metrics,
 	bccsp bccsp.BCCSP,
-
 ) (*BFTChain, error) {
-
 	requestInspector := &RequestInspector{
 		ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
 			return nil
@@ -304,11 +302,11 @@ func (c *BFTChain) Configure(config *cb.Envelope, configSeq uint64) error {
 	seq := c.support.Sequence()
 	if configSeq < seq {
 		c.Logger.Warnf("Normal message was validated against %d, although current config seq has advanced (%d)", configSeq, seq)
-		if configEnv, _, err := c.support.ProcessConfigMsg(config); err != nil {
+		configEnv, _, err := c.support.ProcessConfigMsg(config)
+		if err != nil {
 			return errors.Errorf("bad normal message: %s", err)
-		} else {
-			return c.submit(configEnv, configSeq)
 		}
+		return c.submit(configEnv, configSeq)
 	}
 
 	return c.submit(config, configSeq)
@@ -321,14 +319,14 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 		c.Logger.Panicf("failed to read proposal, err: %s", err)
 	}
 
-	var sigs []*cb.MetadataSignature
+	sigs := make([]*cb.MetadataSignature, 0, len(signatures))
 	var ordererBlockMetadata []byte
 
-	var signers []uint64
+	signers := make([]uint64, 0, len(signatures))
 
 	for _, s := range signatures {
 		sig := &Signature{}
-		if err := sig.Unmarshal(s.Msg); err != nil {
+		if err = sig.Unmarshal(s.Msg); err != nil {
 			c.Logger.Errorf("Failed unmarshaling signature from %d: %v", s.ID, err)
 			c.Logger.Errorf("Offending signature Msg: %s", base64.StdEncoding.EncodeToString(s.Msg))
 			c.Logger.Errorf("Offending signature Value: %s", base64.StdEncoding.EncodeToString(s.Value))
@@ -374,7 +372,6 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
 	c.reportIsLeader()                                               // report the leader
 	if protoutil.IsConfigBlock(block) {
-
 		c.support.WriteConfigBlock(block, nil)
 	} else {
 		c.support.WriteBlock(block, nil)
@@ -465,7 +462,7 @@ func (c *BFTChain) blockToDecision(block *cb.Block) *types.Decision {
 
 	proposal.Metadata = ordererMDFromBlock.ConsenterMetadata
 
-	var signatures []types.Signature
+	signatures := make([]types.Signature, 0, len(signatureMetadata.Signatures))
 	for _, sigMD := range signatureMetadata.Signatures {
 		id := sigMD.SignerId
 		sig := &Signature{
@@ -502,7 +499,7 @@ func (c *BFTChain) HandleMessage(sender uint64, m *smartbftprotos.Message) {
 // HandleRequest handles the request from the sender
 func (c *BFTChain) HandleRequest(sender uint64, req []byte) {
 	c.Logger.Debugf("HandleRequest from %d", sender)
-	c.consensus.SubmitRequest(req)
+	_ = c.consensus.SubmitRequest(req)
 }
 
 func (c *BFTChain) updateRuntimeConfig(block *cb.Block) types.Reconfig {
@@ -602,5 +599,4 @@ func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 		return errors.Wrap(errors.WithStack(msgprocessor.ErrPermissionDenied), err.Error())
 	}
 	return nil
-
 }

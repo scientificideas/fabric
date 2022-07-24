@@ -79,27 +79,27 @@ func (cbv *ConfigBlockValidator) ValidateConfig(envelope *cb.Envelope) error {
 
 	chdr, err := protoutil.UnmarshalChannelHeader(payload.Header.ChannelHeader)
 	if err != nil {
-		return fmt.Errorf("channel header unmarshalling error: %s", err)
+		return fmt.Errorf("channel header unmarshalling error: %w", err)
 	}
 
 	switch chdr.Type {
 	case int32(cb.HeaderType_CONFIG):
 		configEnvelope := &cb.ConfigEnvelope{}
 		if err = proto.Unmarshal(payload.Data, configEnvelope); err != nil {
-			return fmt.Errorf("data unmarshalling error: %s", err)
+			return fmt.Errorf("data unmarshalling error: %w", err)
 		}
 		return cbv.verifyConfigUpdateMsg(envelope, configEnvelope, chdr)
 
 	case int32(cb.HeaderType_ORDERER_TRANSACTION):
 		env, err := protoutil.UnmarshalEnvelope(payload.Data)
 		if err != nil {
-			return fmt.Errorf("data unmarshalling error: %s", err)
+			return fmt.Errorf("data unmarshalling error: %w", err)
 		}
 
 		configEnvelope := &cb.ConfigEnvelope{}
 		_, err = protoutil.UnmarshalEnvelopeOfType(env, cb.HeaderType_CONFIG, configEnvelope)
 		if err != nil {
-			return fmt.Errorf("data unmarshalling error: %s", err)
+			return fmt.Errorf("data unmarshalling error: %w", err)
 		}
 		return cbv.verifyConfigUpdateMsg(envelope, configEnvelope, chdr)
 

@@ -91,7 +91,7 @@ func TestSignProposal(t *testing.T) {
 	assert.NotNil(t, sig)
 
 	signature := smartbft.Signature{}
-	signature.Unmarshal(sig.Msg)
+	_ = signature.Unmarshal(sig.Msg)
 
 	assert.Equal(t, s.ID, sig.ID)
 	assert.Equal(t, []byte{1, 2, 3}, sig.Value)
@@ -120,5 +120,4 @@ func TestSignBadProposal(t *testing.T) {
 		s.SignProposal(types.Proposal{}, nil)
 	}
 	assert.PanicsWithValue(t, "Tried to sign bad proposal: proposal header cannot be nil", f)
-
 }
