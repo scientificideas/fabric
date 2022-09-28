@@ -8,7 +8,6 @@ package genesisconfig
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/viperutil"
 	"github.com/hyperledger/fabric/core/config/configtest"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
