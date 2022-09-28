@@ -132,7 +132,8 @@ func Compare(snapshotDir1 string, snapshotDir2 string, outputDirLoc string, firs
 // Finds the differing records between two snapshot data files using SnapshotReaders and saves differences
 // to an output file. Simultaneously, keep track of the first n differences.
 func findAndWriteDifferences(outputDirPath string, outputFilename string, snapshotReader1 *privacyenabledstate.SnapshotReader, snapshotReader2 *privacyenabledstate.SnapshotReader,
-	firstDiffs int, firstRecords *firstRecords) (outputFileWriter *jsonArrayFileWriter, err error) {
+	firstDiffs int, firstRecords *firstRecords,
+) (outputFileWriter *jsonArrayFileWriter, err error) {
 	// Create the output file
 	outputFileWriter, err = newJSONFileWriter(filepath.Join(outputDirPath, outputFilename))
 	if err != nil {
@@ -340,7 +341,8 @@ type diffRecord struct {
 
 // Creates a new diffRecord
 func newDiffRecord(namespace string, record1 *privacyenabledstate.SnapshotRecord,
-	record2 *privacyenabledstate.SnapshotRecord) (*diffRecord, error) {
+	record2 *privacyenabledstate.SnapshotRecord,
+) (*diffRecord, error) {
 	var s1, s2 *snapshotRecord = nil, nil // snapshot records
 	var k string                          // key
 	var err error

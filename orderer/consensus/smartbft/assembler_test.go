@@ -7,9 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft_test
 
 import (
-	"testing"
-
 	"sync/atomic"
+	"testing"
 
 	"github.com/SmartBFT-Go/consensus/pkg/types"
 	"github.com/hyperledger/fabric-protos-go/common"
@@ -96,7 +95,6 @@ func TestAssembler(t *testing.T) {
 			require.Equal(t, testCase.expectedProposal, prop)
 		})
 	}
-
 }
 
 func makeTx(headerType int32) []byte {
@@ -121,10 +119,12 @@ func makeNonConfigBlock(seq, lastConfigSeq uint64) *common.Block {
 			Data: [][]byte{nonConfigTx},
 		},
 		Metadata: &common.BlockMetadata{
-			Metadata: [][]byte{{},
+			Metadata: [][]byte{
+				{},
 				protoutil.MarshalOrPanic(&common.Metadata{
 					Value: protoutil.MarshalOrPanic(&common.LastConfig{Index: lastConfigSeq}),
-				})},
+				}),
+			},
 		},
 	}
 }
@@ -146,10 +146,12 @@ func makeConfigBlock(seq uint64) *common.Block {
 			})},
 		},
 		Metadata: &common.BlockMetadata{
-			Metadata: [][]byte{{},
+			Metadata: [][]byte{
+				{},
 				protoutil.MarshalOrPanic(&common.Metadata{
 					Value: protoutil.MarshalOrPanic(&common.LastConfig{Index: 666}),
-				})},
+				}),
+			},
 		},
 	}
 }

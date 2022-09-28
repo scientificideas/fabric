@@ -125,7 +125,8 @@ func NewCollectionAccessFactory(factory IdentityDeserializerFactory) CollectionA
 // NewDistributor a constructor for private data distributor capable to send
 // private read write sets for underlying collection
 func NewDistributor(chainID string, gossip gossipAdapter, factory CollectionAccessFactory,
-	metrics *metrics.PrivdataMetrics, pushAckTimeout time.Duration) PvtDataDistributor {
+	metrics *metrics.PrivdataMetrics, pushAckTimeout time.Duration,
+) PvtDataDistributor {
 	return &distributorImpl{
 		chainID:                 chainID,
 		gossipAdapter:           gossip,
@@ -152,7 +153,8 @@ type dissemination struct {
 
 func (d *distributorImpl) computeDisseminationPlan(txID string,
 	privDataWithConfig *transientstore.TxPvtReadWriteSetWithConfigInfo,
-	blkHt uint64) ([]*dissemination, error) {
+	blkHt uint64,
+) ([]*dissemination, error) {
 	privData := privDataWithConfig.PvtRwset
 	var disseminationPlan []*dissemination
 	for _, pvtRwset := range privData.NsPvtRwset {
@@ -417,7 +419,8 @@ func (d *distributorImpl) reportSendDuration(startTime time.Time) {
 func (d *distributorImpl) createPrivateDataMessage(txID, namespace string,
 	collection *rwset.CollectionPvtReadWriteSet,
 	ccp *peer.CollectionConfigPackage,
-	blkHt uint64) (*protoext.SignedGossipMessage, error) {
+	blkHt uint64,
+) (*protoext.SignedGossipMessage, error) {
 	msg := &protosgossip.GossipMessage{
 		Channel: []byte(d.chainID),
 		Nonce:   util.RandomUInt64(),

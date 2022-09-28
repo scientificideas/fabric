@@ -328,23 +328,22 @@ func TestSnapshotCouchDBIndexCreation(t *testing.T) {
 
 		// mimic new lifecycle chaincode "ns" installed and defiend and the package contains an index definition "sort index"
 		ccLifecycleEventProvider := provider.initializer.ChaincodeLifecycleEventProvider.(*mock.ChaincodeLifecycleEventProvider)
-		ccLifecycleEventProvider.RegisterListenerStub =
-			func(
-				channelID string,
-				listener ledger.ChaincodeLifecycleEventListener,
-				callback bool,
-			) error {
-				if callback {
-					err := listener.HandleChaincodeDeploy(
-						&ledger.ChaincodeDefinition{
-							Name: "ns",
-						},
-						dbArtifactsBytes,
-					)
-					require.NoError(t, err)
-				}
-				return nil
+		ccLifecycleEventProvider.RegisterListenerStub = func(
+			channelID string,
+			listener ledger.ChaincodeLifecycleEventListener,
+			callback bool,
+		) error {
+			if callback {
+				err := listener.HandleChaincodeDeploy(
+					&ledger.ChaincodeDefinition{
+						Name: "ns",
+					},
+					dbArtifactsBytes,
+				)
+				require.NoError(t, err)
 			}
+			return nil
+		}
 
 		lgr, _, err := provider.CreateFromSnapshot(snapshotDir)
 		require.NoError(t, err)

@@ -7,19 +7,19 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 	"testing"
 	"time"
+
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 )
 
 func TestArguements(t *testing.T) {
-
 	testCases := map[string]struct {
 		exitCode int
 		args     []string
@@ -66,13 +66,13 @@ func TestGoodPath(t *testing.T) {
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -126,13 +126,13 @@ func TestTemplating(t *testing.T) {
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of the chaincode to use
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -200,13 +200,13 @@ func TestTemplatingFailure(t *testing.T) {
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of the chaincode to use
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -254,13 +254,13 @@ func TestMissingConnection(t *testing.T) {
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	metadataJson := path.Join(testPath, "in-metadata-dir", "metadata.json")
@@ -297,13 +297,13 @@ func TestMissingMetadata(t *testing.T) {
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")

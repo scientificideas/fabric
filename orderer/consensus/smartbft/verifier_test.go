@@ -27,9 +27,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var (
-	hashOfZero = hex.EncodeToString(sha256.New().Sum(nil))
-)
+var hashOfZero = hex.EncodeToString(sha256.New().Sum(nil))
 
 func TestNodeIdentitiesByID(t *testing.T) {
 	m := make(smartbft.NodeIdentitiesByID)
@@ -89,7 +87,6 @@ func TestVerifySignature(t *testing.T) {
 		})
 		assert.EqualError(t, err, "bad signature")
 	})
-
 }
 
 func TestVerifyConsenterSig(t *testing.T) {

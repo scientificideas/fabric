@@ -99,9 +99,7 @@ func NewChain(
 	support consensus.ConsenterSupport,
 	metrics *Metrics,
 	bccsp bccsp.BCCSP,
-
 ) (*BFTChain, error) {
-
 	requestInspector := &RequestInspector{
 		ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
 			return nil
@@ -374,7 +372,6 @@ func (c *BFTChain) Deliver(proposal types.Proposal, signatures []types.Signature
 	c.Metrics.CommittedBlockNumber.Set(float64(block.Header.Number)) // report the committed block number
 	c.reportIsLeader()                                               // report the leader
 	if protoutil.IsConfigBlock(block) {
-
 		c.support.WriteConfigBlock(block, nil)
 	} else {
 		c.support.WriteBlock(block, nil)
@@ -602,5 +599,4 @@ func (c *chainACL) Evaluate(signatureSet []*protoutil.SignedData) error {
 		return errors.Wrap(errors.WithStack(msgprocessor.ErrPermissionDenied), err.Error())
 	}
 	return nil
-
 }

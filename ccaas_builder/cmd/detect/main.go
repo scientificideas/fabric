@@ -29,7 +29,6 @@ func main() {
 	}
 
 	logger.Printf("::Type detected as ccaas")
-
 }
 
 type chaincodeMetadata struct {
@@ -71,5 +70,4 @@ func run() error {
 
 	// returning nil indicates to the peer a successfull detection
 	return nil
-
 }

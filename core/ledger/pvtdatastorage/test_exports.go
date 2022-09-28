@@ -44,7 +44,8 @@ func NewTestStoreEnv(
 	t *testing.T,
 	ledgerid string,
 	btlPolicy pvtdatapolicy.BTLPolicy,
-	conf *PrivateDataConfig) *StoreEnv {
+	conf *PrivateDataConfig,
+) *StoreEnv {
 	storeDir, err := ioutil.TempDir("", "pdstore")
 	if err != nil {
 		t.Fatalf("Failed to create private data storage directory: %s", err)

@@ -51,8 +51,7 @@ func TestStateListener(t *testing.T) {
 	require.Equal(t, 1, ml1.HandleStateUpdatesCallCount())
 	require.Equal(t, 1, ml2.HandleStateUpdatesCallCount())
 	require.Equal(t, 0, ml3.HandleStateUpdatesCallCount())
-	expectedLedgerid, expectedStateUpdate, expectedHt :=
-		testLedgerid,
+	expectedLedgerid, expectedStateUpdate, expectedHt := testLedgerid,
 		ledger.StateUpdates{
 			"ns1": &ledger.KVStateUpdates{
 				PublicUpdates: []*kvrwset.KVWrite{
@@ -68,8 +67,7 @@ func TestStateListener(t *testing.T) {
 		},
 		uint64(1)
 	checkHandleStateUpdatesCallback(t, ml1, 0, expectedLedgerid, expectedStateUpdate, expectedHt)
-	expectedLedgerid, expectedStateUpdate, expectedHt =
-		testLedgerid,
+	expectedLedgerid, expectedStateUpdate, expectedHt = testLedgerid,
 		ledger.StateUpdates{
 			"ns2": &ledger.KVStateUpdates{
 				PublicUpdates: []*kvrwset.KVWrite{
@@ -104,8 +102,7 @@ func TestStateListener(t *testing.T) {
 	require.Equal(t, 1, ml2.HandleStateUpdatesCallCount())
 	require.Equal(t, 1, ml3.HandleStateUpdatesCallCount())
 
-	expectedLedgerid, expectedStateUpdate, expectedHt =
-		testLedgerid,
+	expectedLedgerid, expectedStateUpdate, expectedHt = testLedgerid,
 		ledger.StateUpdates{
 			"ns4": &ledger.KVStateUpdates{
 				PublicUpdates: []*kvrwset.KVWrite{
@@ -206,7 +203,8 @@ func TestStateListenerQueryExecutor(t *testing.T) {
 func checkHandleStateUpdatesCallback(t *testing.T, ml *mock.StateListener, callNumber int,
 	expectedLedgerid string,
 	expectedUpdates ledger.StateUpdates,
-	expectedCommitHt uint64) {
+	expectedCommitHt uint64,
+) {
 	actualTrigger := ml.HandleStateUpdatesArgsForCall(callNumber)
 	require.Equal(t, expectedLedgerid, actualTrigger.LedgerID)
 	checkEqualUpdates(t, expectedUpdates, actualTrigger.StateUpdates)

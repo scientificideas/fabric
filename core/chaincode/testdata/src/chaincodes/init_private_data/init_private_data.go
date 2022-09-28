@@ -14,8 +14,7 @@ import (
 )
 
 // SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
-}
+type SimpleChaincode struct{}
 
 // Init initializes a private state
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {

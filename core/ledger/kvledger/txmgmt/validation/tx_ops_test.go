@@ -52,8 +52,7 @@ func TestTxOpsPreparationValueUpdate(t *testing.T) {
 	defer testDBEnv.Cleanup()
 	db := testDBEnv.GetDBHandle("TestDB")
 
-	ck1, ck2, ck3 :=
-		compositeKey{ns: "ns1", key: "key1"},
+	ck1, ck2, ck3 := compositeKey{ns: "ns1", key: "key1"},
 		compositeKey{ns: "ns1", key: "key2"},
 		compositeKey{ns: "ns1", key: "key3"}
 
@@ -109,8 +108,7 @@ func TestTxOpsPreparationMetadataUpdates(t *testing.T) {
 	defer testDBEnv.Cleanup()
 	db := testDBEnv.GetDBHandle("TestDB")
 
-	ck1, ck2, ck3 :=
-		compositeKey{ns: "ns1", key: "key1"},
+	ck1, ck2, ck3 := compositeKey{ns: "ns1", key: "key1"},
 		compositeKey{ns: "ns1", key: "key2"},
 		compositeKey{ns: "ns1", key: "key3"}
 
@@ -161,8 +159,7 @@ func TestTxOpsPreparationMetadataDelete(t *testing.T) {
 	defer testDBEnv.Cleanup()
 	db := testDBEnv.GetDBHandle("TestDB")
 
-	ck1, ck2, ck3 :=
-		compositeKey{ns: "ns1", key: "key1"},
+	ck1, ck2, ck3 := compositeKey{ns: "ns1", key: "key1"},
 		compositeKey{ns: "ns1", key: "key2"},
 		compositeKey{ns: "ns1", key: "key3"}
 
@@ -211,8 +208,7 @@ func TestTxOpsPreparationMixedUpdates(t *testing.T) {
 	defer testDBEnv.Cleanup()
 	db := testDBEnv.GetDBHandle("TestDB")
 
-	ck1, ck2, ck3, ck4 :=
-		compositeKey{ns: "ns1", key: "key1"},
+	ck1, ck2, ck3, ck4 := compositeKey{ns: "ns1", key: "key1"},
 		compositeKey{ns: "ns1", key: "key2"},
 		compositeKey{ns: "ns1", key: "key3"},
 		compositeKey{ns: "ns1", key: "key4"}
@@ -287,14 +283,12 @@ func TestTxOpsPreparationPvtdataHashes(t *testing.T) {
 	defer testDBEnv.Cleanup()
 	db := testDBEnv.GetDBHandle("TestDB")
 
-	ck1, ck2, ck3, ck4 :=
-		compositeKey{ns: "ns1", coll: "coll1", key: "key1"},
+	ck1, ck2, ck3, ck4 := compositeKey{ns: "ns1", coll: "coll1", key: "key1"},
 		compositeKey{ns: "ns1", coll: "coll1", key: "key2"},
 		compositeKey{ns: "ns1", coll: "coll1", key: "key3"},
 		compositeKey{ns: "ns1", coll: "coll1", key: "key4"}
 
-	ck1Hash, ck2Hash, ck3Hash, ck4Hash :=
-		compositeKey{ns: "ns1", coll: "coll1", key: string(util.ComputeStringHash("key1"))},
+	ck1Hash, ck2Hash, ck3Hash, ck4Hash := compositeKey{ns: "ns1", coll: "coll1", key: string(util.ComputeStringHash("key1"))},
 		compositeKey{ns: "ns1", coll: "coll1", key: string(util.ComputeStringHash("key2"))},
 		compositeKey{ns: "ns1", coll: "coll1", key: string(util.ComputeStringHash("key3"))},
 		compositeKey{ns: "ns1", coll: "coll1", key: string(util.ComputeStringHash("key4"))}
@@ -460,7 +454,8 @@ func TestInterpretNilValueKVWritesAsDelete(t *testing.T) {
 
 func testutilBuildRwset(t *testing.T,
 	kvWrites map[compositeKey][]byte,
-	metadataWrites map[compositeKey]map[string][]byte) *rwsetutil.TxRwSet {
+	metadataWrites map[compositeKey]map[string][]byte,
+) *rwsetutil.TxRwSet {
 	rwsetBuilder := rwsetutil.NewRWSetBuilder()
 	for kvwrite, val := range kvWrites {
 		if kvwrite.coll == "" {

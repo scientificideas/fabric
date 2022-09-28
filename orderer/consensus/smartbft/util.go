@@ -127,8 +127,8 @@ func newBlockPuller(
 	support consensus.ConsenterSupport,
 	baseDialer *cluster.PredicateDialer,
 	clusterConfig localconfig.Cluster,
-	bccsp bccsp.BCCSP) (BlockPuller, error) {
-
+	bccsp bccsp.BCCSP,
+) (BlockPuller, error) {
 	verifyBlockSequence := func(blocks []*cb.Block, _ string) error {
 		return cluster.VerifyBlocksBFT(blocks, support)
 	}
@@ -412,7 +412,6 @@ func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging
 		id2Identities: id2Identies,
 		nodeIDs:       nodeIDs,
 	}, nil
-
 }
 
 type nodeConfig struct {

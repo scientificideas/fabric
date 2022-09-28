@@ -11,8 +11,7 @@ import (
 	endorsement "github.com/hyperledger/fabric/core/handlers/endorsement/api"
 )
 
-type NoOpEndorser struct {
-}
+type NoOpEndorser struct{}
 
 func (*NoOpEndorser) Endorse(payload []byte, sp *peer.SignedProposal) (*peer.Endorsement, []byte, error) {
 	return nil, payload, nil
@@ -22,8 +21,7 @@ func (*NoOpEndorser) Init(dependencies ...endorsement.Dependency) error {
 	return nil
 }
 
-type NoOpEndorserFactory struct {
-}
+type NoOpEndorserFactory struct{}
 
 func (*NoOpEndorserFactory) New() endorsement.Plugin {
 	return &NoOpEndorser{}

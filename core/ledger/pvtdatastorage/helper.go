@@ -16,7 +16,8 @@ import (
 )
 
 func prepareStoreEntries(blockNum uint64, pvtData []*ledger.TxPvtData, btlPolicy pvtdatapolicy.BTLPolicy,
-	missingPvtData ledger.TxMissingPvtData) (*storeEntries, error) {
+	missingPvtData ledger.TxMissingPvtData,
+) (*storeEntries, error) {
 	dataEntries := prepareDataEntries(blockNum, pvtData)
 
 	elgMissingDataEntries, inelgMissingDataEntries := prepareMissingDataEntries(blockNum, missingPvtData)
@@ -88,7 +89,8 @@ func prepareMissingDataEntries(
 // prepareExpiryEntries returns expiry entries for both private data which is present in the committingBlk
 // and missing private.
 func prepareExpiryEntries(committingBlk uint64, dataEntries []*dataEntry, elgMissingDataEntries, inelgMissingDataEntries map[missingDataKey]*bitset.BitSet,
-	btlPolicy pvtdatapolicy.BTLPolicy) ([]*expiryEntry, error) {
+	btlPolicy pvtdatapolicy.BTLPolicy,
+) ([]*expiryEntry, error) {
 	var expiryEntries []*expiryEntry
 	mapByExpiringBlk := make(map[uint64]*ExpiryData)
 

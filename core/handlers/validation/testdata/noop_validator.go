@@ -12,8 +12,7 @@ import (
 )
 
 // NoOpValidator is used to test validation plugin infrastructure
-type NoOpValidator struct {
-}
+type NoOpValidator struct{}
 
 // Validate valides the transactions with the given data
 func (*NoOpValidator) Validate(_ *common.Block, _ string, _ int, _ int, _ ...validation.ContextDatum) error {
@@ -26,8 +25,7 @@ func (*NoOpValidator) Init(dependencies ...validation.Dependency) error {
 }
 
 // NoOpValidatorFactory creates new NoOpValidators
-type NoOpValidatorFactory struct {
-}
+type NoOpValidatorFactory struct{}
 
 // New returns an instance of a NoOpValidator
 func (*NoOpValidatorFactory) New() validation.Plugin {

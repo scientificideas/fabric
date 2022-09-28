@@ -30,8 +30,7 @@ func (listener *KVLedgerLSCCStateListener) Initialize(ledgerID string, qe ledger
 // and invokes `HandleChaincodeDeploy` function on chaincode event manager (which in turn is responsible for creation of statedb
 // artifacts for the chaincode statedata)
 func (listener *KVLedgerLSCCStateListener) HandleStateUpdates(trigger *ledger.StateUpdateTrigger) error {
-	channelName, kvWrites, postCommitQE, deployCCInfoProvider :=
-		trigger.LedgerID, extractPublicUpdates(trigger.StateUpdates), trigger.PostCommitQueryExecutor, listener.DeployedChaincodeInfoProvider
+	channelName, kvWrites, postCommitQE, deployCCInfoProvider := trigger.LedgerID, extractPublicUpdates(trigger.StateUpdates), trigger.PostCommitQueryExecutor, listener.DeployedChaincodeInfoProvider
 
 	logger.Debugf("Channel [%s]: Handling state updates in LSCC namespace - stateUpdates=%#v", channelName, kvWrites)
 	updatedChaincodes, err := deployCCInfoProvider.UpdatedChaincodes(kvWrites)

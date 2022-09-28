@@ -120,5 +120,4 @@ func TestSignBadProposal(t *testing.T) {
 		s.SignProposal(types.Proposal{}, nil)
 	}
 	assert.PanicsWithValue(t, "Tried to sign bad proposal: proposal header cannot be nil", f)
-
 }

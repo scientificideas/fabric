@@ -154,9 +154,8 @@ func TestLogMessageForSerializedIdentity(t *testing.T) {
 
 	identitiesLogMessage := protoutil.LogMessageForSerializedIdentities(signedDatas)
 
-	expected =
-		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441), " +
-			"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
+	expected = "(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441), " +
+		"(mspid=MyMSP subject=CN=peer0.org1.example.com,L=San Francisco,ST=California,C=US issuer=CN=ca.org1.example.com,O=org1.example.com,L=San Francisco,ST=California,C=US serialnumber=216422593083731187380743188920914963441)"
 	require.Equal(t, expected, identitiesLogMessage)
 }
 

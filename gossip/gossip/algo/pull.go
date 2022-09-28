@@ -99,7 +99,8 @@ type PullEngineConfig struct {
 // NewPullEngineWithFilter creates an instance of a PullEngine with a certain sleep time
 // between pull initiations, and uses the given filters when sending digests and responses
 func NewPullEngineWithFilter(participant PullAdapter, sleepTime time.Duration, df DigestFilter,
-	config PullEngineConfig) *PullEngine {
+	config PullEngineConfig,
+) *PullEngine {
 	engine := &PullEngine{
 		PullAdapter:        participant,
 		stopFlag:           int32(0),

@@ -593,7 +593,8 @@ func sampleCollectionConfigPackage(collNamePart1 string, collNamePart2 uint64) *
 func testutilEquipMockCCInfoProviderToReturnDesiredCollConfig(
 	mockCCInfoProvider *mock.DeployedChaincodeInfoProvider,
 	chaincodeName string,
-	collConfigPackage *peer.CollectionConfigPackage) {
+	collConfigPackage *peer.CollectionConfigPackage,
+) {
 	mockCCInfoProvider.UpdatedChaincodesReturns(
 		[]*ledger.ChaincodeLifecycleInfo{
 			{Name: chaincodeName},

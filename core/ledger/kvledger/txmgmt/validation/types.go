@@ -84,8 +84,7 @@ func (u *publicAndHashUpdates) applyWriteSet(
 	db *privacyenabledstate.DB,
 	containsPostOrderWrites bool,
 ) error {
-	u.publicUpdates.ContainsPostOrderWrites =
-		u.publicUpdates.ContainsPostOrderWrites || containsPostOrderWrites
+	u.publicUpdates.ContainsPostOrderWrites = u.publicUpdates.ContainsPostOrderWrites || containsPostOrderWrites
 	txops, err := prepareTxOps(txRWSet, u, db)
 	logger.Debugf("txops=%#v", txops)
 	if err != nil {

@@ -72,7 +72,8 @@ type Node struct {
 func New(conf *Config, s *grpc.Server, sa api.SecurityAdvisor,
 	mcs api.MessageCryptoService, selfIdentity api.PeerIdentityType,
 	secureDialOpts api.PeerSecureDialOpts, gossipMetrics *metrics.GossipMetrics,
-	anchorPeerTracker discovery.AnchorPeerTracker) *Node {
+	anchorPeerTracker discovery.AnchorPeerTracker,
+) *Node {
 	var err error
 
 	lgr := util.GetLogger(util.GossipLogger, conf.ID)
