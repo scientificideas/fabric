@@ -14,7 +14,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-config/protolator"
 	"github.com/hyperledger/fabric-protos-go/common"
-	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/channelconfig"
 	"github.com/hyperledger/fabric/common/flogging"
@@ -447,11 +446,11 @@ func ValidateBootstrapBlock(block *common.Block, bccsp bccsp.BCCSP) error {
 }
 
 // ConsensusType returns the consensus type from the given genesis block.
-func ConsensusType(genesisBlock *cb.Block, bccsp bccsp.BCCSP) string {
+func ConsensusType(genesisBlock *common.Block, bccsp bccsp.BCCSP) string {
 	if genesisBlock == nil || genesisBlock.Data == nil || len(genesisBlock.Data.Data) == 0 {
 		logger.Fatalf("Empty genesis block")
 	}
-	env := &cb.Envelope{}
+	env := &common.Envelope{}
 	if err := proto.Unmarshal(genesisBlock.Data.Data[0], env); err != nil {
 		logger.Fatalf("Failed to unmarshal the genesis block's envelope: %v", err)
 	}

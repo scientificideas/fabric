@@ -77,5 +77,6 @@ func TestSanitizeIdentity(t *testing.T) {
 		_, err = extractCertFromPEM(certAfterSanitation).Verify(x509.VerifyOptions{
 			Roots: certPool,
 		})
+		assert.NoError(t, err)
 	})
 }
