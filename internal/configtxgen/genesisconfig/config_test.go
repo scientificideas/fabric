@@ -402,9 +402,7 @@ func TestConsensusSpecificInit(t *testing.T) {
 				require.Equal(t, profile.Orderer.SmartBFT.Options, genesisDefaults.Orderer.SmartBFT.Options,
 					"Options should be set to the default value")
 			})
-
 		})
-
 	})
 }
 

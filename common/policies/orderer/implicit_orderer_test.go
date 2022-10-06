@@ -192,7 +192,6 @@ func TestImplicitBFTPolicy_Evaluate(t *testing.T) {
 		err = p.EvaluateSignedData(signatureSet)
 		assert.NoError(t, err)
 	})
-
 }
 
 func prepareSmartBFTMetadata(numNodes int) ([]byte, []*smartbft.Consenter, []*protosmsp.SerializedIdentity) {

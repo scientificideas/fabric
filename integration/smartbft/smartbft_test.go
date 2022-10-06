@@ -531,7 +531,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("Planting last config block in the orderer's file system")
 			configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0644)
+			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Launching the added orderer")
@@ -780,7 +780,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 				By("Planting last config block in the orderer's file system")
 				configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-				err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0644)
+				err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 				Expect(err).NotTo(HaveOccurred())
 
 				fmt.Fprintf(GinkgoWriter, "Launching orderer %d", 5+i)
@@ -1037,7 +1037,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("Planting last config block in the orderer's file system")
 			configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0644)
+			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Launching the added orderer")
