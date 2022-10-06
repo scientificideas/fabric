@@ -47,6 +47,7 @@ import (
 )
 
 // The following private interfaces are here purely to prevent counterfeiter creating an import cycle in the unit test
+//
 //go:generate counterfeiter -o mocks/endorserclient.go --fake-name EndorserClient . endorserClient
 type endorserClient interface {
 	peer.EndorserClient
@@ -153,6 +154,7 @@ type testDef struct {
 type preparedTest struct {
 	server         *Server
 	ctx            context.Context
+	cancel         context.CancelFunc
 	signedProposal *peer.SignedProposal
 	localEndorser  *mocks.EndorserClient
 	discovery      *mocks.Discovery
@@ -477,14 +479,15 @@ func TestEvaluate(t *testing.T) {
 				"g1": {{endorser: localhostMock, height: 3}}, // msp1
 			},
 			postSetup: func(t *testing.T, def *preparedTest) {
-				var cancel context.CancelFunc
-				def.ctx, cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
+				def.ctx, def.cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
 
 				def.localEndorser.ProcessProposalStub = func(ctx context.Context, proposal *peer.SignedProposal, option ...grpc.CallOption) (*peer.ProposalResponse, error) {
-					cancel()
 					time.Sleep(200 * time.Millisecond)
 					return createProposalResponse(t, peer1Mock.address, "mock_response", 200, ""), nil
 				}
+			},
+			postTest: func(t *testing.T, def *preparedTest) {
+				def.cancel()
 			},
 			errCode:   codes.DeadlineExceeded,
 			errString: "evaluate timeout expired",
@@ -1000,14 +1003,15 @@ func TestEndorse(t *testing.T) {
 				"g2": {{endorser: peer4Mock, height: 5}},     // msp3
 			},
 			postSetup: func(t *testing.T, def *preparedTest) {
-				var cancel context.CancelFunc
-				def.ctx, cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
+				def.ctx, def.cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
 
 				def.localEndorser.ProcessProposalStub = func(ctx context.Context, proposal *peer.SignedProposal, option ...grpc.CallOption) (*peer.ProposalResponse, error) {
-					cancel()
 					time.Sleep(200 * time.Millisecond)
 					return createProposalResponse(t, peer1Mock.address, "mock_response", 200, ""), nil
 				}
+			},
+			postTest: func(t *testing.T, def *preparedTest) {
+				def.cancel()
 			},
 			errCode:   codes.DeadlineExceeded,
 			errString: "endorsement timeout expired while collecting first endorsement",
@@ -1019,14 +1023,15 @@ func TestEndorse(t *testing.T) {
 				"g2": {{endorser: peer4Mock, height: 5}},     // msp3
 			},
 			postSetup: func(t *testing.T, def *preparedTest) {
-				var cancel context.CancelFunc
-				def.ctx, cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
+				def.ctx, def.cancel = context.WithTimeout(def.ctx, 100*time.Millisecond)
 
 				peer4Mock.client.(*mocks.EndorserClient).ProcessProposalStub = func(ctx context.Context, proposal *peer.SignedProposal, option ...grpc.CallOption) (*peer.ProposalResponse, error) {
-					cancel()
 					time.Sleep(200 * time.Millisecond)
 					return createProposalResponse(t, peer4Mock.address, "mock_response", 200, ""), nil
 				}
+			},
+			postTest: func(t *testing.T, def *preparedTest) {
+				def.cancel()
 			},
 			errCode:   codes.DeadlineExceeded,
 			errString: "endorsement timeout expired while collecting endorsements",
