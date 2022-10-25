@@ -118,10 +118,6 @@ type Deliverer struct {
 // DeliverBlocks used to pull out blocks from the ordering service to
 // distributed them across peers
 func (d *Deliverer) DeliverBlocks() {
-	if d.BlockGossipDisabled {
-		d.Logger.Infof("Will pull blocks without forwarding them to remote peers via gossip")
-	}
-
 	d.headerReceivers = make(map[string]*header)
 
 	var (

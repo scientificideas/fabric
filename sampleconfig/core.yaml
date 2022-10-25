@@ -79,6 +79,16 @@ peer:
             # Timeout is the duration the client waits for a response from
             # peer nodes before closing the connection
             timeout: 20s
+        # DeliveryClient keepalive settings for communication with ordering
+        # nodes.
+        deliveryClient:
+            # Interval is the time between pings to ordering nodes.  This must
+            # greater than or equal to the minInterval specified by ordering
+            # nodes.
+            interval: 60s
+            # Timeout is the duration the client waits for a response from
+            # ordering nodes before closing the connection
+            timeout: 20s
 
 
     # Gossip related configuration
@@ -331,6 +341,10 @@ peer:
             Pin:
             Hash:
             Security:
+            SoftwareVerify:
+            Immutable:
+            AltID:
+            KeyIds:
 
     # Path on the file system where peer will find MSP local configurations
     # The path may be relative to FABRIC_CFG_PATH or an absolute path.
@@ -358,13 +372,15 @@ peer:
         # of blocks committed in the past.
         blockGossipEnabled: true
         # It sets the total time the delivery service may spend in reconnection
-        # attempts until its retry logic gives up and returns an error
+        # attempts until its retry logic gives up and returns an error,
+        # ignored if peer is a static leader
         reconnectTotalTimeThreshold: 3600s
 
         # It sets the delivery service <-> ordering service node connection timeout
         connTimeout: 3s
 
-        # It sets the delivery service maximal delay between consecutive retries
+        # It sets the delivery service maximal delay between consecutive retries.
+        # Time between retries will have exponential backoff until hitting this threshold.
         reConnectBackoffThreshold: 3600s
 
         # A list of orderer endpoint addresses which should be overridden

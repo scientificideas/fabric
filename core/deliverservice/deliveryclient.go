@@ -132,7 +132,6 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 		logger.Errorf(errMsg)
 		return errors.New(errMsg)
 	}
-	logger.Info("This peer will retrieve blocks from ordering service and disseminate to other peers in the organization for channel", chainID)
 
 	var bp BlocksProvider
 
@@ -167,6 +166,12 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 			BlockGossipDisabled:    !d.conf.DeliverServiceConfig.BlockGossipEnabled,
 		}
 
+		if dc.BlockGossipDisabled {
+			logger.Infow("This peer will retrieve blocks from ordering service (will not disseminate them to other peers in the organization)", "channel", chainID)
+		} else {
+			logger.Infow("This peer will retrieve blocks from ordering service and disseminate to other peers in the organization", "channel", chainID)
+		}
+
 		if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
 			cert, err := d.conf.DeliverServiceConfig.SecOpts.ClientCertificate()
 			if err != nil {
@@ -198,6 +203,12 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 			BlockGossipDisabled: !d.conf.DeliverServiceConfig.BlockGossipEnabled,
 			InitialRetryDelay:   100 * time.Millisecond,
 			YieldLeadership:     !d.conf.IsStaticLeader,
+		}
+
+		if dc.BlockGossipDisabled {
+			logger.Infow("This peer will retrieve blocks from ordering service (will not disseminate them to other peers in the organization)", "channel", chainID)
+		} else {
+			logger.Infow("This peer will retrieve blocks from ordering service and disseminate to other peers in the organization", "channel", chainID)
 		}
 
 		if d.conf.DeliverServiceConfig.SecOpts.RequireClientCert {
