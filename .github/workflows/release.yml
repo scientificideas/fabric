@@ -7,11 +7,15 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: 'Fabric Release'
+        description: 'Fabric Release, e.g. 2.4.7'
         required: true
         type: string
       two_digit_release:
-        description: 'Fabric Two Digit Release'
+        description: 'Fabric Two Digit Release, e.g. 2.4'
+        required: true
+        type: string
+      commit_hash:
+        description: 'Commit hash, e.g. df9c661a192f8cf11376d9d643a0021f1a76c34b'
         required: true
         type: string
 
@@ -27,7 +31,7 @@ jobs:
     strategy:
       matrix:
         include:
-        - image: ubuntu-22.04
+        - image: ubuntu-20.04
           target: linux
           arch: amd64
         - image: macos-11
@@ -36,7 +40,7 @@ jobs:
         - image: windows-2022
           target: windows
           arch: amd64
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -56,7 +60,7 @@ jobs:
           path: release/${{ matrix.target }}-${{ matrix.arch }}/hyperledger-fabric-${{ matrix.target }}-${{ matrix.arch }}-${{ inputs.release }}.tar.gz
   build-and-push-docker-images:
     name: Build and Push Fabric Docker Images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Run APT Clean
         run: sudo apt clean
@@ -80,7 +84,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     needs: [ build-binaries, build-and-push-docker-images ]
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     permissions:
       contents: write
     steps:
@@ -94,5 +98,6 @@ jobs:
         with:
           artifacts: "*.tar.gz/*.tar.gz"
           bodyFile: release_notes/v${{ inputs.release }}.md
+          commit: ${{ inputs.commit_hash }}
           tag: v${{ inputs.release }}
           token: ${{ secrets.GITHUB_TOKEN }}

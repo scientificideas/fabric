@@ -76,6 +76,16 @@ type ApplicationCapabilities struct {
 	privateChannelDataReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	PurgePvtDataStub        func() bool
+	purgePvtDataMutex       sync.RWMutex
+	purgePvtDataArgsForCall []struct {
+	}
+	purgePvtDataReturns struct {
+		result1 bool
+	}
+	purgePvtDataReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	StorePvtDataOfInvalidTxStub        func() bool
 	storePvtDataOfInvalidTxMutex       sync.RWMutex
 	storePvtDataOfInvalidTxArgsForCall []struct {
@@ -511,6 +521,59 @@ func (fake *ApplicationCapabilities) PrivateChannelDataReturnsOnCall(i int, resu
 	}{result1}
 }
 
+func (fake *ApplicationCapabilities) PurgePvtData() bool {
+	fake.purgePvtDataMutex.Lock()
+	ret, specificReturn := fake.purgePvtDataReturnsOnCall[len(fake.purgePvtDataArgsForCall)]
+	fake.purgePvtDataArgsForCall = append(fake.purgePvtDataArgsForCall, struct {
+	}{})
+	stub := fake.PurgePvtDataStub
+	fakeReturns := fake.purgePvtDataReturns
+	fake.recordInvocation("PurgePvtData", []interface{}{})
+	fake.purgePvtDataMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *ApplicationCapabilities) PurgePvtDataCallCount() int {
+	fake.purgePvtDataMutex.RLock()
+	defer fake.purgePvtDataMutex.RUnlock()
+	return len(fake.purgePvtDataArgsForCall)
+}
+
+func (fake *ApplicationCapabilities) PurgePvtDataCalls(stub func() bool) {
+	fake.purgePvtDataMutex.Lock()
+	defer fake.purgePvtDataMutex.Unlock()
+	fake.PurgePvtDataStub = stub
+}
+
+func (fake *ApplicationCapabilities) PurgePvtDataReturns(result1 bool) {
+	fake.purgePvtDataMutex.Lock()
+	defer fake.purgePvtDataMutex.Unlock()
+	fake.PurgePvtDataStub = nil
+	fake.purgePvtDataReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *ApplicationCapabilities) PurgePvtDataReturnsOnCall(i int, result1 bool) {
+	fake.purgePvtDataMutex.Lock()
+	defer fake.purgePvtDataMutex.Unlock()
+	fake.PurgePvtDataStub = nil
+	if fake.purgePvtDataReturnsOnCall == nil {
+		fake.purgePvtDataReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.purgePvtDataReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *ApplicationCapabilities) StorePvtDataOfInvalidTx() bool {
 	fake.storePvtDataOfInvalidTxMutex.Lock()
 	ret, specificReturn := fake.storePvtDataOfInvalidTxReturnsOnCall[len(fake.storePvtDataOfInvalidTxArgsForCall)]
@@ -846,6 +909,8 @@ func (fake *ApplicationCapabilities) Invocations() map[string][][]interface{} {
 	defer fake.metadataLifecycleMutex.RUnlock()
 	fake.privateChannelDataMutex.RLock()
 	defer fake.privateChannelDataMutex.RUnlock()
+	fake.purgePvtDataMutex.RLock()
+	defer fake.purgePvtDataMutex.RUnlock()
 	fake.storePvtDataOfInvalidTxMutex.RLock()
 	defer fake.storePvtDataOfInvalidTxMutex.RUnlock()
 	fake.supportedMutex.RLock()
