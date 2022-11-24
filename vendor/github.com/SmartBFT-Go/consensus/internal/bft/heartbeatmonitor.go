@@ -35,9 +35,10 @@ type HeartbeatEventHandler interface {
 type Role bool
 
 type roleChange struct {
-	view     uint64
-	leaderID uint64
-	follower Role
+	view         uint64
+	leaderID     uint64
+	follower     Role
+	onlyFollower bool
 }
 
 // heartbeatResponseCollector is a map from node ID to view number, and hold the last response from each node.
@@ -157,6 +158,18 @@ func (hm *HeartbeatMonitor) InjectArtificialHeartbeat(sender uint64, msg *smartb
 	}
 }
 
+func (hm *HeartbeatMonitor) StopLeaderSendMsg() {
+	hm.logger.Infof("Changing role to folower without change current view and current leader")
+	select {
+	case hm.commandChan <- roleChange{
+		follower:     true,
+		onlyFollower: true,
+	}:
+	case <-hm.stopChan:
+		return
+	}
+}
+
 // ChangeRole will change the role of this HeartbeatMonitor
 func (hm *HeartbeatMonitor) ChangeRole(follower Role, view uint64, leaderID uint64) {
 	hm.runOnce.Do(func() {
@@ -179,7 +192,6 @@ func (hm *HeartbeatMonitor) ChangeRole(follower Role, view uint64, leaderID uint
 	case <-hm.stopChan:
 		return
 	}
-
 }
 
 func (hm *HeartbeatMonitor) handleMsg(sender uint64, msg *smartbftprotos.Message) {
@@ -322,10 +334,15 @@ func (hm *HeartbeatMonitor) closed() bool {
 }
 
 func (hm *HeartbeatMonitor) handleCommand(cmd roleChange) {
-	hm.timedOut = false
+	if cmd.onlyFollower {
+		hm.follower = cmd.follower
+		return
+	}
+
 	hm.view = cmd.view
 	hm.leaderID = cmd.leaderID
 	hm.follower = cmd.follower
+	hm.timedOut = false
 	hm.lastHeartbeat = hm.lastTick
 	hm.hbRespCollector = make(heartbeatResponseCollector)
 	hm.syncReq = false

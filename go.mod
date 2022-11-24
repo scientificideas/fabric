@@ -21,7 +21,7 @@ require (
 	github.com/frankban/quicktest v1.11.3 // indirect
 	github.com/fsouza/go-dockerclient v1.7.0
 	github.com/go-kit/kit v0.9.0
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3 // indirect
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.8.0
@@ -70,7 +70,7 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220928112448-19e1134d6ac3
+	github.com/SmartBFT-Go/consensus => github.com/pfi79/consensus v0.0.0-20221124213258-83763d9fff32
 	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./
