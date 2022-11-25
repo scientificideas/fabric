@@ -230,7 +230,7 @@ func bftSmartConsensusBuild(
 				return c.RuntimeConfig.Load().(RuntimeConfig).LastConfigBlock.Header.Number
 			},
 		},
-		Metadata:          smartbftprotos.ViewMetadata{},
+		Metadata:          *latestMetadata,
 		WAL:               consensusWAL,
 		WALInitialContent: walInitState, // Read from WAL entries
 		Application:       c,
@@ -252,12 +252,6 @@ func bftSmartConsensusBuild(
 		Scheduler:         time.NewTicker(time.Second).C,
 		ViewChangerTicker: time.NewTicker(time.Second).C,
 	}
-
-	consensus.Metadata.ViewId = latestMetadata.ViewId
-	consensus.Metadata.LatestSequence = latestMetadata.LatestSequence
-	consensus.Metadata.DecisionsInView = latestMetadata.DecisionsInView
-	consensus.Metadata.BlackList = latestMetadata.BlackList
-	consensus.Metadata.PrevCommitSignatureDigest = latestMetadata.PrevCommitSignatureDigest
 
 	proposal, signatures := c.lastPersistedProposalAndSignatures()
 	if proposal != nil {
