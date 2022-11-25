@@ -59,7 +59,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/pfi79/consensus v0.0.0-20221124213258-83763d9fff32
+# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/pfi79/consensus v0.0.0-20221125155527-2cd4dca0e6d2
 ## explicit
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
@@ -583,7 +583,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.27.1
+# google.golang.org/protobuf v1.26.0
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -630,7 +630,7 @@ gopkg.in/tomb.v1
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# github.com/SmartBFT-Go/consensus => github.com/pfi79/consensus v0.0.0-20221124213258-83763d9fff32
+# github.com/SmartBFT-Go/consensus => github.com/pfi79/consensus v0.0.0-20221125155527-2cd4dca0e6d2
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220722214515-fd27d52dbd18

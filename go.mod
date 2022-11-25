@@ -70,7 +70,7 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/pfi79/consensus v0.0.0-20221124213258-83763d9fff32
+	github.com/SmartBFT-Go/consensus => github.com/pfi79/consensus v0.0.0-20221125155527-2cd4dca0e6d2
 	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./

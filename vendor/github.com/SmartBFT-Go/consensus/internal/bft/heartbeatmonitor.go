@@ -59,6 +59,7 @@ type HeartbeatMonitor struct {
 	view                          uint64
 	leaderID                      uint64
 	follower                      Role
+	stopLeader                    bool
 	lastHeartbeat                 time.Time
 	lastTick                      time.Time
 	hbRespCollector               heartbeatResponseCollector
@@ -220,7 +221,7 @@ func (hm *HeartbeatMonitor) handleHeartBeat(sender uint64, hb *smartbftprotos.He
 		return
 	}
 
-	if sender != hm.leaderID {
+	if !hm.stopLeader && sender != hm.leaderID {
 		hm.logger.Debugf("Heartbeat sender is not leader, ignoring; leader: %d, sender: %d", hm.leaderID, sender)
 		return
 	}
@@ -336,9 +337,11 @@ func (hm *HeartbeatMonitor) closed() bool {
 func (hm *HeartbeatMonitor) handleCommand(cmd roleChange) {
 	if cmd.onlyFollower {
 		hm.follower = cmd.follower
+		hm.stopLeader = true
 		return
 	}
 
+	hm.stopLeader = false
 	hm.view = cmd.view
 	hm.leaderID = cmd.leaderID
 	hm.follower = cmd.follower
