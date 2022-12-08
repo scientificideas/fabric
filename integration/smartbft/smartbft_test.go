@@ -1102,19 +1102,16 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			assertBlockValidationPolicy(network, peer, network.Orderers[0], "systemchannel", common.Policy_IMPLICIT_ORDERER)
 
 			By("Waiting for followers to see the leader")
-			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
-			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
-			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+			for i := 1; i <= 3; i++ {
+				Eventually(ordererRunners[i].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+			}
 
-			orderer := network.Orderers[2]
-			By(fmt.Sprintf("Killing %s", orderer.Name))
-			ordererProcesses[2].Signal(syscall.SIGTERM)
-			Eventually(ordererProcesses[2].Wait(), network.EventuallyTimeout).Should(Receive())
-
-			orderer = network.Orderers[3]
-			By(fmt.Sprintf("Killing %s", orderer.Name))
-			ordererProcesses[3].Signal(syscall.SIGTERM)
-			Eventually(ordererProcesses[3].Wait(), network.EventuallyTimeout).Should(Receive())
+			for i := 2; i <= 3; i++ {
+				orderer := network.Orderers[i]
+				By(fmt.Sprintf("Killing %s", orderer.Name))
+				ordererProcesses[i].Signal(syscall.SIGTERM)
+				Eventually(ordererProcesses[i].Wait(), network.EventuallyTimeout).Should(Receive())
+			}
 
 			channel := "testchannel1"
 			By("Creating and joining  testchannel1")
@@ -1128,34 +1125,26 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(ordererRunners[0].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("1 got message from 2: prepare"))
 			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("2 got message from 1: prepare"))
 
-			orderer = network.Orderers[2]
-			By(fmt.Sprintf("Launching %s", orderer.Name))
-			runner := network.OrdererRunner(orderer)
-			runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
-			ordererRunners[2] = runner
-			proc := ifrit.Invoke(runner)
-			ordererProcesses[2] = proc
-			Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
-
-			orderer = network.Orderers[3]
-			By(fmt.Sprintf("Launching %s", orderer.Name))
-			runner = network.OrdererRunner(orderer)
-			runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
-			ordererRunners[3] = runner
-			proc = ifrit.Invoke(runner)
-			ordererProcesses[3] = proc
-			Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			for i := 2; i <= 3; i++ {
+				orderer := network.Orderers[i]
+				By(fmt.Sprintf("Launching %s", orderer.Name))
+				runner := network.OrdererRunner(orderer)
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
+				ordererRunners[i] = runner
+				proc := ifrit.Invoke(runner)
+				ordererProcesses[i] = proc
+				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			}
 
 			Eventually(ordererRunners[0].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Changing to follower role, current view: 1, current leader: 2 channel=systemchannel"))
 			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Changing to leader role, current view: 1, current leader: 2 channel=systemchannel"))
 			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("HandleRequest from 1 channel=systemchannel"))
 			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Proposing proposal sequence 1 in view 1 channel=systemchannel"))
 
-			Eventually(ordererRunners[0].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
-			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
-			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
-			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
-
+			for i := 0; i <= 3; i++ {
+				Eventually(ordererRunners[i].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
+			}
+			
 			if len(peers) != 0 {
 				network.JoinChannel(channel, network.Orderers[0], peers...)
 			}
