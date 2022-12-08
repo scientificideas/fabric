@@ -1144,7 +1144,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			for i := 0; i <= 3; i++ {
 				Eventually(ordererRunners[i].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
 			}
-			
+
 			if len(peers) != 0 {
 				network.JoinChannel(channel, network.Orderers[0], peers...)
 			}
