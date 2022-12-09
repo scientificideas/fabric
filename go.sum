@@ -512,8 +512,8 @@ github.com/rogpeppe/go-internal v1.6.1/go.mod h1:xXDCJY+GAPziupqXw64V24skbSoqbTE
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
-github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c h1:Msxp+Zt/7y7XBsIo86jY6dx7gFe7Ny8BpLrYFo8v0TU=
-github.com/scientificideas/consensus v0.0.0-20220421192645-f6b79c2a721c/go.mod h1:gj3iD1/lz06pMRrGOLvzpqVtLUfgBBCzzyAt9TsDtgg=
+github.com/scientificideas/consensus v0.0.0-20221209072047-33de7a60b21e h1:Om390n5SUSZVFK47HUiRTs6pGPsalqVJ1/pEtSdnWlI=
+github.com/scientificideas/consensus v0.0.0-20221209072047-33de7a60b21e/go.mod h1:gj3iD1/lz06pMRrGOLvzpqVtLUfgBBCzzyAt9TsDtgg=
 github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26 h1:5Yl/L9TbOzcSrp6bCyYTmtmB7GnS8GOUJVLqAhPcWQo=
 github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26/go.mod h1:w3A6ezMvoMjxujiCifTvB32ABUlChvnUii48voxD30g=
 github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73 h1:REK10s1SuyFbiJynrQ94XuxZkD1s8qJSC4yFuKMrU48=
