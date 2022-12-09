@@ -10,12 +10,7 @@
 package smartbft
 
 import (
-	"archive/tar"
-	"bytes"
-	"compress/gzip"
-	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -88,7 +83,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			ordererInstance.Signal(syscall.SIGTERM)
 			Eventually(ordererInstance.Wait(), network.EventuallyTimeout).Should(Receive())
 		}
-		os.RemoveAll(testDir)
+		_ = os.RemoveAll(testDir)
 	})
 
 	Describe("smartbft network", func() {
@@ -640,7 +635,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			// Drain the buffer
 			n := len(orderer5Runner.Err().Contents())
-			orderer5Runner.Err().Read(make([]byte, n))
+			_, _ = orderer5Runner.Err().Read(make([]byte, n))
 
 			By("Adding back the node to the application channel")
 			nwo.UpdateSmartBFTMetadata(network, peer, network.Orderers[2], channel, func(md *smartbft.ConfigMetadata) {
@@ -718,7 +713,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			assertBlockValidationPolicy(network, peer, network.Orderers[0], channel, common.Policy_IMPLICIT_ORDERER)
 
 			for i := 0; i < 6; i++ {
-				fmt.Fprintf(GinkgoWriter, "adding orderer %d", i+5)
+				_, _ = fmt.Fprintf(GinkgoWriter, "adding orderer %d", i+5)
 
 				name := fmt.Sprintf("orderer%d", i+5)
 
@@ -783,7 +778,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 				Expect(err).NotTo(HaveOccurred())
 
-				fmt.Fprintf(GinkgoWriter, "Launching orderer %d", 5+i)
+				_, _ = fmt.Fprintf(GinkgoWriter, "Launching orderer %d", 5+i)
 				runner := network.OrdererRunner(newOrderer)
 				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.common.cluster=debug:orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
 				ordererRunners = append(ordererRunners, runner)
@@ -1085,6 +1080,88 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Skipping verifying prev commits due to verification sequence advancing from 1 to 2 channel=testchannel1"))
 			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Skipping verifying prev commits due to verification sequence advancing from 1 to 2 channel=testchannel1"))
 		})
+
+		It("smartbft the leader froze, waiting for an answer", func() {
+			var ordererRunners []*ginkgomon.Runner
+			for _, orderer := range network.Orderers {
+				runner := network.OrdererRunner(orderer)
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
+				ordererRunners = append(ordererRunners, runner)
+				proc := ifrit.Invoke(runner)
+				ordererProcesses = append(ordererProcesses, proc)
+				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			}
+
+			peerGroupRunner, _ := peerGroupRunners(network) // peerRunners
+			peerProcesses = ifrit.Invoke(peerGroupRunner)
+			Eventually(peerProcesses.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			peer := network.Peer("Org1", "peer0")
+
+			assertBlockReception(map[string]int{"systemchannel": 0}, network.Orderers, peer, network)
+			By("check block validation policy on system channel")
+			assertBlockValidationPolicy(network, peer, network.Orderers[0], "systemchannel", common.Policy_IMPLICIT_ORDERER)
+
+			By("Waiting for followers to see the leader")
+			for i := 1; i <= 3; i++ {
+				Eventually(ordererRunners[i].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+			}
+
+			for i := 2; i <= 3; i++ {
+				orderer := network.Orderers[i]
+				By(fmt.Sprintf("Killing %s", orderer.Name))
+				ordererProcesses[i].Signal(syscall.SIGTERM)
+				Eventually(ordererProcesses[i].Wait(), network.EventuallyTimeout).Should(Receive())
+			}
+
+			channel := "testchannel1"
+			By("Creating and joining  testchannel1")
+
+			peers := network.PeersWithChannel(channel)
+			if len(peers) != 0 {
+				exitCode := network.CreateChannelExitCode(channel, network.Orderers[0], peers[0])
+				Expect(exitCode).NotTo(Equal(0))
+			}
+
+			Eventually(ordererRunners[0].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("1 got message from 2: prepare"))
+			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("2 got message from 1: prepare"))
+
+			for i := 2; i <= 3; i++ {
+				orderer := network.Orderers[i]
+				By(fmt.Sprintf("Launching %s", orderer.Name))
+				runner := network.OrdererRunner(orderer)
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.consensus.smartbft=debug:grpc=debug")
+				ordererRunners[i] = runner
+				proc := ifrit.Invoke(runner)
+				ordererProcesses[i] = proc
+				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			}
+
+			Eventually(ordererRunners[0].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Changing to follower role, current view: 1, current leader: 2 channel=systemchannel"))
+			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Changing to leader role, current view: 1, current leader: 2 channel=systemchannel"))
+			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("HandleRequest from 1 channel=systemchannel"))
+			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Proposing proposal sequence 1 in view 1 channel=systemchannel"))
+
+			for i := 0; i <= 3; i++ {
+				Eventually(ordererRunners[i].Err(), network.EventuallyTimeout*2, time.Second).Should(gbytes.Say("Sequence: 1-->2 channel=systemchannel"))
+			}
+
+			if len(peers) != 0 {
+				network.JoinChannel(channel, network.Orderers[0], peers...)
+			}
+
+			By("deploy chaincode")
+			assertBlockReception(map[string]int{"systemchannel": 1}, network.Orderers, peer, network)
+
+			nwo.DeployChaincodeLegacy(network, channel, network.Orderers[0], nwo.Chaincode{
+				Name:    "mycc",
+				Version: "0.0",
+				Path:    "github.com/hyperledger/fabric/integration/chaincode/simple/cmd",
+				Ctor:    `{"Args":["init","a","100","b","200"]}`,
+				Policy:  `AND ('Org1MSP.member','Org2MSP.member')`,
+			})
+
+			assertBlockReception(map[string]int{"testchannel1": 1}, network.Orderers, peer, network)
+		})
 	})
 })
 
@@ -1182,7 +1259,7 @@ func assertBlockValidationPolicy(network *nwo.Network, peer *nwo.Peer, orderer *
 }
 
 func peerGroupRunners(n *nwo.Network) (ifrit.Runner, []*ginkgomon.Runner) {
-	runners := []*ginkgomon.Runner{}
+	var runners []*ginkgomon.Runner
 	members := grouper.Members{}
 	for _, p := range n.Peers {
 		runner := n.PeerRunner(p)
@@ -1190,43 +1267,4 @@ func peerGroupRunners(n *nwo.Network) (ifrit.Runner, []*ginkgomon.Runner) {
 		runners = append(runners, runner)
 	}
 	return grouper.NewParallel(syscall.SIGTERM, members), runners
-}
-
-func extractTarGZ(archive []byte, baseDir string) error {
-	gzReader, err := gzip.NewReader(bytes.NewBuffer(archive))
-	if err != nil {
-		return err
-	}
-
-	tarReader := tar.NewReader(gzReader)
-
-	for {
-		header, err := tarReader.Next()
-		if errors.Is(err, io.EOF) {
-			break
-		}
-
-		if err != nil {
-			return err
-		}
-
-		filePath := filepath.Join(baseDir, header.Name)
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if err := os.Mkdir(filePath, 0o755); err != nil {
-				return err
-			}
-		case tar.TypeReg:
-			fd, err := os.Create(filePath)
-			if err != nil {
-				return err
-			}
-			_, err = io.Copy(fd, tarReader)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
