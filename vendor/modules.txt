@@ -59,7 +59,7 @@ github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
 # github.com/Shopify/toxiproxy v2.1.4+incompatible
 ## explicit
-# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/scientificideas/consensus v0.0.0-20220928112448-19e1134d6ac3
+# github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b => github.com/scientificideas/consensus v0.0.0-20221209072047-33de7a60b21e
 ## explicit
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
@@ -597,7 +597,7 @@ gopkg.in/tomb.v1
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20220928112448-19e1134d6ac3
+# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20221209072047-33de7a60b21e
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20220722214515-fd27d52dbd18
