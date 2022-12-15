@@ -225,7 +225,6 @@ tools: $(TOOLS_EXES)
 $(RELEASE_EXES): %: $(BUILD_DIR)/bin/%
 
 $(BUILD_DIR)/bin/%: GO_LDFLAGS = $(METADATA_VAR:%=-X $(PKGNAME)/common/metadata.%)
-$(BUILD_DIR)/bin/%: GO_LDFLAGS += -w -extldflags '-static'
 $(BUILD_DIR)/bin/%:
 	@echo "Building $@"
 	@mkdir -p $(@D)
@@ -251,6 +250,8 @@ $(BUILD_DIR)/images/%/$(DUMMY):
 		--build-arg GO_VER=$(GO_VER) \
 		--build-arg ALPINE_VER=$(ALPINE_VER) \
 		--build-arg FABRIC_VER=$(FABRIC_VER) \
+		--build-arg TARGETARCH=$(ARCH) \
+		--build-arg TARGETOS=linux \
 		$(BUILD_ARGS) \
 		-t $(DOCKER_NS)/fabric-$* ./$(BUILD_CONTEXT)
 	@touch $@
@@ -354,7 +355,7 @@ ccaasbuilder-clean/%:
 
 .PHONY: ccaasbuilder
 ccaasbuilder/%: ccaasbuilder-clean
-	$(eval platform = $(patsubst ccaasbuilder/%,%,$@) ) 
+	$(eval platform = $(patsubst ccaasbuilder/%,%,$@) )
 	$(eval GOOS = $(word 1,$(subst -, ,$(platform))))
 	$(eval GOARCH = $(word 2,$(subst -, ,$(platform))))
 	@mkdir -p release/$(strip $(platform))/builders/ccaas/bin
