@@ -80,7 +80,7 @@ METADATA_VAR += CommitSHA=$(EXTRA_VERSION)
 METADATA_VAR += BaseDockerLabel=$(BASE_DOCKER_LABEL)
 METADATA_VAR += DockerNamespace=$(DOCKER_NS)
 
-GO_VER = 1.18.7
+GO_VER = 1.18.9
 GO_TAGS ?=
 
 RELEASE_EXES = orderer $(TOOLS_EXES)
@@ -364,3 +364,10 @@ ccaasbuilder/%: ccaasbuilder-clean
 	cd ccaas_builder && go test -v ./cmd/release && GOOS=$(GOOS) GOARCH=$(GOARCH) go build -buildvcs=false -o ../release/$(strip $(platform))/builders/ccaas/bin/ ./cmd/release/
 
 ccaasbuilder: ccaasbuilder/$(MARCH)
+
+.PHONY: scan
+scan: scan-govulncheck
+
+.PHONY: scan-govulncheck
+scan-govulncheck: gotool.govulncheck
+	govulncheck ./...
