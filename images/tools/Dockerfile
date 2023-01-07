@@ -51,13 +51,26 @@ ARG UBUNTU_VER
 FROM ubuntu:${UBUNTU_VER}
 
 ARG FABRIC_VER
+ARG YUBIHSM_VERSION="2022-06-ubuntu2004"
+ARG YUBIHSM_PACKAGE_VERSION="2.3.2"
 
 RUN apt update && apt install -y \
     bash \
     curl \
     jq \
     tzdata \
-	softhsm
+    libusb-1.0-0 \
+    softhsm && \
+    cd /tmp && \
+    curl -LO https://developers.yubico.com/YubiHSM2/Releases/yubihsm2-sdk-${YUBIHSM_VERSION}-amd64.tar.gz && \
+    tar xzf yubihsm2-sdk-${YUBIHSM_VERSION}-amd64.tar.gz && \
+    cd /tmp/yubihsm2-sdk && \
+    dpkg -i libyubihsm-http1_${YUBIHSM_PACKAGE_VERSION}_amd64.deb \
+    libyubihsm-usb1_${YUBIHSM_PACKAGE_VERSION}_amd64.deb \
+    libyubihsm1_${YUBIHSM_PACKAGE_VERSION}_amd64.deb \
+    yubihsm-pkcs11_${YUBIHSM_PACKAGE_VERSION}_amd64.deb && \
+    cd / && \
+    rm -rf tmp/yubihsm2-sdk-${YUBIHSM_VERSION}-amd64.tar.gz tmp/yubihsm2-sdk /var/lib/apt/lists/*
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # - https://github.com/golang/go/blob/go1.9.1/src/net/conf.go#L194-L275
