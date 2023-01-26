@@ -47,7 +47,7 @@
 #   - verify - runs unit tests for only the changed package tree
 
 UBUNTU_VER ?= 20.04
-FABRIC_VER ?= 2.5.0
+FABRIC_VER ?= 2.5.0-beta
 
 # 3rd party image version
 # These versions are also set in the runners in ./integration/runners/
@@ -80,7 +80,7 @@ METADATA_VAR += CommitSHA=$(EXTRA_VERSION)
 METADATA_VAR += BaseDockerLabel=$(BASE_DOCKER_LABEL)
 METADATA_VAR += DockerNamespace=$(DOCKER_NS)
 
-GO_VER = 1.18.9
+GO_VER = 1.18.10
 GO_TAGS ?=
 
 RELEASE_EXES = orderer $(TOOLS_EXES)

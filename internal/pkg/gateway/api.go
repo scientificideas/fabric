@@ -314,7 +314,7 @@ func (gs *Server) planFromFirstEndorser(ctx context.Context, channel string, cha
 		}()
 		select {
 		case <-done:
-			// Endorser completedLayout normally
+			// Endorser completed normally
 		case <-ctx.Done():
 			// Overall endorsement timeout expired
 			logger.Warn("Endorse call timed out while collecting first endorsement")
@@ -431,11 +431,30 @@ func (gs *Server) Submit(ctx context.Context, request *gp.SubmitRequest) (*gp.Su
 	var errDetails []proto.Message
 	for _, index := range rand.Perm(len(orderers)) {
 		orderer := orderers[index]
-		logger.Infow("Sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.address)
-		response, err := gs.broadcast(ctx, orderer, txn)
+		logger.Infow("Sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.logAddress)
+
+		var response *ab.BroadcastResponse
+		var err error
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			ctx, cancel := context.WithTimeout(ctx, gs.options.BroadcastTimeout)
+			defer cancel()
+
+			response, err = gs.broadcast(ctx, orderer, txn)
+		}()
+		select {
+		case <-done:
+			// Broadcast completed normally
+		case <-ctx.Done():
+			// Overall submit timeout expired
+			logger.Warn("Submit call timed out while broadcasting to ordering service")
+			return nil, newRpcError(codes.DeadlineExceeded, "submit timeout expired while broadcasting to ordering service")
+		}
+
 		if err != nil {
 			errDetails = append(errDetails, errorDetail(orderer.endpointConfig, err.Error()))
-			logger.Warnw("Error sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.address, "err", err)
+			logger.Warnw("Error sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.logAddress, "err", err)
 			continue
 		}
 
@@ -444,7 +463,7 @@ func (gs *Server) Submit(ctx context.Context, request *gp.SubmitRequest) (*gp.Su
 			return &gp.SubmitResponse{}, nil
 		}
 
-		logger.Warnw("Unsuccessful response sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.address, "status", status, "info", response.GetInfo())
+		logger.Warnw("Unsuccessful response sending transaction to orderer", "txID", request.TransactionId, "endpoint", orderer.logAddress, "status", status, "info", response.GetInfo())
 
 		if status >= 400 && status < 500 {
 			// client error - don't retry
