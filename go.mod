@@ -121,7 +121,7 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20221209072047-33de7a60b21e
+	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230127183037-862b2d134218
 	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./
