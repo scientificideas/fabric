@@ -89,6 +89,7 @@ func (ef *endpointFactory) newOrderer(address, mspid string, tlsRootCerts [][]by
 		connAddress = override.Address
 		connCerts = override.RootCerts
 		logAddess = fmt.Sprintf("%s (mapped from %s)", connAddress, address)
+		logger.Debugw("Overriding orderer endpoint address", "from", address, "to", connAddress)
 	}
 	conn, err := ef.newConnection(connAddress, connCerts)
 	if err != nil {
@@ -114,7 +115,8 @@ func (ef *endpointFactory) newConnection(address string, tlsRootCerts [][]byte) 
 			Certificate:       ef.clientCert,
 			Key:               ef.clientKey,
 		},
-		DialTimeout: ef.timeout,
+		DialTimeout:  ef.timeout,
+		AsyncConnect: true,
 	}
 	dialOpts, err := config.DialOptions()
 	if err != nil {
