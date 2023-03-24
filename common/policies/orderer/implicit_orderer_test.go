@@ -12,14 +12,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hyperledger/fabric/protoutil"
-
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	protosmsp "github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/policies/orderer/mocks"
 	"github.com/hyperledger/fabric/msp"
+	"github.com/hyperledger/fabric/protoutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
