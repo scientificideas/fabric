@@ -9,17 +9,16 @@ package orderer
 import (
 	"math"
 
-	"github.com/hyperledger/fabric/common/crypto"
-	"github.com/hyperledger/fabric/common/policydsl"
-	"github.com/hyperledger/fabric/protoutil"
-
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	protossmartbft "github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/cauthdsl"
+	"github.com/hyperledger/fabric/common/crypto"
 	"github.com/hyperledger/fabric/common/flogging"
 	"github.com/hyperledger/fabric/common/policies"
+	"github.com/hyperledger/fabric/common/policydsl"
 	"github.com/hyperledger/fabric/msp"
+	"github.com/hyperledger/fabric/protoutil"
 	"github.com/pkg/errors"
 )
 
@@ -140,9 +139,12 @@ func (ip *implicitBFTPolicy) EvaluateIdentities(identities []msp.Identity) error
 //
 // The calculation satisfies the following:
 // Given a cluster size of N nodes, which tolerates f failures according to:
-//    f = argmax ( N >= 3f+1 )
+//
+//	f = argmax ( N >= 3f+1 )
+//
 // Q is the size of the quorum such that:
-//    any two subsets q1, q2 of size Q, intersect in at least f+1 nodes.
+//
+//	any two subsets q1, q2 of size Q, intersect in at least f+1 nodes.
 //
 // Note that this is different from N-f (the number of correct nodes), when N=3f+3. That is, we have two extra nodes
 // above the minimum required to tolerate f failures.
