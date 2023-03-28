@@ -50,8 +50,8 @@ require (
 )
 
 require (
-	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
 	google.golang.org/protobuf v1.28.1
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 )
 
 require (
@@ -117,7 +117,6 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20220718134204-073382fd740c // indirect
-	google.golang.org/protobuf v1.28.1
 	gopkg.in/ini.v1 v1.51.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
