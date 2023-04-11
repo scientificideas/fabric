@@ -7,7 +7,7 @@ require (
 	github.com/IBM/idemix v0.0.0-20220112103229-701e7610d405
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/Shopify/sarama v1.20.1
-	github.com/SmartBFT-Go/consensus v0.0.0-20220105122543-57ed2ce2c73b
+	github.com/SmartBFT-Go/consensus v0.0.0-20230411100138-fb8a5ef4ee2b
 	github.com/VictoriaMetrics/fastcache v1.9.0
 	github.com/bits-and-blooms/bitset v1.2.1
 	github.com/cheggaaa/pb v1.0.29
@@ -122,7 +122,6 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230127183037-862b2d134218
 	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./
