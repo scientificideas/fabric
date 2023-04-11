@@ -483,7 +483,7 @@ func TestVerifyProposal(t *testing.T) {
 				return protoutil.MarshalOrPanic(&smartbftprotos.ViewMetadata{LatestSequence: 100, ViewId: 2})
 			},
 			ordererBlockMetadataMutator: noopOrdererBlockMetadataMutator,
-			expectedErr:                 "expected metadata in block to be view_id:2 latest_sequence:100  but got view_id:2 latest_sequence:1 ",
+			expectedErr:                 "expected metadata in block to be view_id:2 latest_sequence:100 but got view_id:2 latest_sequence:1 ",
 		},
 		{
 			description:          "No last config",
