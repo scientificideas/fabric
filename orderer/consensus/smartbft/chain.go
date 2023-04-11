@@ -230,7 +230,7 @@ func bftSmartConsensusBuild(
 				return c.RuntimeConfig.Load().(RuntimeConfig).LastConfigBlock.Header.Number
 			},
 		},
-		Metadata:          *latestMetadata,
+		Metadata:          latestMetadata,
 		WAL:               consensusWAL,
 		WALInitialContent: walInitState, // Read from WAL entries
 		Application:       c,
