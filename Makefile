@@ -247,11 +247,11 @@ $(BUILD_DIR)/images/%/$(DUMMY):
 	@echo "Building Docker image $(DOCKER_NS)/fabric-$*"
 	@mkdir -p $(@D)
 	$(DBUILD) -f images/$*/Dockerfile \
+		--platform linux/$(ARCH) \
+		--load \
 		--build-arg GO_VER=$(GO_VER) \
 		--build-arg UBUNTU_VER=$(UBUNTU_VER) \
 		--build-arg FABRIC_VER=$(FABRIC_VER) \
-		--build-arg TARGETARCH=$(ARCH) \
-		--build-arg TARGETOS=linux \
 		$(BUILD_ARGS) \
 		-t $(DOCKER_NS)/fabric-$* ./$(BUILD_CONTEXT)
 	@touch $@
