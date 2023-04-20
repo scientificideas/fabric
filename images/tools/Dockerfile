@@ -50,7 +50,10 @@ RUN make tools GO_TAGS=${GO_TAGS} FABRIC_VER=${FABRIC_VER}
 ARG UBUNTU_VER
 FROM ubuntu:${UBUNTU_VER}
 
+ARG TARGETARCH
+ARG TARGETOS
 ARG FABRIC_VER
+ARG GO_VER
 ARG YUBIHSM_VERSION="2022-06-ubuntu2004"
 ARG YUBIHSM_PACKAGE_VERSION="2.3.2"
 
@@ -83,6 +86,9 @@ RUN \
     libusb-1.0-0 \
     softhsm ; \
     fi
+
+RUN curl -sL https://go.dev/dl/go${GO_VER}.${TARGETOS}-${TARGETARCH}.tar.gz | tar zxvf - -C /usr/local
+ENV PATH="/usr/local/go/bin:$PATH"
 
 # set up nsswitch.conf for Go's "netgo" implementation
 # - https://github.com/golang/go/blob/go1.9.1/src/net/conf.go#L194-L275
