@@ -16,6 +16,7 @@ import (
 	"sync"
 
 	"github.com/SmartBFT-Go/consensus/pkg/api"
+	"github.com/SmartBFT-Go/consensus/pkg/metrics/disabled"
 	protos "github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -80,7 +81,8 @@ type WriteAheadLogFile struct {
 	dirName string
 	options *Options
 
-	logger api.Logger
+	logger  api.Logger
+	metrics *Metrics
 
 	mutex         sync.Mutex
 	dirFile       *os.File
@@ -97,6 +99,7 @@ type WriteAheadLogFile struct {
 type Options struct {
 	FileSizeBytes   int64
 	BufferSizeBytes int64
+	MetricsProvider *api.CustomerProvider
 }
 
 // DefaultOptions returns the set of default options.
@@ -104,6 +107,7 @@ func DefaultOptions() *Options {
 	return &Options{
 		FileSizeBytes:   FileSizeBytesDefault,
 		BufferSizeBytes: BufferSizeBytesDefault,
+		MetricsProvider: api.NewCustomerProvider(&disabled.Provider{}),
 	}
 }
 
@@ -129,7 +133,15 @@ func Create(logger api.Logger, dirPath string, options *Options) (*WriteAheadLog
 
 	opt := DefaultOptions()
 	if options != nil {
-		opt = options
+		if options.MetricsProvider != nil {
+			opt.MetricsProvider = options.MetricsProvider
+		}
+		if options.FileSizeBytes != 0 {
+			opt.FileSizeBytes = options.FileSizeBytes
+		}
+		if options.BufferSizeBytes != 0 {
+			opt.BufferSizeBytes = options.BufferSizeBytes
+		}
 	}
 
 	// TODO BACKLOG: create the directory & file atomically by creation in a temp dir and renaming
@@ -144,6 +156,7 @@ func Create(logger api.Logger, dirPath string, options *Options) (*WriteAheadLog
 		dirName:       cleanDirName,
 		options:       opt,
 		logger:        logger,
+		metrics:       NewMetrics(opt.MetricsProvider),
 		index:         1,
 		headerBuff:    make([]byte, 8),
 		dataBuff:      proto.NewBuffer(make([]byte, opt.BufferSizeBytes)),
@@ -151,6 +164,7 @@ func Create(logger api.Logger, dirPath string, options *Options) (*WriteAheadLog
 		truncateIndex: 1,
 		activeIndexes: []uint64{1},
 	}
+	wal.metrics.CountOfFiles.Set(float64(len(wal.activeIndexes)))
 
 	wal.dirFile, err = os.Open(cleanDirName)
 	if err != nil {
@@ -207,7 +221,15 @@ func Open(logger api.Logger, dirPath string, options *Options) (*WriteAheadLogFi
 
 	opt := DefaultOptions()
 	if options != nil {
-		opt = options
+		if options.MetricsProvider != nil {
+			opt.MetricsProvider = options.MetricsProvider
+		}
+		if options.FileSizeBytes != 0 {
+			opt.FileSizeBytes = options.FileSizeBytes
+		}
+		if options.BufferSizeBytes != 0 {
+			opt.BufferSizeBytes = options.BufferSizeBytes
+		}
 	}
 
 	cleanDirName := filepath.Clean(dirPath)
@@ -216,6 +238,7 @@ func Open(logger api.Logger, dirPath string, options *Options) (*WriteAheadLogFi
 		dirName:    cleanDirName,
 		options:    opt,
 		logger:     logger,
+		metrics:    NewMetrics(opt.MetricsProvider),
 		headerBuff: make([]byte, 8),
 		dataBuff:   proto.NewBuffer(make([]byte, opt.BufferSizeBytes)),
 		readMode:   true,
@@ -231,10 +254,12 @@ func Open(logger api.Logger, dirPath string, options *Options) (*WriteAheadLogFi
 	// After the check we have an increasing, continuous sequence, with valid CRC-Anchors in each file.
 	wal.activeIndexes, err = checkWalFiles(logger, dirPath, walNames)
 	if err != nil {
+		wal.metrics.CountOfFiles.Set(float64(len(wal.activeIndexes)))
 		_ = wal.Close()
 
 		return nil, err
 	}
+	wal.metrics.CountOfFiles.Set(float64(len(wal.activeIndexes)))
 
 	wal.index, err = parseWalFileName(walNames[0]) // first valid file
 	if err != nil {
@@ -656,6 +681,7 @@ func (w *WriteAheadLogFile) deleteAndCreateFile() error {
 		}
 
 		w.activeIndexes = w.activeIndexes[j+1:]
+		w.metrics.CountOfFiles.Set(float64(len(w.activeIndexes)))
 	}
 
 	w.logger.Debugf("Creating log file: %s", nextFileName)
@@ -674,6 +700,7 @@ func (w *WriteAheadLogFile) deleteAndCreateFile() error {
 	}
 
 	w.activeIndexes = append(w.activeIndexes, w.index)
+	w.metrics.CountOfFiles.Set(float64(len(w.activeIndexes)))
 
 	return nil
 }

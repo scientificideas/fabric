@@ -80,6 +80,7 @@ type Consenter struct {
 	Conf                  *localconfig.TopLevel
 	Metrics               *Metrics
 	BCCSP                 bccsp.BCCSP
+	MetricsProvider       metrics.Provider
 }
 
 // New creates Consenter of type smart bft
@@ -121,6 +122,7 @@ func New(
 		Metrics:               NewMetrics(metricsProvider),
 		CreateChain:           r.CreateChain,
 		BCCSP:                 BCCSP,
+		MetricsProvider:       metricsProvider,
 	}
 
 	compareCert := cluster.CachePublicKeyComparisons(func(a, b []byte) bool {
@@ -222,7 +224,7 @@ func (c *Consenter) HandleChain(support consensus.ConsenterSupport, metadata *cb
 		Logger:                 c.Logger,
 	}
 
-	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics, c.BCCSP)
+	chain, err := NewChain(configValidator, selfID, config, path.Join(c.WALBaseDir, support.ChannelID()), puller, c.Comm, c.SignerSerializer, c.GetPolicyManager(support.ChannelID()), support, c.Metrics, c.BCCSP, c.MetricsProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed creating a new BFTChain")
 	}
