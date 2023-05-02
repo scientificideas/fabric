@@ -7,7 +7,7 @@ require (
 	github.com/IBM/idemix v0.0.0-20220112103229-701e7610d405
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/Shopify/sarama v1.20.1
-	github.com/SmartBFT-Go/consensus v0.0.0-20230430133422-4dca5ba006ee
+	github.com/SmartBFT-Go/consensus v0.0.0-20230502095232-d9c7ece85325
 	github.com/VictoriaMetrics/fastcache v1.9.0
 	github.com/bits-and-blooms/bitset v1.2.1
 	github.com/cheggaaa/pb v1.0.29

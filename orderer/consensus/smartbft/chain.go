@@ -24,7 +24,6 @@ import (
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/bccsp"
 	"github.com/hyperledger/fabric/common/flogging"
-	"github.com/hyperledger/fabric/common/metrics"
 	"github.com/hyperledger/fabric/common/policies"
 	"github.com/hyperledger/fabric/orderer/common/cluster"
 	"github.com/hyperledger/fabric/orderer/common/msgprocessor"
@@ -81,6 +80,8 @@ type BFTChain struct {
 	verifier         *Verifier
 	assembler        *Assembler
 	Metrics          *Metrics
+	MetricsBFT       *api.Metrics
+	MetricsWalBFT    *wal.Metrics
 	bccsp            bccsp.BCCSP
 
 	statusReportMutex sync.Mutex
@@ -100,8 +101,9 @@ func NewChain(
 	policyManager policies.Manager,
 	support consensus.ConsenterSupport,
 	metrics *Metrics,
+	metricsBFT *api.Metrics,
+	metricsWalBFT *wal.Metrics,
 	bccsp bccsp.BCCSP,
-	metricsProvider metrics.Provider,
 ) (*BFTChain, error) {
 	requestInspector := &RequestInspector{
 		ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
@@ -130,7 +132,9 @@ func NewChain(
 			IsLeader:             metrics.IsLeader.With("channel", support.ChannelID()),
 			LeaderID:             metrics.LeaderID.With("channel", support.ChannelID()),
 		},
-		bccsp: bccsp,
+		MetricsBFT:    metricsBFT.With("channel", support.ChannelID()),
+		MetricsWalBFT: metricsWalBFT.With("channel", support.ChannelID()),
+		bccsp:         bccsp,
 	}
 
 	lastBlock := LastBlockFromLedgerOrPanic(support, c.Logger)
@@ -152,7 +156,7 @@ func NewChain(
 	c.RuntimeConfig.Store(rtc)
 
 	c.verifier = buildVerifier(cv, c.RuntimeConfig, support, requestInspector, policyManager)
-	c.consensus = bftSmartConsensusBuild(c, requestInspector, metricsProvider)
+	c.consensus = bftSmartConsensusBuild(c, requestInspector)
 
 	// Setup communication with list of remotes notes for the new channel
 	c.Comm.Configure(c.support.ChannelID(), rtc.RemoteNodes)
@@ -169,7 +173,6 @@ func NewChain(
 func bftSmartConsensusBuild(
 	c *BFTChain,
 	requestInspector *RequestInspector,
-	metricsProvider metrics.Provider,
 ) *smartbft.Consensus {
 	var err error
 
@@ -185,8 +188,7 @@ func bftSmartConsensusBuild(
 
 	c.Logger.Infof("Initializing a WAL for chain %s, on dir: %s", c.support.ChannelID(), c.WALDir)
 	opt := wal.DefaultOptions()
-	met := api.NewCustomerProvider(&MetricProviderConverter{metricsProvider: metricsProvider}, "channel", c.Channel)
-	opt.MetricsProvider = met
+	opt.Metrics = c.MetricsWalBFT
 	consensusWAL, walInitState, err = wal.InitializeAndReadAll(c.Logger, c.WALDir, opt)
 	if err != nil {
 		c.Logger.Panicf("failed to initialize a WAL for chain %s, err %s", c.support.ChannelID(), err)
@@ -237,7 +239,7 @@ func bftSmartConsensusBuild(
 				return c.RuntimeConfig.Load().(RuntimeConfig).LastConfigBlock.Header.Number
 			},
 		},
-		MetricsProvider:   met,
+		Metrics:           c.MetricsBFT,
 		Metadata:          latestMetadata,
 		WAL:               consensusWAL,
 		WALInitialContent: walInitState, // Read from WAL entries
