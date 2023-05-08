@@ -63,7 +63,7 @@ github.com/Microsoft/hcsshim/osversion
 ## explicit
 github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
-# github.com/SmartBFT-Go/consensus v0.0.0-20230502095232-d9c7ece85325
+# github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515
 ## explicit; go 1.20
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api

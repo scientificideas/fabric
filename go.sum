@@ -62,8 +62,8 @@ github.com/Shopify/sarama v1.20.1 h1:Bb0h3I++r4eX333Y0uZV2vwUXepJbt6ig05TUU1qt9I
 github.com/Shopify/sarama v1.20.1/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWsokNbMijUGhmcoBJc=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/SmartBFT-Go/consensus v0.0.0-20230502095232-d9c7ece85325 h1:AkR9WpaVs3TP0rr3aJhnUJ82wCJA8ld0ui4bXUhHBT0=
-github.com/SmartBFT-Go/consensus v0.0.0-20230502095232-d9c7ece85325/go.mod h1:KsqqnNjG+MiuEdm/9ufh5C0oKJqd1rkpQ5S2mYPvVcA=
+github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515 h1:NpAcUbtsr980Dc+GAdgH3g0r4yS2FPvSDlove66otXA=
+github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515/go.mod h1:KsqqnNjG+MiuEdm/9ufh5C0oKJqd1rkpQ5S2mYPvVcA=
 github.com/VictoriaMetrics/fastcache v1.9.0 h1:oMwsS6c8abz98B7ytAewQ7M1ZN/Im/iwKoE1euaFvhs=
 github.com/VictoriaMetrics/fastcache v1.9.0/go.mod h1:otoTS3xu+6IzF/qByjqzjp3rTuzM3Qf0ScU1UTj97iU=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
