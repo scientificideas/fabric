@@ -61,8 +61,9 @@ type CounterConverter struct {
 }
 
 func (c *CounterConverter) With(labelValues ...string) api.Counter {
-	c.counter = c.counter.With(labelValues...)
-	return c
+	return &CounterConverter{
+		counter: c.counter.With(labelValues...),
+	}
 }
 
 func (c *CounterConverter) Add(delta float64) {
@@ -74,8 +75,9 @@ type GaugeConverter struct {
 }
 
 func (g *GaugeConverter) With(labelValues ...string) api.Gauge {
-	g.gauge = g.gauge.With(labelValues...)
-	return g
+	return &GaugeConverter{
+		gauge: g.gauge.With(labelValues...),
+	}
 }
 
 func (g *GaugeConverter) Add(delta float64) {
@@ -91,8 +93,9 @@ type HistogramConverter struct {
 }
 
 func (h *HistogramConverter) With(labelValues ...string) api.Histogram {
-	h.histogram = h.histogram.With(labelValues...)
-	return h
+	return &HistogramConverter{
+		histogram: h.histogram.With(labelValues...),
+	}
 }
 
 func (h *HistogramConverter) Observe(value float64) {
