@@ -14,7 +14,6 @@ import (
 	"github.com/SmartBFT-Go/consensus/smartbftprotos"
 	"github.com/golang/protobuf/proto"
 	cb "github.com/hyperledger/fabric-protos-go/common"
-	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric/common/flogging"
 	mocks2 "github.com/hyperledger/fabric/orderer/consensus/mocks"
 	"github.com/hyperledger/fabric/orderer/consensus/smartbft"
@@ -129,11 +128,6 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
-			RequestInspector: &smartbft.RequestInspector{
-				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
-					return nil
-				},
-			},
 		}
 
 		d := syn.Sync()
@@ -189,11 +183,6 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
-			RequestInspector: &smartbft.RequestInspector{
-				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
-					return nil
-				},
-			},
 		}
 
 		d := syn.Sync()
@@ -248,11 +237,6 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
-			RequestInspector: &smartbft.RequestInspector{
-				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
-					return nil
-				},
-			},
 		}
 
 		d := syn.Sync()
@@ -308,11 +292,6 @@ func TestSynchronizerSync(t *testing.T) {
 			ClusterSize: 4,
 			Support:     fakeCS,
 			OnCommit:    noopUpdateLastHash,
-			RequestInspector: &smartbft.RequestInspector{
-				ValidateIdentityStructure: func(_ *msp.SerializedIdentity) error {
-					return nil
-				},
-			},
 		}
 
 		d := syn.Sync()
