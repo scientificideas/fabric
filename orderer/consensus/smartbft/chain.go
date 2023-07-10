@@ -200,14 +200,13 @@ func bftSmartConsensusBuild(
 	c.Metrics.ClusterSize.Set(float64(clusterSize))
 
 	sync := &Synchronizer{
-		selfID:           rtc.id,
-		BlockToDecision:  c.blockToDecision,
-		OnCommit:         c.updateRuntimeConfig,
-		Support:          c.support,
-		BlockPuller:      c.BlockPuller,
-		ClusterSize:      clusterSize,
-		RequestInspector: requestInspector,
-		Logger:           c.Logger,
+		selfID:          rtc.id,
+		BlockToDecision: c.blockToDecision,
+		OnCommit:        c.updateRuntimeConfig,
+		Support:         c.support,
+		BlockPuller:     c.BlockPuller,
+		ClusterSize:     clusterSize,
+		Logger:          c.Logger,
 		LatestConfig: func() (types.Configuration, []uint64) {
 			rtc := c.RuntimeConfig.Load().(RuntimeConfig)
 			return rtc.BFTConfig, rtc.Nodes
