@@ -63,7 +63,7 @@ github.com/Microsoft/hcsshim/osversion
 ## explicit
 github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
-# github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515
+# github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515 => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
 ## explicit; go 1.20
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
@@ -667,6 +667,7 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73
