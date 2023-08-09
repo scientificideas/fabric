@@ -66,7 +66,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 		fakeDialer.DialStub = func(string, [][]byte) (*grpc.ClientConn, error) {
 			mutex.Lock()
 			defer mutex.Unlock()
-			cc, err := grpc.Dial("", grpc.WithInsecure())
+			cc, err := grpc.Dial("localhost", grpc.WithInsecure())
 			ccs = append(ccs, cc)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(cc.GetState()).NotTo(Equal(connectivity.Shutdown))
@@ -225,7 +225,7 @@ var _ = Describe("BlocksproviderBFT", func() {
 					return nil, fmt.Errorf("fake-dial-error")
 				}
 
-				cc, err := grpc.Dial("", grpc.WithInsecure())
+				cc, err := grpc.Dial("localhost", grpc.WithInsecure())
 				Expect(err).NotTo(HaveOccurred())
 
 				return cc, nil
