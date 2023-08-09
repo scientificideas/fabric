@@ -88,7 +88,7 @@ github.com/beorn7/perks/quantile
 # github.com/bits-and-blooms/bitset v1.2.1
 ## explicit; go 1.14
 github.com/bits-and-blooms/bitset
-# github.com/cespare/xxhash/v2 v2.1.2 => github.com/cespare/xxhash/v2 v2.1.2
+# github.com/cespare/xxhash/v2 v2.2.0
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
 # github.com/cheggaaa/pb v1.0.29
@@ -565,11 +565,11 @@ golang.org/x/tools/internal/gocommand
 golang.org/x/tools/internal/packagesinternal
 golang.org/x/tools/internal/typeparams
 golang.org/x/tools/internal/typesinternal
-# google.golang.org/genproto v0.0.0-20220718134204-073382fd740c
-## explicit; go 1.17
+# google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f
+## explicit; go 1.19
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.48.0
-## explicit; go 1.14
+# google.golang.org/grpc v1.53.0
+## explicit; go 1.17
 google.golang.org/grpc
 google.golang.org/grpc/attributes
 google.golang.org/grpc/backoff
@@ -667,7 +667,10 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+<<<<<<< HEAD
 # github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
 # github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73
+=======
+>>>>>>> release-2.5

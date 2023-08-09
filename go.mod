@@ -19,7 +19,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
 	github.com/hyperledger/fabric-config v0.1.0
 	github.com/hyperledger/fabric-lib-go v1.0.0
 	github.com/hyperledger/fabric-protos-go v0.2.0
@@ -44,13 +43,13 @@ require (
 	go.uber.org/zap v1.19.0
 	golang.org/x/crypto v0.1.0
 	golang.org/x/tools v0.1.12
-	google.golang.org/grpc v1.48.0
+	google.golang.org/grpc v1.53.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
 	google.golang.org/protobuf v1.28.1
 )
 
@@ -63,7 +62,7 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20210912230133-d1bdfacee922 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/consensys/gnark-crypto v0.6.0 // indirect
 	github.com/containerd/cgroups v1.0.3 // indirect
 	github.com/containerd/containerd v1.5.18 // indirect
@@ -110,7 +109,7 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	go.etcd.io/etcd/pkg/v3 v3.5.9 // indirect
 	go.opencensus.io v0.22.4 // indirect
-	go.uber.org/atomic v1.7.0
+	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/net v0.7.0 // indirect
@@ -123,7 +122,6 @@ require (
 
 replace (
 	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
-	github.com/cespare/xxhash/v2 => github.com/cespare/xxhash/v2 v2.1.2 // fix for Go 1.17 in github.com/prometheus/client_golang dependency without updating protobuf
 	// develop
 	//github.com/hyperledger/fabric => ./
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
