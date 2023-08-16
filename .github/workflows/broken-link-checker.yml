@@ -18,7 +18,7 @@ env:
 jobs:
   broken-lint-checker:
     name: "Check for Broken Links"
-    runs-on: fabric-ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Fabric Code
         uses: actions/checkout@v3
