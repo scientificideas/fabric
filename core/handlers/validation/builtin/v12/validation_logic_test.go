@@ -7,7 +7,6 @@ package v12
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -1572,7 +1571,7 @@ var (
 	id      msp.SigningIdentity
 	sid     []byte
 	mspid   string
-	chainId string = "testchannelid"
+	chainId = "testchannelid"
 )
 
 func createCollectionConfig(collectionName string, signaturePolicyEnvelope *common.SignaturePolicyEnvelope,
@@ -1806,7 +1805,7 @@ func TestMain(m *testing.M) {
 	defer func() {
 		os.Exit(code)
 	}()
-	testDir, err := ioutil.TempDir("", "v1.2-validation")
+	testDir, err := os.MkdirTemp("", "v1.2-validation")
 	if err != nil {
 		fmt.Printf("Could not create temp dir: %s", err)
 		return

@@ -10,7 +10,7 @@ import (
 	"os"
 	"sync"
 
-	pb "github.com/cheggaaa/pb"
+	"github.com/cheggaaa/pb"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	ab "github.com/hyperledger/fabric-protos-go/orderer"
 	"github.com/hyperledger/fabric/bccsp/factory"
@@ -20,6 +20,7 @@ import (
 	"github.com/hyperledger/fabric/orderer/common/localconfig"
 	"github.com/hyperledger/fabric/protoutil"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type broadcastClient struct {
@@ -91,7 +92,7 @@ func main() {
 	flag.Uint64Var(&msgSize, "size", 1024, "The size in bytes of the data section for the payload")
 	flag.Parse()
 
-	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer func() {
 		_ = conn.Close()
 	}()
@@ -123,7 +124,7 @@ func main() {
 			}
 
 			s := newBroadcastClient(client, channelID, signer)
-			done := make(chan (struct{}))
+			done := make(chan struct{})
 			go func() {
 				for i := uint64(0); i < msgsPerGo; i++ {
 					err = s.getAck()

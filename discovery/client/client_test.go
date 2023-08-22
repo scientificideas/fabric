@@ -11,8 +11,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
@@ -41,6 +41,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -271,7 +272,7 @@ var (
 )
 
 func loadFileOrPanic(file string) []byte {
-	b, err := ioutil.ReadFile(file)
+	b, err := os.ReadFile(file)
 	if err != nil {
 		panic(err)
 	}
@@ -603,7 +604,7 @@ func TestBadResponses(t *testing.T) {
 	defer svc.shutdown()
 
 	connect := func() (*grpc.ClientConn, error) {
-		return grpc.Dial(fmt.Sprintf("localhost:%d", svc.port), grpc.WithInsecure())
+		return grpc.Dial(fmt.Sprintf("localhost:%d", svc.port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	auth := &discovery.AuthInfo{
@@ -861,8 +862,8 @@ func peerIdentity(mspID string, i int) api.PeerIdentityInfo {
 	}
 	b, _ := proto.Marshal(sID)
 	return api.PeerIdentityInfo{
-		Identity:     api.PeerIdentityType(b),
-		PKIId:        gossipcommon.PKIidType(p),
+		Identity:     b,
+		PKIId:        p,
 		Organization: api.OrgIdentityType(mspID),
 	}
 }

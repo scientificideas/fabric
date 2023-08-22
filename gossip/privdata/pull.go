@@ -470,7 +470,7 @@ func (p *puller) computeFilters(dig2src dig2sources) (digestToFilterMapping, err
 		sources := sources
 		endorserPeer, err := p.PeerFilter(common.ChannelID(p.channel), func(peerSignature api.PeerSignature) bool {
 			for _, endorsement := range sources {
-				if bytes.Equal(endorsement.Endorser, []byte(peerSignature.PeerIdentity)) {
+				if bytes.Equal(endorsement.Endorser, peerSignature.PeerIdentity) {
 					return true
 				}
 			}
@@ -680,9 +680,9 @@ func (p *puller) isEligibleByLatestConfig(channel string, collection string, cha
 }
 
 func randomizeMemberList(members []discovery.NetworkMember) []discovery.NetworkMember {
-	rand.Seed(time.Now().UnixNano())
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	res := make([]discovery.NetworkMember, len(members))
-	for i, j := range rand.Perm(len(members)) {
+	for i, j := range r.Perm(len(members)) {
 		res[i] = members[j]
 	}
 	return res

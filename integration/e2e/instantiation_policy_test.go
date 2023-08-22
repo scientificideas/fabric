@@ -9,14 +9,12 @@ package e2e
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"io/ioutil"
 	"os"
 	"syscall"
 	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset"
@@ -32,6 +30,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ = Describe("InstantiationPolicy", func() {
@@ -45,7 +44,7 @@ var _ = Describe("InstantiationPolicy", func() {
 
 	BeforeEach(func() {
 		var err error
-		testDir, err = ioutil.TempDir("", "e2e")
+		testDir, err = os.MkdirTemp("", "e2e")
 		Expect(err).NotTo(HaveOccurred())
 
 		client, err = docker.NewClientFromEnv()
@@ -193,9 +192,6 @@ func (lo *LSCCOperation) Tx(signer *nwo.SigningIdentity) *common.Envelope {
 	nonce, err := time.Now().MarshalBinary()
 	Expect(err).NotTo(HaveOccurred())
 
-	timestamp, err := ptypes.TimestampProto(time.Now().UTC())
-	Expect(err).NotTo(HaveOccurred())
-
 	hasher := sha256.New()
 	hasher.Write(nonce)
 	hasher.Write(creatorBytes)
@@ -213,7 +209,7 @@ func (lo *LSCCOperation) Tx(signer *nwo.SigningIdentity) *common.Envelope {
 				Name: "lscc",
 			},
 		}),
-		Timestamp: timestamp,
+		Timestamp: timestamppb.Now(),
 		TxId:      txid,
 		Type:      int32(common.HeaderType_ENDORSER_TRANSACTION),
 	})

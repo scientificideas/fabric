@@ -68,8 +68,8 @@ func (c *CouchDB) Run(sigCh <-chan os.Signal, ready chan<- struct{}) error {
 		c.HostIP = "127.0.0.1"
 	}
 
-	if c.ContainerPort == docker.Port("") {
-		c.ContainerPort = docker.Port("5984/tcp")
+	if c.ContainerPort == ("") {
+		c.ContainerPort = "5984/tcp"
 	}
 
 	if c.StartTimeout == 0 {
@@ -120,7 +120,7 @@ func (c *CouchDB) Run(sigCh <-chan os.Signal, ready chan<- struct{}) error {
 	}
 	defer c.Stop()
 
-	container, err = c.Client.InspectContainer(container.ID)
+	container, err = c.Client.InspectContainerWithOptions(docker.InspectContainerOptions{ID: container.ID})
 	if err != nil {
 		return err
 	}

@@ -36,11 +36,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var timeout = time.Second * time.Duration(180)
+var (
+	timeout = time.Second * time.Duration(180)
+	r       *rand.Rand
+)
 
 func TestMain(m *testing.M) {
 	util.SetupTestLogging()
-	rand.Seed(int64(time.Now().Second()))
+	r = rand.New(rand.NewSource(int64(time.Now().Second())))
 	factory.InitFactories(nil)
 	os.Exit(m.Run())
 }
@@ -532,7 +535,7 @@ func TestConnectToAnchorPeers(t *testing.T) {
 	waitUntilOrFailBlocking(t, wg.Wait, "waiting until all peers join the channel")
 
 	// Now start a random anchor peer
-	index := rand.Intn(anchorPeercount)
+	index := r.Intn(anchorPeercount)
 	anchorPeer := newGossipInstanceWithGRPC(index, ports[index], grpcs[index], certs[index], secDialOpts[index], 100)
 	anchorPeer.JoinChan(jcm, common.ChannelID("A"))
 	anchorPeer.UpdateLedgerHeight(1, common.ChannelID("A"))
@@ -1127,7 +1130,7 @@ func TestDataLeakage(t *testing.T) {
 				go func(instanceIndex int, channel common.ChannelID) {
 					incMsgChan, _ := peers[instanceIndex].Accept(acceptData, false)
 					msg := <-incMsgChan
-					require.Equal(t, []byte(channel), []byte(msg.Channel))
+					require.Equal(t, []byte(channel), msg.Channel)
 					wg.Done()
 				}(instanceIndex, channel)
 			}
@@ -1436,7 +1439,7 @@ func TestIdentityExpiration(t *testing.T) {
 	// Now revoke some peer
 	var ports []int
 	ports = append(ports, port1, port2, port3, port4)
-	revokedPeerIndex := rand.Intn(4)
+	revokedPeerIndex := r.Intn(4)
 	revokedPkiID := common.PKIidType(fmt.Sprintf("127.0.0.1:%d", ports[revokedPeerIndex]))
 	for i, p := range peers {
 		if i == revokedPeerIndex {
@@ -1477,7 +1480,7 @@ func TestIdentityExpiration(t *testing.T) {
 
 func createDataMsg(seqnum uint64, data []byte, channel common.ChannelID) *proto.GossipMessage {
 	return &proto.GossipMessage{
-		Channel: []byte(channel),
+		Channel: channel,
 		Nonce:   0,
 		Tag:     proto.GossipMessage_CHAN_AND_ORG,
 		Content: &proto.GossipMessage_DataMsg{

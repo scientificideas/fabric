@@ -13,8 +13,8 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -293,7 +293,7 @@ func createBlockChain(start, end uint64) []*common.Block {
 		return block
 	}
 	var blockchain []*common.Block
-	for seq := uint64(start); seq <= uint64(end); seq++ {
+	for seq := start; seq <= end; seq++ {
 		block := newBlock(seq)
 		block.Data.Data = append(block.Data.Data, make([]byte, 100))
 		block.Header.DataHash = protoutil.BlockDataHash(block.Data)
@@ -695,7 +695,7 @@ func TestLastConfigBlock(t *testing.T) {
 }
 
 func TestVerificationRegistryRegisterVerifier(t *testing.T) {
-	blockBytes, err := ioutil.ReadFile("testdata/mychannel.block")
+	blockBytes, err := os.ReadFile("testdata/mychannel.block")
 	require.NoError(t, err)
 
 	block := &common.Block{}
@@ -737,7 +737,7 @@ func TestVerificationRegistryRegisterVerifier(t *testing.T) {
 }
 
 func TestVerificationRegistry(t *testing.T) {
-	blockBytes, err := ioutil.ReadFile("testdata/mychannel.block")
+	blockBytes, err := os.ReadFile("testdata/mychannel.block")
 	require.NoError(t, err)
 
 	block := &common.Block{}

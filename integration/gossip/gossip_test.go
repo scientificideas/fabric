@@ -8,7 +8,6 @@ package gossip
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"syscall"
 	"time"
@@ -36,7 +35,7 @@ var _ = Describe("Gossip State Transfer and Membership", func() {
 
 	BeforeEach(func() {
 		var err error
-		testDir, err = ioutil.TempDir("", "gossip-statexfer")
+		testDir, err = os.MkdirTemp("", "gossip-statexfer")
 		Expect(err).NotTo(HaveOccurred())
 
 		dockerClient, err := docker.NewClientFromEnv()
@@ -181,7 +180,7 @@ var _ = Describe("Gossip State Transfer and Membership", func() {
 	When("gossip connection is lost and restored", func() {
 		var (
 			orderer       *nwo.Orderer
-			peerEndpoints map[string]string = map[string]string{}
+			peerEndpoints = map[string]string{}
 		)
 
 		BeforeEach(func() {

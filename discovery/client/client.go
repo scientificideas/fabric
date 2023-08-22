@@ -13,11 +13,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hyperledger/fabric-protos-go/peer"
-
 	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-protos-go/discovery"
 	"github.com/hyperledger/fabric-protos-go/msp"
+	"github.com/hyperledger/fabric-protos-go/peer"
 	"github.com/hyperledger/fabric/discovery/protoext"
 	gprotoext "github.com/hyperledger/fabric/gossip/protoext"
 	"github.com/pkg/errors"
@@ -130,7 +129,7 @@ func (req *Request) AddPeersQuery(invocationChain ...*peer.ChaincodeCall) *Reque
 	})
 	var ic InvocationChain
 	if len(invocationChain) > 0 {
-		ic = InvocationChain(invocationChain)
+		ic = invocationChain
 	}
 	req.addChaincodeQueryMapping([]InvocationChain{ic})
 	req.addQueryMapping(protoext.PeerMembershipQueryType, channnelAndInvocationChain(ch, ic))
@@ -267,9 +266,9 @@ func (cr *channelResponse) Endorsers(invocationChain InvocationChain, f Filter) 
 	}
 
 	desc := res.(*endorsementDescriptor)
-	rand.Seed(time.Now().Unix())
+	r := rand.New(rand.NewSource(time.Now().Unix()))
 	// We iterate over all layouts to find one that we have enough peers to select
-	for _, index := range rand.Perm(len(desc.layouts)) {
+	for _, index := range r.Perm(len(desc.layouts)) {
 		layout := desc.layouts[index]
 		endorsers, canLayoutBeSatisfied := selectPeersForLayout(desc.endorsersByGroups, layout, f)
 		if canLayoutBeSatisfied {
@@ -304,7 +303,7 @@ var NoFilter = NewFilter(NoPriorities, NoExclusion)
 func selectPeersForLayout(endorsersByGroups map[string][]*Peer, layout map[string]int, f Filter) (Endorsers, bool) {
 	var endorsers []*Peer
 	for grp, count := range layout {
-		endorsersOfGrp := f.Filter(Endorsers(endorsersByGroups[grp]))
+		endorsersOfGrp := f.Filter(endorsersByGroups[grp])
 
 		// We couldn't select enough peers for this layout because the current group
 		// requires more peers than we have available to be selected

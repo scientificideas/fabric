@@ -13,7 +13,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -168,7 +167,7 @@ func initMockPeer(channelIDs ...string) (*peer.Peer, *ChaincodeSupport, func(), 
 
 	peerInstance := &peer.Peer{CryptoProvider: cryptoProvider}
 
-	tempdir, err := ioutil.TempDir("", "cc-support-test")
+	tempdir, err := os.MkdirTemp("", "cc-support-test")
 	if err != nil {
 		panic(fmt.Sprintf("failed to create temporary directory: %s", err))
 	}
@@ -346,7 +345,7 @@ func processDone(t *testing.T, done chan error, expecterr bool) {
 }
 
 func startTx(t *testing.T, peerInstance *peer.Peer, channelID string, cis *pb.ChaincodeInvocationSpec, txId string) (*ccprovider.TransactionParams, ledger.TxSimulator) {
-	creator := []byte([]byte("Alice"))
+	creator := []byte("Alice")
 	sprop, prop := protoutil.MockSignedEndorserProposalOrPanic(channelID, cis.ChaincodeSpec, creator, []byte("msg1"))
 	txsim, hqe, err := startTxSimulation(peerInstance, channelID, txId)
 	if err != nil {
@@ -444,7 +443,7 @@ func getTarGZ(t *testing.T, name string, contents []byte) []byte {
 	tr.Write(contents)
 	tr.Close()
 	gw.Close()
-	ioutil.WriteFile("/tmp/t.gz", inputbuf.Bytes(), 0o644)
+	os.WriteFile("/tmp/t.gz", inputbuf.Bytes(), 0o644)
 	return inputbuf.Bytes()
 }
 
@@ -523,8 +522,8 @@ func initializeCC(t *testing.T, chainID, ccname string, ccSide *mock.MockCCComm,
 	// be triggered by the chaincode stream.  We just expect an error from fabric. Hence pass nil for done
 	execCC(t, txParams, ccSide, "badccname", false, true, nil, cis, respSet, chaincodeSupport)
 
-	//---------try a successful init at last-------
-	//everything lined up
+	// ---------try a successful init at last-------
+	// everything lined up
 	//    correct registered chaincode version
 	//    matching txid
 	//    txsim context

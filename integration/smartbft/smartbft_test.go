@@ -17,8 +17,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -26,34 +24,26 @@ import (
 	"syscall"
 	"time"
 
-	protosOrderer "github.com/hyperledger/fabric-protos-go/orderer"
-	"github.com/hyperledger/fabric/integration/ordererclient"
-	"github.com/hyperledger/fabric/protoutil"
-
-	"github.com/golang/protobuf/proto"
-
-	"github.com/hyperledger/fabric/integration/channelparticipation"
-
-	"github.com/tedsuo/ifrit/grouper"
-
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger/fabric-config/configtx"
 	"github.com/hyperledger/fabric-config/configtx/orderer"
 	"github.com/hyperledger/fabric-protos-go/common"
+	protosOrderer "github.com/hyperledger/fabric-protos-go/orderer"
+	"github.com/hyperledger/fabric/integration/channelparticipation"
 	conftx "github.com/hyperledger/fabric/integration/configtx"
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
+	"github.com/hyperledger/fabric/integration/ordererclient"
+	"github.com/hyperledger/fabric/protoutil"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/tedsuo/ifrit"
 	ginkgomon "github.com/tedsuo/ifrit/ginkgomon_v2"
+	"github.com/tedsuo/ifrit/grouper"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 	var (
@@ -70,7 +60,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		ordererProcesses = nil
 		peerProcesses = nil
 		var err error
-		testDir, err = ioutil.TempDir("", "e2e-smartbft-test")
+		testDir, err = os.MkdirTemp("", "e2e-smartbft-test")
 		Expect(err).NotTo(HaveOccurred())
 
 		client, err = docker.NewClientFromEnv()
@@ -286,10 +276,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 			ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(orderer5), "server.crt")
-			ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+			ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
+			ordererIdentity, err := os.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
 			nwo.UpdateConsenters(network, peer, orderer, channel, func(orderers *common.Orderers) {
@@ -459,6 +449,143 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			invokeQuery(network, peer, network.Orderers[4], channel, 10)
 
 			assertBlockReception(map[string]int{"testchannel1": 16}, network.Orderers, peer, network)
+		})
+
+		It("smartbft policy update protection works properly", func() {
+			By("Create network and run orderers and peer")
+			networkConfig := nwo.MultiNodeSmartBFT()
+			networkConfig.Channels = nil
+
+			network = nwo.New(networkConfig, testDir, client, StartPort(), components)
+			network.GenerateConfigTree()
+			network.Bootstrap()
+
+			network.EventuallyTimeout *= 2
+
+			var ordererRunners []*ginkgomon.Runner
+			for _, orderer := range network.Orderers {
+				runner := network.OrdererRunner(orderer)
+				runner.Command.Env = append(runner.Command.Env, "FABRIC_LOGGING_SPEC=orderer.common.cluster=debug:orderer.consensus.smartbft=debug:policies.ImplicitOrderer=debug")
+				ordererRunners = append(ordererRunners, runner)
+				proc := ifrit.Invoke(runner)
+				ordererProcesses = append(ordererProcesses, proc)
+				Eventually(proc.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			}
+
+			peerRunner := network.PeerGroupRunner()
+			peerProcesses = ifrit.Invoke(peerRunner)
+
+			Eventually(peerProcesses.Ready(), network.EventuallyTimeout).Should(BeClosed())
+			peer := network.Peer("Org1", "peer0")
+
+			sess, err := network.ConfigTxGen(commands.OutputBlock{
+				ChannelID:   "testchannel1",
+				Profile:     network.Profiles[0].Name,
+				ConfigPath:  network.RootDir,
+				OutputBlock: network.OutputBlockPath("testchannel1"),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
+
+			genesisBlockBytes, err := os.ReadFile(network.OutputBlockPath("testchannel1"))
+			Expect(err).NotTo(HaveOccurred())
+
+			genesisBlock := &common.Block{}
+			err = proto.Unmarshal(genesisBlockBytes, genesisBlock)
+			Expect(err).NotTo(HaveOccurred())
+
+			expectedChannelInfoPT := channelparticipation.ChannelInfo{
+				Name:              "testchannel1",
+				URL:               "/participation/v1/channels/testchannel1",
+				Status:            "active",
+				ConsensusRelation: "consenter",
+				Height:            1,
+			}
+
+			for _, o := range network.Orderers {
+				By("joining " + o.Name + " to channel as a consenter")
+				channelparticipation.Join(network, o, "testchannel1", genesisBlock, expectedChannelInfoPT)
+				channelInfo := channelparticipation.ListOne(network, o, "testchannel1")
+				Expect(channelInfo).To(Equal(expectedChannelInfoPT))
+			}
+
+			By("Waiting for followers to see the leader")
+			Eventually(ordererRunners[1].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+			Eventually(ordererRunners[2].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+			Eventually(ordererRunners[3].Err(), network.EventuallyTimeout, time.Second).Should(gbytes.Say("Message from 1"))
+
+			channel := "testchannel1"
+			By(fmt.Sprintf("Peers with Channel %s are %+v\n", channel, network.PeersWithChannel(channel)))
+			orderer := network.Orderers[0]
+			network.JoinChannel(channel, orderer, network.PeersWithChannel(channel)...)
+
+			By("Adding a new orderer")
+			orderer5 := &nwo.Orderer{
+				Name:         "orderer5",
+				Organization: "OrdererOrg",
+				Id:           5,
+			}
+			network.Orderers = append(network.Orderers, orderer5)
+
+			ports := nwo.Ports{}
+			for _, portName := range nwo.OrdererPortNames() {
+				ports[portName] = network.ReservePort()
+			}
+			network.PortsByOrdererID[orderer5.ID()] = ports
+
+			network.GenerateCryptoConfig()
+			network.GenerateOrdererConfig(orderer5)
+
+			sess, err = network.Cryptogen(commands.Extend{
+				Config: network.CryptoConfigPath(),
+				Input:  network.CryptoPath(),
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
+
+			ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(orderer5), "server.crt")
+			ordererCertificate, err := os.ReadFile(ordererCertificatePath)
+			Expect(err).NotTo(HaveOccurred())
+
+			ordererIdentity, err := os.ReadFile(network.OrdererCert(orderer5))
+			Expect(err).NotTo(HaveOccurred())
+
+			By("Update the new orderer using config update without updating the policy")
+			config := nwo.GetConfig(network, peer, orderer, channel)
+			updatedConfig := proto.Clone(config).(*common.Config)
+			rawOrderers := updatedConfig.ChannelGroup.Groups["Orderer"].Values["Orderers"]
+			orderersVal := &common.Orderers{}
+			Expect(proto.Unmarshal(rawOrderers.Value, orderersVal)).To(Succeed())
+			orderersVal.ConsenterMapping = append(orderersVal.ConsenterMapping, &common.Consenter{
+				MspId:         "OrdererMSP",
+				Id:            5,
+				Identity:      ordererIdentity,
+				ServerTlsCert: ordererCertificate,
+				ClientTlsCert: ordererCertificate,
+				Host:          "127.0.0.1",
+				Port:          uint32(network.OrdererPort(orderer5, nwo.ClusterPort)),
+			})
+			rawOrderers.Value, err = proto.Marshal(orderersVal)
+			Expect(err).NotTo(HaveOccurred())
+			updatedConfig.ChannelGroup.Groups["Orderer"].Values["Orderers"].Value = protoutil.MarshalOrPanic(orderersVal)
+
+			tempDir, err := os.MkdirTemp(network.RootDir, "updateConfig")
+			Expect(err).NotTo(HaveOccurred())
+			updateFile := filepath.Join(tempDir, "update.pb")
+			defer os.RemoveAll(tempDir)
+
+			nwo.ComputeUpdateOrdererConfig(updateFile, network, channel, config, updatedConfig, peer, orderer)
+
+			sess, err = network.OrdererAdminSession(orderer, peer, commands.ChannelUpdate{
+				ChannelID:  channel,
+				Orderer:    network.OrdererAddress(orderer, nwo.ListenPort),
+				File:       updateFile,
+				ClientAuth: network.ClientAuthRequired,
+			})
+			Expect(err).NotTo(HaveOccurred())
+			sess.Wait(network.EventuallyTimeout)
+			Expect(sess.ExitCode()).ToNot(Equal(0))
+			Expect(sess.Err).To(gbytes.Say("block validation policy should be a signature policy"))
 		})
 
 		It("smartbft assisted synchronization no rotation", func() {
@@ -819,10 +946,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 				ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(newOrderer), "server.crt")
-				ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+				ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 				Expect(err).NotTo(HaveOccurred())
 
-				ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(newOrderer))
+				ordererIdentity, err := os.ReadFile(network.OrdererCert(newOrderer))
 				Expect(err).NotTo(HaveOccurred())
 
 				By(fmt.Sprintf("Adding consenter with certificate %s", string(ordererIdentity)))
@@ -1042,10 +1169,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 			ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(orderer5), "server.crt")
-			ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+			ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
+			ordererIdentity, err := os.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
 			nwo.UpdateConsenters(network, peer, network.Orderers[0], channel, func(orderers *common.Orderers) {
@@ -1398,7 +1525,7 @@ func ordererOrganizationsAndConsenters(n *nwo.Network, orderers []*nwo.Orderer) 
 // parseCertificate loads the PEM-encoded x509 certificate at the specified
 // path.
 func parseCertificate(path string) *x509.Certificate {
-	certBytes, err := ioutil.ReadFile(path)
+	certBytes, err := os.ReadFile(path)
 	Expect(err).NotTo(HaveOccurred())
 	pemBlock, _ := pem.Decode(certBytes)
 	cert, err := x509.ParseCertificate(pemBlock.Bytes)

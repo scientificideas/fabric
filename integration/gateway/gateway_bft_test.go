@@ -8,7 +8,6 @@ package gateway
 
 import (
 	"context"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -37,12 +36,12 @@ var _ = Describe("GatewayService with BFT ordering service", func() {
 		network          *nwo.Network
 		ordererProcesses map[string]ifrit.Process
 		peerProcesses    ifrit.Process
-		channel          string = "testchannel1"
+		channel          = "testchannel1"
 	)
 
 	BeforeEach(func() {
 		var err error
-		testDir, err = ioutil.TempDir("", "gateway")
+		testDir, err = os.MkdirTemp("", "gateway")
 		Expect(err).NotTo(HaveOccurred())
 
 		client, err := docker.NewClientFromEnv()

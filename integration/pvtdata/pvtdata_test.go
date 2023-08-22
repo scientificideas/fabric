@@ -11,18 +11,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 	cb "github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset"
 	"github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset"
@@ -44,6 +41,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/tedsuo/ifrit"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // The chaincode used in these tests has two collections defined:
@@ -53,7 +51,7 @@ import (
 
 const channelID = "testchannel"
 
-var _ bool = Describe("PrivateData", func() {
+var _ = Describe("PrivateData", func() {
 	var (
 		network                     *nwo.Network
 		ordererProcess, peerProcess ifrit.Process
@@ -243,7 +241,7 @@ var _ bool = Describe("PrivateData", func() {
 		It("verifies private data is pulled when joining a new peer with new certs", func() {
 			By("generating new certs for org2Peer1")
 			org2Peer1 := network.Peer("Org2", "peer1")
-			tempCryptoDir, err := ioutil.TempDir("", "crypto")
+			tempCryptoDir, err := os.MkdirTemp("", "crypto")
 			Expect(err).NotTo(HaveOccurred())
 			defer os.RemoveAll(tempCryptoDir)
 			generateNewCertsForPeer(network, tempCryptoDir, org2Peer1)
@@ -258,7 +256,7 @@ var _ bool = Describe("PrivateData", func() {
 			Eventually(p.Ready(), network.EventuallyTimeout).Should(BeClosed())
 
 			By("joining peer1.org2 to the channel with its Admin2 user")
-			tempFile, err := ioutil.TempFile("", "genesis-block")
+			tempFile, err := os.CreateTemp("", "genesis-block")
 			Expect(err).NotTo(HaveOccurred())
 			tempFile.Close()
 			defer os.Remove(tempFile.Name())
@@ -933,7 +931,7 @@ var _ bool = Describe("PrivateData", func() {
 
 func initThreeOrgsSetup(removePeer1 bool) *nwo.Network {
 	var err error
-	testDir, err := ioutil.TempDir("", "e2e-pvtdata")
+	testDir, err := os.MkdirTemp("", "e2e-pvtdata")
 	Expect(err).NotTo(HaveOccurred())
 
 	client, err := docker.NewClientFromEnv()
@@ -1301,10 +1299,6 @@ func createDeliverEnvelope(channelID string, signingIdentity *nwo.SigningIdentit
 }
 
 func createHeader(txType cb.HeaderType, channelID string, creator []byte) (*cb.Header, error) {
-	ts, err := ptypes.TimestampProto(time.Now())
-	if err != nil {
-		return nil, err
-	}
 	nonce, err := crypto.GetRandomNonce()
 	if err != nil {
 		return nil, err
@@ -1314,7 +1308,7 @@ func createHeader(txType cb.HeaderType, channelID string, creator []byte) (*cb.H
 		ChannelId: channelID,
 		TxId:      protoutil.ComputeTxID(nonce, creator),
 		Epoch:     0,
-		Timestamp: ts,
+		Timestamp: timestamppb.Now(),
 	}
 	chdrBytes := protoutil.MarshalOrPanic(chdr)
 
