@@ -58,10 +58,6 @@ jobs:
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: echo "SECRETS_CONTEXT"
-      - name: Dump jobs context
-        env:
-          JOBS_CONTEXT: ${{ toJson(jobs) }}
-        run: echo "JOBS_CONTEXT"
       - name: Dump vars context # jobs secrets needs inputs
         env:
           VARS_CONTEXT: ${{ toJson(vars) }}
