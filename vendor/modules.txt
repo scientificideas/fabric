@@ -42,6 +42,15 @@ github.com/Microsoft/go-winio/pkg/guid
 ## explicit
 github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
+# github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515 => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
+## explicit; go 1.20
+github.com/SmartBFT-Go/consensus/internal/bft
+github.com/SmartBFT-Go/consensus/pkg/api
+github.com/SmartBFT-Go/consensus/pkg/consensus
+github.com/SmartBFT-Go/consensus/pkg/metrics/disabled
+github.com/SmartBFT-Go/consensus/pkg/types
+github.com/SmartBFT-Go/consensus/pkg/wal
+github.com/SmartBFT-Go/consensus/smartbftprotos
 # github.com/VictoriaMetrics/fastcache v1.9.0
 ## explicit; go 1.13
 github.com/VictoriaMetrics/fastcache
@@ -197,8 +206,8 @@ github.com/hyperledger/fabric-chaincode-go/pkg/statebased
 github.com/hyperledger/fabric-chaincode-go/shim
 github.com/hyperledger/fabric-chaincode-go/shim/internal
 github.com/hyperledger/fabric-chaincode-go/shimtest
-# github.com/hyperledger/fabric-config v0.1.0
-## explicit; go 1.14
+# github.com/hyperledger/fabric-config v0.1.0 => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
+## explicit; go 1.16
 github.com/hyperledger/fabric-config/configtx
 github.com/hyperledger/fabric-config/configtx/internal/policydsl
 github.com/hyperledger/fabric-config/configtx/membership
@@ -213,7 +222,7 @@ github.com/hyperledger/fabric-config/protolator/protoext/peerext
 # github.com/hyperledger/fabric-lib-go v1.0.0
 ## explicit
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go v0.2.0
+# github.com/hyperledger/fabric-protos-go v0.2.0 => github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73
 ## explicit; go 1.17
 github.com/hyperledger/fabric-protos-go/common
 github.com/hyperledger/fabric-protos-go/discovery
@@ -225,6 +234,7 @@ github.com/hyperledger/fabric-protos-go/ledger/rwset/kvrwset
 github.com/hyperledger/fabric-protos-go/msp
 github.com/hyperledger/fabric-protos-go/orderer
 github.com/hyperledger/fabric-protos-go/orderer/etcdraft
+github.com/hyperledger/fabric-protos-go/orderer/smartbft
 github.com/hyperledger/fabric-protos-go/peer
 github.com/hyperledger/fabric-protos-go/peer/lifecycle
 github.com/hyperledger/fabric-protos-go/transientstore
@@ -483,6 +493,9 @@ golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
 golang.org/x/net/trace
+# golang.org/x/sync v0.1.0
+## explicit
+golang.org/x/sync/semaphore
 # golang.org/x/sys v0.13.0
 ## explicit; go 1.17
 golang.org/x/sys/cpu
@@ -630,3 +643,6 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
+# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
+# github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
+# github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73
