@@ -82,9 +82,9 @@ Optional: Install the latest Fabric supported version of [Go](https://golang.org
 installed (only required if you will be writing Go chaincode or SDK applications).
 
 ```shell
-$ brew install go@1.21.3
+$ brew install go@1.21.6
 $ go version
-go1.21.3 darwin/amd64
+go1.21.6 darwin/amd64
 ```
 
 ### JQ
@@ -189,7 +189,7 @@ Finally, you need to ensure Docker Desktop has integration enabled for your dist
 
 ### Microsoft VS Code (Optional)
 
-Microsoft VS Code provides an IDE that has tight integration with WSL2 Linux Distibutions. Search the Microsoft Marketplace in VS Code for the Remote Development extension pack for more information. This pack includes, among other things, the `Remote - WSL extension` and the `Remote - Containers` extension.
+Microsoft VS Code provides an IDE that has tight integration with WSL2 Linux Distributions. Search the Microsoft Marketplace in VS Code for the Remote Development extension pack for more information. This pack includes, among other things, the `Remote - WSL extension` and the `Remote - Containers` extension.
 
 ### Git For Windows (Optional)
 

@@ -51,7 +51,7 @@ FABRIC_VER ?= 2.5.5
 
 # 3rd party image version
 # These versions are also set in the runners in ./integration/runners/
-COUCHDB_VER ?= 3.3.2
+COUCHDB_VER ?= 3.3.3
 KAFKA_VER ?= 5.3.1
 ZOOKEEPER_VER ?= 5.3.1
 
@@ -80,7 +80,7 @@ METADATA_VAR += CommitSHA=$(EXTRA_VERSION)
 METADATA_VAR += BaseDockerLabel=$(BASE_DOCKER_LABEL)
 METADATA_VAR += DockerNamespace=$(DOCKER_NS)
 
-GO_VER = 1.21.3
+GO_VER = 1.21.6
 GO_TAGS ?=
 
 RELEASE_EXES = orderer $(TOOLS_EXES)
