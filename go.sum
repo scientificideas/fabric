@@ -64,6 +64,8 @@ github.com/Shopify/sarama v1.20.1 h1:Bb0h3I++r4eX333Y0uZV2vwUXepJbt6ig05TUU1qt9I
 github.com/Shopify/sarama v1.20.1/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible h1:TKdv8HiTLgE5wdJuEML90aBgNWsokNbMijUGhmcoBJc=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
+github.com/SmartBFT-Go/consensus v0.0.0-20240215044737-fd3c35e3c876 h1:E7XUbc3IePMgCJmdbgwzRucmrBCvCBBnrsWR1I0EMkQ=
+github.com/SmartBFT-Go/consensus v0.0.0-20240215044737-fd3c35e3c876/go.mod h1:aeRINA5oFotrrfV/mDlTkN/UePrSIIPziuAjEqETRN0=
 github.com/VictoriaMetrics/fastcache v1.9.0 h1:oMwsS6c8abz98B7ytAewQ7M1ZN/Im/iwKoE1euaFvhs=
 github.com/VictoriaMetrics/fastcache v1.9.0/go.mod h1:otoTS3xu+6IzF/qByjqzjp3rTuzM3Qf0ScU1UTj97iU=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
@@ -518,8 +520,6 @@ github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQD
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/ryanuber/columnize v0.0.0-20160712163229-9b3edd62028f/go.mod h1:sm1tb6uqfes/u+d4ooFouqFdy9/2g9QGwK3SQygK0Ts=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
-github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6 h1:wwvnvMrfsTRz7YyBD5nkltSJlpwaNbLtkVLdh9/lpHE=
-github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6/go.mod h1:KsqqnNjG+MiuEdm/9ufh5C0oKJqd1rkpQ5S2mYPvVcA=
 github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26 h1:5Yl/L9TbOzcSrp6bCyYTmtmB7GnS8GOUJVLqAhPcWQo=
 github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26/go.mod h1:w3A6ezMvoMjxujiCifTvB32ABUlChvnUii48voxD30g=
 github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73 h1:REK10s1SuyFbiJynrQ94XuxZkD1s8qJSC4yFuKMrU48=

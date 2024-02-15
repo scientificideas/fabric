@@ -54,11 +54,12 @@ github.com/Microsoft/go-winio/pkg/guid
 ## explicit
 github.com/Shopify/sarama
 github.com/Shopify/sarama/mocks
-# github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515 => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
+# github.com/SmartBFT-Go/consensus v0.0.0-20240215044737-fd3c35e3c876
 ## explicit; go 1.20
 github.com/SmartBFT-Go/consensus/internal/bft
 github.com/SmartBFT-Go/consensus/pkg/api
 github.com/SmartBFT-Go/consensus/pkg/consensus
+github.com/SmartBFT-Go/consensus/pkg/metrics
 github.com/SmartBFT-Go/consensus/pkg/metrics/disabled
 github.com/SmartBFT-Go/consensus/pkg/types
 github.com/SmartBFT-Go/consensus/pkg/wal
@@ -688,6 +689,5 @@ gopkg.in/yaml.v3
 ## explicit; go 1.17
 rsc.io/tmplfunc
 rsc.io/tmplfunc/internal/parse
-# github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
 # github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26
 # github.com/hyperledger/fabric-protos-go => github.com/scientificideas/fabric-protos-go v0.0.0-20221126151030-78861c4f6e73

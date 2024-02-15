@@ -143,8 +143,8 @@ func NewPool(log api.Logger, inspector api.RequestInspector, th RequestTimeoutHa
 	return rp
 }
 
-// ChangeTimeouts changes the timeout of the pool
-func (rp *Pool) ChangeTimeouts(th RequestTimeoutHandler, options PoolOptions) {
+// ChangeOptions changes the options of the pool
+func (rp *Pool) ChangeOptions(th RequestTimeoutHandler, options PoolOptions) {
 	rp.lock.Lock()
 	defer rp.lock.Unlock()
 
@@ -162,10 +162,18 @@ func (rp *Pool) ChangeTimeouts(th RequestTimeoutHandler, options PoolOptions) {
 	if options.AutoRemoveTimeout == 0 {
 		options.AutoRemoveTimeout = defaultRequestTimeout
 	}
+	if options.RequestMaxBytes == 0 {
+		options.RequestMaxBytes = defaultMaxBytes
+	}
+	if options.SubmitTimeout == 0 {
+		options.SubmitTimeout = defaultRequestTimeout
+	}
 
 	rp.options.ForwardTimeout = options.ForwardTimeout
 	rp.options.ComplainTimeout = options.ComplainTimeout
 	rp.options.AutoRemoveTimeout = options.AutoRemoveTimeout
+	rp.options.RequestMaxBytes = options.RequestMaxBytes
+	rp.options.SubmitTimeout = options.SubmitTimeout
 
 	rp.timeoutHandler = th
 
@@ -188,7 +196,7 @@ func (rp *Pool) Submit(request []byte) error {
 
 	if uint64(len(request)) > rp.options.RequestMaxBytes {
 		rp.metrics.CountOfFailAddRequestToPool.With(
-			rp.metrics.LabelsForWith(api.NameReasonFailAdd, api.ReasonRequestMaxBytes)...,
+			rp.metrics.LabelsForWith("reason", api.ReasonRequestMaxBytes)...,
 		).Add(1)
 		return fmt.Errorf(
 			"submitted request (%d) is bigger than request max bytes (%d)",
@@ -217,7 +225,7 @@ func (rp *Pool) Submit(request []byte) error {
 	// do not wait for a semaphore with a lock, as it will prevent draining the pool.
 	if err := rp.semaphore.Acquire(ctx, 1); err != nil {
 		rp.metrics.CountOfFailAddRequestToPool.With(
-			rp.metrics.LabelsForWith(api.NameReasonFailAdd, api.ReasonSemaphoreAcquireFail)...,
+			rp.metrics.LabelsForWith("reason", api.ReasonSemaphoreAcquireFail)...,
 		).Add(1)
 		return errors.Wrapf(err, "acquiring semaphore for request: %s", reqInfo)
 	}

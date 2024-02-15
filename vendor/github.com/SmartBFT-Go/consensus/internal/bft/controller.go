@@ -81,7 +81,7 @@ type Proposer interface {
 //
 //go:generate mockery -dir . -name ProposerBuilder -case underscore -output ./mocks/
 type ProposerBuilder interface {
-	NewProposer(leader, proposalSequence, viewNum, decisionsInView uint64, quorumSize int) Proposer
+	NewProposer(leader, proposalSequence, viewNum, decisionsInView uint64, quorumSize int) (Proposer, Phase)
 }
 
 // Controller controls the entire flow of the consensus
@@ -133,7 +133,7 @@ type Controller struct {
 	decisionChan         chan decision
 	deliverChan          chan struct{}
 	leaderToken          chan struct{}
-	verificationSequence uint64
+	verificationSequence atomic.Uint64
 
 	controllerDone sync.WaitGroup
 
@@ -373,7 +373,7 @@ func (c *Controller) convertViewMessageToHeartbeat(m *protos.Message) *protos.Me
 }
 
 func (c *Controller) startView(proposalSequence uint64) {
-	view := c.ProposerBuilder.NewProposer(c.leaderID(), proposalSequence, c.currViewNumber, c.currDecisionsInView, c.quorum)
+	view, initPhase := c.ProposerBuilder.NewProposer(c.leaderID(), proposalSequence, c.currViewNumber, c.currDecisionsInView, c.quorum)
 
 	c.currViewLock.Lock()
 	c.currView = view
@@ -383,6 +383,12 @@ func (c *Controller) startView(proposalSequence uint64) {
 	role := Follower
 	leader, _ := c.iAmTheLeader()
 	if leader {
+		if initPhase == COMMITTED || initPhase == ABORT {
+			c.Logger.Debugf("Acquiring leader token when starting view with phase %s", initPhase.String())
+			c.acquireLeaderToken()
+		} else {
+			c.Logger.Debugf("Not acquiring leader token when starting view with phase %s", initPhase.String())
+		}
 		role = Leader
 	}
 	c.LeaderMonitor.ChangeRole(role, c.currViewNumber, c.leaderID())
@@ -414,10 +420,8 @@ func (c *Controller) changeView(newViewNumber uint64, newProposalSequence uint64
 	c.Logger.Debugf("Starting view after setting decisions in view to %d", newDecisionsInView)
 	c.startView(newProposalSequence)
 
-	// If I'm the leader, I can claim the leader token.
 	if iAm, _ := c.iAmTheLeader(); iAm {
 		c.Batcher.Reset()
-		c.acquireLeaderToken()
 	}
 }
 
@@ -468,24 +472,13 @@ func (c *Controller) ViewChanged(newViewNumber uint64, newProposalSequence uint6
 	c.viewChange <- viewInfo{proposalSeq: newProposalSequence, viewNumber: newViewNumber}
 }
 
-func (c *Controller) getNextBatch() [][]byte {
-	var validRequests [][]byte
-	for len(validRequests) == 0 { // no valid requests in this batch
-		requests := c.Batcher.NextBatch()
-		if c.stopped() || c.Batcher.Closed() {
-			return nil
-		}
-		validRequests = append(validRequests, requests...)
-	}
-	return validRequests
-}
-
 func (c *Controller) propose() {
-	nextBatch := c.getNextBatch()
-	if len(nextBatch) == 0 {
-		// If our next batch is empty,
-		// it can only be because
-		// the batcher is stopped and so are we.
+	if c.stopped() || c.Batcher.Closed() {
+		return
+	}
+	nextBatch := c.Batcher.NextBatch()
+	if len(nextBatch) == 0 { // no requests in this batch
+		c.acquireLeaderToken() // try again later
 		return
 	}
 	metadata := c.currView.GetMetadata()
@@ -597,20 +590,71 @@ func (c *Controller) sync() (viewNum uint64, seq uint64, decisions uint64) {
 		c.ViewChanger.close()
 	}
 
-	decision := syncResponse.Latest
-	if decision.Proposal.Metadata == nil {
-		c.Logger.Infof("Synchronizer returned with proposal metadata nil")
-		response := c.fetchState()
-		if response == nil {
+	// The synchronizer returns a response which includes the latest decision with its proposal metadata.
+	// This proposal may be empty (its metadata is empty), meaning the synchronizer is not aware of any decisions made.
+	// Otherwise, the latest proposal sequence returned may be higher than our latest sequence, meaning we should
+	// update the checkpoint.
+	// In other cases we should not update the checkpoint.
+	// However, we always must fetch the latest state from other nodes,
+	// since the view may have advanced without this node and with no decisions.
+
+	var newViewNum, newProposalSequence, newDecisionsInView uint64
+
+	latestDecision := syncResponse.Latest
+	var latestDecisionSeq, latestDecisionViewNum, latestDecisionDecisions uint64
+	var latestDecisionMetadata *protos.ViewMetadata
+	if len(latestDecision.Proposal.Metadata) == 0 {
+		c.Logger.Infof("Synchronizer returned with an empty proposal metadata")
+		latestDecisionMetadata = nil
+	} else {
+		md := &protos.ViewMetadata{}
+		if err := proto.Unmarshal(latestDecision.Proposal.Metadata, md); err != nil {
+			c.Logger.Panicf("Controller was unable to unmarshal the proposal metadata returned by the Synchronizer")
+		}
+		latestDecisionSeq = md.LatestSequence
+		latestDecisionViewNum = md.ViewId
+		latestDecisionDecisions = md.DecisionsInView
+		latestDecisionMetadata = md
+	}
+
+	controllerSequence := c.latestSeq()
+	newProposalSequence = controllerSequence + 1
+
+	controllerViewNum := c.currViewNumber
+	newViewNum = controllerViewNum
+
+	if latestDecisionSeq > controllerSequence {
+		c.Logger.Infof("Synchronizer returned with sequence %d while the controller is at sequence %d", latestDecisionSeq, controllerSequence)
+		c.Logger.Debugf("Node %d is setting the checkpoint after sync returned with view %d and seq %d", c.ID, latestDecisionViewNum, latestDecisionSeq)
+		c.Checkpoint.Set(latestDecision.Proposal, latestDecision.Signatures)
+		c.verificationSequence.Store(uint64(latestDecision.Proposal.VerificationSequence))
+		newProposalSequence = latestDecisionSeq + 1
+		newDecisionsInView = latestDecisionDecisions + 1
+	}
+
+	if latestDecisionViewNum > controllerViewNum {
+		c.Logger.Infof("Synchronizer returned with view number %d while the controller is at view number %d", latestDecisionViewNum, controllerViewNum)
+		newViewNum = latestDecisionViewNum
+	}
+
+	response := c.fetchState()
+	if response == nil {
+		c.Logger.Infof("Fetching state failed")
+		if latestDecisionMetadata == nil || latestDecisionViewNum < controllerViewNum {
+			// And the synchronizer did not return a new view
 			return 0, 0, 0
 		}
-		if response.View > 0 && response.Seq == 1 {
-			c.Logger.Infof("The collected state is with view %d and sequence %d", response.View, response.Seq)
+	} else {
+		if response.View <= controllerViewNum && latestDecisionViewNum < controllerViewNum {
+			return 0, 0, 0 // no new view to report
+		}
+		if response.View > newViewNum && response.Seq == latestDecisionSeq+1 {
+			c.Logger.Infof("Node %d collected state with view %d and sequence %d", c.ID, response.View, response.Seq)
 			newViewToSave := &protos.SavedMessage{
 				Content: &protos.SavedMessage_NewView{
 					NewView: &protos.ViewMetadata{
 						ViewId:          response.View,
-						LatestSequence:  0,
+						LatestSequence:  latestDecisionSeq,
 						DecisionsInView: 0,
 					},
 				},
@@ -618,62 +662,21 @@ func (c *Controller) sync() (viewNum uint64, seq uint64, decisions uint64) {
 			if err := c.State.Save(newViewToSave); err != nil {
 				c.Logger.Panicf("Failed to save message to state, error: %v", err)
 			}
-			c.ViewChanger.InformNewView(response.View)
-			return response.View, 1, 0
-		}
-		return 0, 0, 0
-	}
-	md := &protos.ViewMetadata{}
-	if err := proto.Unmarshal(decision.Proposal.Metadata, md); err != nil {
-		c.Logger.Panicf("Controller was unable to unmarshal the proposal metadata returned by the Synchronizer")
-	}
-
-	latestSequence := c.latestSeq()
-
-	c.Logger.Debugf("Node %d is setting the checkpoint after sync to view %d and seq %d", c.ID, md.ViewId, md.LatestSequence)
-	c.Checkpoint.Set(decision.Proposal, decision.Signatures)
-	c.verificationSequence = uint64(decision.Proposal.VerificationSequence)
-
-	if md.ViewId < c.currViewNumber {
-		c.Logger.Infof("Synchronizer returned with view number %d but the controller is at view number %d", md.ViewId, c.currViewNumber)
-		return 0, 0, 0
-	}
-
-	c.Logger.Infof("Replicated decisions from view %d and seq %d up to view %d and sequence %d with verification sequence %d",
-		c.currViewNumber, latestSequence, md.ViewId, md.LatestSequence, decision.Proposal.VerificationSequence)
-
-	c.maybePruneInFlight(md)
-
-	view := md.ViewId
-	newView := false
-
-	response := c.fetchState()
-	if response != nil {
-		if response.View > md.ViewId && response.Seq == md.LatestSequence+1 {
-			c.Logger.Infof("Node %d collected state with view %d and sequence %d", c.ID, response.View, response.Seq)
-			view = response.View
-			newViewToSave := &protos.SavedMessage{
-				Content: &protos.SavedMessage_NewView{
-					NewView: &protos.ViewMetadata{
-						ViewId:          view,
-						LatestSequence:  md.LatestSequence,
-						DecisionsInView: 0,
-					},
-				},
-			}
-			if err := c.State.Save(newViewToSave); err != nil {
-				c.Logger.Panicf("Failed to save message to state, error: %v", err)
-			}
-			newView = true
+			newViewNum = response.View
+			newDecisionsInView = 0
 		}
 	}
 
-	c.Logger.Debugf("Node %d is informing the view changer after sync of view %d and seq %d", c.ID, md.ViewId, md.LatestSequence)
-	c.ViewChanger.InformNewView(view)
-	if md.LatestSequence == 0 || newView {
-		return view, md.LatestSequence + 1, 0
+	if latestDecisionMetadata != nil {
+		c.maybePruneInFlight(latestDecisionMetadata)
 	}
-	return view, md.LatestSequence + 1, md.DecisionsInView + 1
+
+	if newViewNum > controllerViewNum {
+		c.Logger.Debugf("Node %d is informing the view changer of view %d after sync of view %d and seq %d", c.ID, newViewNum, latestDecisionViewNum, latestDecisionSeq)
+		c.ViewChanger.InformNewView(newViewNum)
+	}
+
+	return newViewNum, newProposalSequence, newDecisionsInView
 }
 
 func (c *Controller) maybePruneInFlight(syncResultViewMD *protos.ViewMetadata) {
@@ -728,12 +731,12 @@ func (c *Controller) relinquishSyncToken() {
 
 // MaybePruneRevokedRequests prunes requests with different verification sequence
 func (c *Controller) MaybePruneRevokedRequests() {
-	oldVerSqn := c.verificationSequence
+	oldVerSqn := c.verificationSequence.Load()
 	newVerSqn := c.Verifier.VerificationSequence()
 	if newVerSqn == oldVerSqn {
 		return
 	}
-	c.verificationSequence = newVerSqn
+	c.verificationSequence.Store(newVerSqn)
 
 	c.Logger.Infof("Verification sequence changed: %d --> %d", oldVerSqn, newVerSqn)
 	c.RequestPool.Prune(func(req []byte) error {
@@ -791,7 +794,7 @@ func (c *Controller) Start(startViewNumber uint64, startProposalSequence uint64,
 	c.Logger.Debugf("The number of nodes (N) is %d, F is %d, and the quorum size is %d", c.N, F, Q)
 	c.quorum = Q
 
-	c.verificationSequence = c.Verifier.VerificationSequence()
+	c.verificationSequence.Store(c.Verifier.VerificationSequence())
 
 	if syncOnStart {
 		startViewNumber, startProposalSequence, startDecisionsInView = c.syncOnStart(startViewNumber, startProposalSequence, startDecisionsInView)
@@ -801,9 +804,6 @@ func (c *Controller) Start(startViewNumber uint64, startProposalSequence uint64,
 	c.currViewNumber = startViewNumber
 	c.currDecisionsInView = startDecisionsInView
 	c.startView(startProposalSequence)
-	if iAm, _ := c.iAmTheLeader(); iAm {
-		c.acquireLeaderToken()
-	}
 
 	go func() {
 		defer c.controllerDone.Done()

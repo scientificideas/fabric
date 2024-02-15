@@ -7,7 +7,7 @@ require (
 	github.com/IBM/idemix v0.0.2-0.20231011101252-a4feda90f3f7
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/Shopify/sarama v1.20.1
-	github.com/SmartBFT-Go/consensus v0.0.0-20230508115939-c2d803ba5515
+	github.com/SmartBFT-Go/consensus v0.0.0-20240215044737-fd3c35e3c876
 	github.com/VictoriaMetrics/fastcache v1.9.0
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/cheggaaa/pb v1.0.29
@@ -128,7 +128,6 @@ require (
 )
 
 replace (
-	github.com/SmartBFT-Go/consensus => github.com/scientificideas/consensus v0.0.0-20230802072420-e9c3857fd5d6
 	// develop
 	//github.com/hyperledger/fabric => ./
 	github.com/hyperledger/fabric-config => github.com/scientificideas/fabric-config v0.1.1-0.20220421194734-201061bc5f26

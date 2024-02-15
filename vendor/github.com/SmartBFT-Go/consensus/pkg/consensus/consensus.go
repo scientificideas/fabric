@@ -216,20 +216,9 @@ func (c *Consensus) reconfig(reconfig types.Reconfig) {
 		c.Logger.Panicf("Configuration is invalid, error: %v", err)
 	}
 
-	tmp := c.nodes
-	var newNodes []uint64
+	old := c.nodes
 	c.setNodes(reconfig.CurrentNodes)
-
-OuterLoop:
-	for _, i := range c.nodes {
-		for _, j := range tmp {
-			if i == j {
-				continue OuterLoop
-			}
-		}
-		newNodes = append(newNodes, i)
-	}
-	c.Metrics.MetricsBlacklist.Initialize(newNodes)
+	c.initMetricsBlacklistReconfigure(old)
 
 	c.createComponents()
 	opts := algorithm.PoolOptions{
@@ -239,7 +228,7 @@ OuterLoop:
 		RequestMaxBytes:   c.Config.RequestMaxBytes,
 		SubmitTimeout:     c.Config.RequestPoolSubmitTimeout,
 	}
-	c.Pool.ChangeTimeouts(c.controller, opts) // TODO handle reconfiguration of queue size in the pool
+	c.Pool.ChangeOptions(c.controller, opts) // TODO handle reconfiguration of queue size in the pool
 	c.continueCreateComponents()
 
 	proposal, _ := c.checkpoint.Get()
@@ -260,6 +249,21 @@ OuterLoop:
 	c.Metrics.MetricsConsensus.CountConsensusReconfig.Add(1)
 
 	c.Logger.Debugf("Reconfig is done")
+}
+
+func (c *Consensus) initMetricsBlacklistReconfigure(old []uint64) {
+	var newNodes []uint64
+
+OuterLoop:
+	for _, i := range c.nodes {
+		for _, j := range old {
+			if i == j {
+				continue OuterLoop
+			}
+		}
+		newNodes = append(newNodes, i)
+	}
+	c.Metrics.MetricsBlacklist.Initialize(newNodes)
 }
 
 func (c *Consensus) close() {
