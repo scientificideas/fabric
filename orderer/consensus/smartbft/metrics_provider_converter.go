@@ -1,7 +1,7 @@
 package smartbft
 
 import (
-	"github.com/SmartBFT-Go/consensus/pkg/api"
+	api "github.com/SmartBFT-Go/consensus/pkg/metrics"
 	"github.com/hyperledger/fabric/common/metrics"
 )
 
