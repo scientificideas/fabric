@@ -118,7 +118,7 @@ type Deliverer struct {
 }
 
 // DeliverBlocks used to pull out blocks from the ordering service to
-// distributed them across peers
+// distribute them across peers
 func (d *Deliverer) DeliverBlocks() {
 	d.headerReceivers = make(map[string]*header)
 
@@ -448,53 +448,58 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 		t = d.BlockCensorshipTimeout / 100
 	}
 
-	select {
-	case <-d.Ctx.Done():
-		return nil, errClientClosing
-	case <-time.After(t):
-		if d.collectDataFromHeaders() {
-			return nil, errClientReconnectTimeout
-		}
-		return nil, errNoBlockReceiver
-	case block, ok := <-d.chBlockReceiver:
-		if !ok {
-			d.Logger.Warnf("channel block receiver is closed: %s", addr)
-			return nil, errChanBlockRecvIsClosed
-		}
-		if block.Header.Number > d.nextBlockNumber {
-			d.Logger.Warnf("ignoring out-of-order block from orderer: %s; received block number: %d, expected: %d",
-				addr, block.Header.Number, d.nextBlockNumber)
-			return nil, errOutOfOrderBlock
-		}
-		if block.Header.Number < d.nextBlockNumber {
-			d.Logger.Warnf("ignoring duplicate block from orderer: %s; received block number: %d, expected: %d",
-				addr, block.Header.Number, d.nextBlockNumber)
-			return nil, errDuplicateBlock
-		}
-		d.Logger.Debugf("received block from orderer: %s; received block number: %d",
-			addr, block.Header.Number)
-
-		ticker := time.NewTicker(d.BlockCensorshipTimeout / 100)
-		defer ticker.Stop()
-
-		for range ticker.C {
-			select {
-			case <-d.Ctx.Done():
-				ticker.Stop()
-				return nil, errClientClosing
-			default:
-			}
-
-			if d.collectDataFromHeaders() && d.checkDataHashFrom(block.Header.DataHash) {
-				break
-			}
-
-			if d.lastBlockTime.Add(d.BlockCensorshipTimeout).Before(time.Now()) {
+	for {
+		select {
+		case <-d.Ctx.Done():
+			return nil, errClientClosing
+		case <-time.After(t):
+			if d.collectDataFromHeaders() {
 				return nil, errClientReconnectTimeout
 			}
-		}
 
-		return block, nil
+			d.lastBlockTime = time.Now()
+			t = d.BlockCensorshipTimeout
+			continue
+		case block, ok := <-d.chBlockReceiver:
+			if !ok {
+				d.Logger.Warnf("channel block receiver is closed: %s", addr)
+				return nil, errChanBlockRecvIsClosed
+			}
+			if block.Header.Number > d.nextBlockNumber {
+				d.Logger.Warnf("ignoring out-of-order block from orderer: %s; received block number: %d, expected: %d",
+					addr, block.Header.Number, d.nextBlockNumber)
+				return nil, errOutOfOrderBlock
+			}
+			if block.Header.Number < d.nextBlockNumber {
+				d.Logger.Warnf("ignoring duplicate block from orderer: %s; received block number: %d, expected: %d",
+					addr, block.Header.Number, d.nextBlockNumber)
+				return nil, errDuplicateBlock
+			}
+			d.Logger.Debugf("received block from orderer: %s; received block number: %d",
+				addr, block.Header.Number)
+
+			ticker := time.NewTicker(d.BlockCensorshipTimeout / 100)
+			defer ticker.Stop()
+
+			for range ticker.C {
+				select {
+				case <-d.Ctx.Done():
+					ticker.Stop()
+					return nil, errClientClosing
+				default:
+				}
+
+				if d.collectDataFromHeaders() && d.checkDataHashFrom(block.Header.DataHash) {
+					break
+				}
+
+				if d.lastBlockTime.Add(d.BlockCensorshipTimeout).Before(time.Now()) {
+					return nil, errClientReconnectTimeout
+				}
+			}
+
+			return block, nil
+		}
 	}
 }
 
