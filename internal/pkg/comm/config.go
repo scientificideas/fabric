@@ -38,9 +38,9 @@ var (
 		ServerMinInterval: time.Duration(1) * time.Minute,  // match ClientInterval
 	}
 	DefaultBackoffOptions = BackoffOptions{
-		BaseDelay:  time.Second,
-		Multiplier: 1.6,
-		MaxDelay:   time.Minute * 2,
+		BaseDelay:  250 * time.Millisecond,
+		Multiplier: 1.2,
+		MaxDelay:   20 * time.Second,
 	}
 	// strong TLS cipher suites
 	DefaultTLSCipherSuites = []uint16{

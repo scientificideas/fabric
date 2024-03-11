@@ -373,7 +373,7 @@ peer:
         # via gossip.
         # Note that 'gossip.state.enabled' controls point to point block replication
         # of blocks committed in the past.
-        blockGossipEnabled: true
+        blockGossipEnabled: false
         # It sets the total time the delivery service may spend in reconnection
         # attempts until its retry logic gives up and returns an error,
         # ignored if peer is a static leader
@@ -400,14 +400,14 @@ peer:
         # Config parameters for the Byzantine Fault Tolerant (BFT) client implementation
         bft:
             # Whether to use a BFT client implementation
-            enabled: false
+            enabled: true
 
             # The minimal back-off delay. The minimal time between connection retries. This interval grows
             # exponentially until maxBackoffDelay, below.
             minBackoffDelay: 10ms
 
             # The maximal back-off delay. The maximal time between connection retries.
-            maxBackoffDelay: 10s
+            maxBackoffDelay: 100ms
 
             # The total time a block receiver tries to connect before giving up and letting the client to try another
             # endpoint as a block receiver.
@@ -550,7 +550,7 @@ vm:
 
         # Enables/disables the standard out/err from chaincode containers for
         # debugging purposes
-        attachStdout: false
+        attachStdout: true
 
         # Parameters on creating docker container.
         # Container may be efficiently created using ipam & dns-server for cluster
@@ -734,7 +734,7 @@ ledger:
     # Indicates if the history of key updates should be stored.
     # All history 'index' will be stored in goleveldb, regardless if using
     # CouchDB or alternate database for the state.
-    enableHistoryDatabase: true
+    enableHistoryDatabase: false
 
   pvtdataStore:
     # the maximum db batch size for converting

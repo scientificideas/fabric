@@ -23,8 +23,8 @@ const (
 	DefaultReConnectTotalTimeThreshold = time.Hour * 1
 	DefaultConnectionTimeout           = time.Second * 3
 	DefaultBftMinBackoffDelay          = 10 * time.Millisecond
-	DefaultBftMaxBackoffDelay          = 10 * time.Second
-	DefaultBftBlockCensorshipTimeout   = 20 * time.Second
+	DefaultBftMaxBackoffDelay          = 100 * time.Millisecond
+	DefaultBftBlockCensorshipTimeout   = 10 * time.Second
 )
 
 // DeliverServiceConfig is the struct that defines the deliverservice configuration.

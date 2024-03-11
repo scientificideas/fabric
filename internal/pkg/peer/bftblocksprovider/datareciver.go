@@ -72,7 +72,7 @@ func NewUnitDeliver(
 		workFunc:          workFunc,
 		endFunc:           endFunc,
 		logger: flogging.MustGetLogger("peer.bftblocksprovider").
-			With("channel", channelID, "orderer-address", endpoint.Address),
+			With("channel", channelID, "orderer-address", endpoint.Address, "work-header", workHeader),
 		seekInfoEnv: seekInfoEnv,
 	}
 
@@ -80,7 +80,7 @@ func NewUnitDeliver(
 }
 
 // DeliverBlocks used to pull out head from the ordering service to
-// distributed them across peers
+// distribute them across peers
 func (u *UnitDeliver) DeliverBlocks() {
 	u.stop.CAS(0, 1)
 	defer u.stop.CAS(1, 0)

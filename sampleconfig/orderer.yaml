@@ -53,12 +53,12 @@ General:
     # Config defines the configuration options for backoff GRPC client.
     Backoff:
         # BaseDelay is the amount of time to backoff after the first failure.
-        BaseDelay: 1s
+        BaseDelay: 250ms
         # Multiplier is the factor with which to multiply backoffs after a
         # failed retry. Should ideally be greater than 1.
-        Multiplier: 1.6
+        Multiplier: 1.2
         # MaxDelay is the upper bound of backoff delay.
-        MaxDelay: 2m
+        MaxDelay: 20s
 
     # Since all nodes should be consistent it is recommended to keep
     # the default value of 100MB for MaxRecvMsgSize & MaxSendMsgSize
