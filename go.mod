@@ -7,7 +7,6 @@ require (
 	github.com/IBM/idemix v0.0.2-0.20231011101252-a4feda90f3f7
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible
 	github.com/Shopify/sarama v1.20.1
-	github.com/SmartBFT-Go/consensus v0.0.0-20240215044737-fd3c35e3c876
 	github.com/VictoriaMetrics/fastcache v1.9.0
 	github.com/bits-and-blooms/bitset v1.13.0
 	github.com/cheggaaa/pb v1.0.29
@@ -19,6 +18,8 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/go-version v1.4.0
+	github.com/hyperledger-labs/SmartBFT v0.0.0-20240314102917-584daefbad5b
+	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
 	github.com/hyperledger/fabric-config v0.1.0
 	github.com/hyperledger/fabric-lib-go v1.0.0
 	github.com/hyperledger/fabric-protos-go v0.2.0
@@ -40,18 +41,14 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.9
 	go.etcd.io/etcd/raft/v3 v3.5.9
 	go.etcd.io/etcd/server/v3 v3.5.9
+	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.19.0
 	golang.org/x/tools v0.14.0
 	google.golang.org/grpc v1.61.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
-)
-
-require (
-	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
-	go.uber.org/atomic v1.7.0
-	google.golang.org/protobuf v1.33.0
 )
 
 require (

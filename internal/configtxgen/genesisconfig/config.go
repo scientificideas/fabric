@@ -13,7 +13,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/SmartBFT-Go/consensus/pkg/types"
+	"github.com/hyperledger-labs/SmartBFT/pkg/types"
 	"github.com/hyperledger/fabric-protos-go/orderer/etcdraft"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
 	"github.com/hyperledger/fabric/common/flogging"
