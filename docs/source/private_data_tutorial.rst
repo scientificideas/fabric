@@ -764,11 +764,15 @@ By setting ``"memberOnlyRead": true`` in the collection configuration file, we
 specify that only clients from Org1 can read data from the collection. An Org2 client
 who tries to read the collection would only get the following response:
 
-.. code:: json
+.. code-block:: json
 
-    Error: endorsement failure during query. response: status:500 message:"failed to
-    read asset details: GET_STATE failed: transaction ID: d23e4bc0538c3abfb7a6bd4323fd5f52306e2723be56460fc6da0e5acaee6b23: tx
-    creator does not have read access permission on privatedata in chaincodeName:private collectionName: Org1MSPPrivateCollection"
+    {
+        "Error": "endorsement failure during query",
+        "response": {
+            "status": 500,
+            "message": "failed to read asset details: GET_STATE failed: transaction ID: d23e4bc0538c3abfb7a6bd4323fd5f52306e2723be56460fc6da0e5acaee6b23: tx creator does not have read access permission on privatedata in chaincodeName:private collectionName: Org1MSPPrivateCollection"
+        }
+    }
 
 Users from Org2 will only be able to see the public hash of the private data.
 
@@ -979,7 +983,6 @@ the collection JSON file.
 .. note:: It is not possible to create an index for use with an implicit private data collection.
           An implicit collection is based on the organizations name and is created automatically. The format of the name
           is ``_implicit_org_<OrgsMSPid>``
-          Please see `FAB-17916 <https://jira.hyperledger.org/browse/FAB-17916>`__ for more information.
 
 Clean up
 --------

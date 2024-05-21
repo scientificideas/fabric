@@ -4,9 +4,6 @@ The following prerequisites are required to run a Docker-based Fabric test netwo
 
 ## Mac
 
-<!--- Indent entire section -->
-<div style="margin-left: 1.5em;">
-
 ### Homebrew
 
 For macOS, we recommend using [Homebrew](https://brew.sh) to manage the prereqs.
@@ -82,9 +79,9 @@ Optional: Install the latest Fabric supported version of [Go](https://golang.org
 installed (only required if you will be writing Go chaincode or SDK applications).
 
 ```shell
-$ brew install go@1.21.8
+$ brew install go@1.22.3
 $ go version
-go1.21.8 darwin/amd64
+go1.22.3 darwin/amd64
 ```
 
 ### JQ
@@ -97,12 +94,8 @@ $ brew install jq
 $ jq --version
 jq-1.6
 ```
-</div>
 
 ## **Linux**
-
-<!--- Indent entire section -->
-<div style="margin-left: 1.5em;">
 
 ### Git
 
@@ -165,12 +158,7 @@ Optional: Install the latest version of [Go](https://golang.org/doc/install) if 
 Optional: Install the latest version of [jq](https://stedolan.github.io/jq/download/) if it is not already installed
 (only required for the tutorials related to channel configuration transactions).
 
-</div>
-
 ## **Windows**
-
-<!--- Indent entire section -->
-<div style="margin-left: 1.5em;">
 
 ### Docker
 
@@ -207,8 +195,6 @@ git config --get core.autocrlf
 git config --get core.longpaths
 ```
 These output from these commands should be false and true respectively.
-
-</div>
 
 ## **Notes**
 
