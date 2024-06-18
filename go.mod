@@ -18,7 +18,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/hashicorp/go-version v1.4.0
-	github.com/hyperledger-labs/SmartBFT v0.0.0-20240314102917-584daefbad5b
+	github.com/hyperledger-labs/SmartBFT v0.0.0-20240616160543-3f61a410b8c1
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220920210243-7bc6fa0dd58b
 	github.com/hyperledger/fabric-config v0.1.0
 	github.com/hyperledger/fabric-lib-go v1.0.0
