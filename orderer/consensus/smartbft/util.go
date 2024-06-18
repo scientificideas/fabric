@@ -199,7 +199,6 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 		return config, errors.New("config metadata options field is nil")
 	}
 
-	config.RequestMaxBytes = options.RequestMaxBytes
 	config.RequestBatchMaxCount = options.RequestBatchMaxCount
 	config.RequestBatchMaxBytes = options.RequestBatchMaxBytes
 	if config.RequestBatchMaxInterval, err = time.ParseDuration(options.RequestBatchMaxInterval); err != nil {
@@ -251,6 +250,12 @@ func configFromMetadataOptions(selfID uint64, options *smartbft.Options) (types.
 
 	if err = config.Validate(); err != nil {
 		return config, errors.Wrap(err, "config validation failed")
+	}
+
+	if options.RequestMaxBytes == 0 {
+		config.RequestMaxBytes = config.RequestBatchMaxBytes
+	} else {
+		config.RequestMaxBytes = options.RequestMaxBytes
 	}
 
 	return config, nil
