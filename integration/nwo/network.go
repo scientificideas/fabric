@@ -160,6 +160,7 @@ type Network struct {
 	GatewayEnabled           bool
 	OrdererReplicationPolicy string
 	PeerDeliveryClientPolicy string
+	UsePutStateBatch         bool
 
 	PortsByOrdererID map[string]Ports
 	PortsByPeerID    map[string]Ports
@@ -192,6 +193,7 @@ func New(c *Config, rootDir string, dockerClient *docker.Client, startPort int, 
 		PortsByOrdererID:         map[string]Ports{},
 		PortsByPeerID:            map[string]Ports{},
 		PeerDeliveryClientPolicy: "",
+		UsePutStateBatch:         true,
 
 		Organizations:  c.Organizations,
 		Consensus:      c.Consensus,

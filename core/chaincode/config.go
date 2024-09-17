@@ -16,21 +16,24 @@ import (
 )
 
 const (
-	defaultExecutionTimeout = 30 * time.Second
-	minimumStartupTimeout   = 5 * time.Second
+	defaultExecutionTimeout     = 30 * time.Second
+	minimumStartupTimeout       = 5 * time.Second
+	defaultMaxSizePutStateBatch = 1000
 )
 
 type Config struct {
-	TotalQueryLimit int
-	TLSEnabled      bool
-	Keepalive       time.Duration
-	ExecuteTimeout  time.Duration
-	InstallTimeout  time.Duration
-	StartupTimeout  time.Duration
-	LogFormat       string
-	LogLevel        string
-	ShimLogLevel    string
-	SCCAllowlist    map[string]bool
+	TotalQueryLimit      int
+	TLSEnabled           bool
+	Keepalive            time.Duration
+	ExecuteTimeout       time.Duration
+	InstallTimeout       time.Duration
+	StartupTimeout       time.Duration
+	LogFormat            string
+	LogLevel             string
+	ShimLogLevel         string
+	SCCAllowlist         map[string]bool
+	UsePutStateBatch     bool
+	MaxSizePutStateBatch uint32
 }
 
 func GlobalConfig() *Config {
@@ -70,6 +73,13 @@ func (c *Config) load() {
 	c.TotalQueryLimit = 10000 // need a default just in case it's not set
 	if viper.IsSet("ledger.state.totalQueryLimit") {
 		c.TotalQueryLimit = viper.GetInt("ledger.state.totalQueryLimit")
+	}
+	if viper.IsSet("chaincode.additionalParams.usePutStateBatch") {
+		c.UsePutStateBatch = viper.GetBool("chaincode.additionalParams.usePutStateBatch")
+	}
+	c.MaxSizePutStateBatch = viper.GetUint32("ledger.state.maxSizePutStateBatch")
+	if c.MaxSizePutStateBatch <= 0 {
+		c.MaxSizePutStateBatch = defaultMaxSizePutStateBatch
 	}
 }
 

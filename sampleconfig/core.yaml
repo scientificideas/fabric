@@ -669,6 +669,14 @@ chaincode:
       # Format for the chaincode container logs
       format: '%{color}%{time:2006-01-02 15:04:05.000 MST} [%{module}] %{shortfunc} -> %{level:.4s} %{id:03x}%{color:reset} %{message}'
 
+    # AdditionalParams section for parameters that are passed to chaincode
+    # to specify additional operation modes in which the peer operates.
+    additionalParams:
+      # UsePutStateBatch an indication that the peer can accept changes from chaincode in batches
+      usePutStateBatch: true
+      # MaxSizePutStateBatch maximum batch size for the change segment
+      maxSizePutStateBatch: 1000
+
 ###############################################################################
 #
 #    Ledger section - ledger configuration encompasses both the blockchain

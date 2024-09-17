@@ -187,6 +187,9 @@ chaincode:
     cscc:       enable
     lscc:       enable
     qscc:       enable
+  additionalParams:
+    usePutStateBatch: {{ .UsePutStateBatch }}
+    maxSizePutStateBatch: 1000
   logging:
     level:  info
     shim:   warning

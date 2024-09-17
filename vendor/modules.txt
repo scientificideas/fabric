@@ -216,7 +216,7 @@ github.com/hyperledger/fabric-amcl/amcl
 github.com/hyperledger/fabric-amcl/amcl/FP256BN
 github.com/hyperledger/fabric-amcl/core
 github.com/hyperledger/fabric-amcl/core/FP256BN
-# github.com/hyperledger/fabric-chaincode-go/v2 v2.0.0
+# github.com/hyperledger/fabric-chaincode-go/v2 v2.0.0 => github.com/scientificideas/fabric-chaincode-go/v2 v2.0.0-20240917062040-734ea7e39c20
 ## explicit; go 1.21.0
 github.com/hyperledger/fabric-chaincode-go/v2/pkg/statebased
 github.com/hyperledger/fabric-chaincode-go/v2/shim
@@ -256,8 +256,8 @@ github.com/hyperledger/fabric-lib-go/common/metrics/prometheus
 github.com/hyperledger/fabric-lib-go/common/metrics/statsd
 github.com/hyperledger/fabric-lib-go/common/metrics/statsd/goruntime
 github.com/hyperledger/fabric-lib-go/healthz
-# github.com/hyperledger/fabric-protos-go-apiv2 v0.3.4
-## explicit; go 1.21.0
+# github.com/hyperledger/fabric-protos-go-apiv2 v0.3.4 => github.com/scientificideas/fabric-protos-go-apiv2 v0.0.0-20240917052027-e43d30d02e8c
+## explicit; go 1.17
 github.com/hyperledger/fabric-protos-go-apiv2/common
 github.com/hyperledger/fabric-protos-go-apiv2/discovery
 github.com/hyperledger/fabric-protos-go-apiv2/gateway
@@ -385,6 +385,8 @@ github.com/onsi/gomega
 github.com/onsi/gomega/format
 github.com/onsi/gomega/gbytes
 github.com/onsi/gomega/gexec
+github.com/onsi/gomega/gmeasure
+github.com/onsi/gomega/gmeasure/table
 github.com/onsi/gomega/gstruct
 github.com/onsi/gomega/gstruct/errors
 github.com/onsi/gomega/internal
@@ -707,3 +709,5 @@ gopkg.in/yaml.v3
 ## explicit; go 1.17
 rsc.io/tmplfunc
 rsc.io/tmplfunc/internal/parse
+# github.com/hyperledger/fabric-chaincode-go/v2 => github.com/scientificideas/fabric-chaincode-go/v2 v2.0.0-20240917062040-734ea7e39c20
+# github.com/hyperledger/fabric-protos-go-apiv2 => github.com/scientificideas/fabric-protos-go-apiv2 v0.0.0-20240917052027-e43d30d02e8c

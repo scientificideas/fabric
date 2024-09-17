@@ -121,3 +121,8 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
+
+replace (
+	github.com/hyperledger/fabric-chaincode-go/v2 => github.com/scientificideas/fabric-chaincode-go/v2 v2.0.0-20240917062040-734ea7e39c20
+	github.com/hyperledger/fabric-protos-go-apiv2 => github.com/scientificideas/fabric-protos-go-apiv2 v0.0.0-20240917052027-e43d30d02e8c
+)

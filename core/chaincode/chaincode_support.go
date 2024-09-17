@@ -73,6 +73,8 @@ type ChaincodeSupport struct {
 	Runtime                Runtime
 	TotalQueryLimit        int
 	UserRunsCC             bool
+	UsePutStateBatch       bool
+	MaxSizePutStateBatch   uint32
 }
 
 // Launch starts executing chaincode if it is not already running. This method
@@ -126,6 +128,8 @@ func (cs *ChaincodeSupport) HandleChaincodeStream(stream ccintf.ChaincodeStream)
 		AppConfig:              cs.AppConfig,
 		Metrics:                cs.HandlerMetrics,
 		TotalQueryLimit:        cs.TotalQueryLimit,
+		UsePutStateBatch:       cs.UsePutStateBatch,
+		MaxSizePutStateBatch:   cs.MaxSizePutStateBatch,
 	}
 
 	return handler.ProcessStream(stream)
