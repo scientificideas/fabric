@@ -299,6 +299,13 @@ func TestGlobalConfig(t *testing.T) {
 	viper.Set("operations.tls.clientAuthRequired", false)
 	viper.Set("operations.tls.clientRootCAs.files", []string{"relative/file1", "/absolute/file2"})
 
+	viper.Set("admin.listenAddress", "127.0.0.1:9444")
+	viper.Set("admin.tls.enabled", false)
+	viper.Set("admin.tls.cert.file", "test/tls/cert/file")
+	viper.Set("admin.tls.key.file", "test/tls/key/file")
+	viper.Set("admin.tls.clientAuthRequired", false)
+	viper.Set("admin.tls.clientRootCAs.files", []string{"relative/file1", "/absolute/file2"})
+
 	viper.Set("metrics.provider", "disabled")
 	viper.Set("metrics.statsd.network", "udp")
 	viper.Set("metrics.statsd.address", "127.0.0.1:8125")
@@ -384,6 +391,17 @@ func TestGlobalConfig(t *testing.T) {
 			EndorsementTimeout: 10 * time.Second,
 			BroadcastTimeout:   10 * time.Second,
 			DialTimeout:        60 * time.Second,
+		},
+		Admin: AdminConf{
+			ListenAddress:         "127.0.0.1:9444",
+			TLSEnabled:            false,
+			TLSCertFile:           filepath.Join(cwd, "test/tls/cert/file"),
+			TLSKeyFile:            filepath.Join(cwd, "test/tls/key/file"),
+			TLSClientAuthRequired: false,
+			TLSClientRootCAs: []string{
+				filepath.Join(cwd, "relative", "file1"),
+				"/absolute/file2",
+			},
 		},
 	}
 

@@ -93,6 +93,11 @@ type MSP interface {
 	SatisfiesPrincipal(id Identity, principal *msp.MSPPrincipal) error
 }
 
+type GetIdentityer interface {
+	// GetIdentityFromCert return Identity from cert
+	GetIdentityFromCert(idBytes []byte) (Identity, error)
+}
+
 // OUIdentifier represents an organizational unit and
 // its related chain of trust identifier.
 type OUIdentifier struct {

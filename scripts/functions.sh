@@ -35,6 +35,8 @@ function filterExcludedAndGeneratedFiles {
         '(^|/)Pipfile$'
         '(^|/)Pipfile\.lock$'
         '(^|/)tox\.ini$'
+        '(^|/)google\/'
+        '(^|/)protoc-gen-openapiv2\/'
     )
 
     local filter

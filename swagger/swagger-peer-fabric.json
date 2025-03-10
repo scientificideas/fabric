@@ -1,0 +1,218 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Hyperledger Fabric is an enterprise-grade permissioned distributed ledger framework for developing\nsolutions and applications. Its modular and versatile design satisfies a broad range of industry use\ncases. It offers a unique approach to consensus that enables performance at scale while preserving privacy.",
+    "title": "Fabric API",
+    "license": {
+      "name": "Apache-2.0"
+    },
+    "version": "2.3"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "operations"
+        ],
+        "summary": "Retrieves all registered health checkers for the process.",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "description": "Ok."
+          },
+          "503": {
+            "description": "Service unavailable."
+          }
+        }
+      }
+    },
+    "/logspec": {
+      "get": {
+        "tags": [
+          "operations"
+        ],
+        "summary": "Retrieves the active logging spec for a peer or orderer.",
+        "operationId": "logspecget",
+        "responses": {
+          "200": {
+            "description": "Ok."
+          }
+        }
+      },
+      "put": {
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "tags": [
+          "operations"
+        ],
+        "summary": "Updates the active logging spec for a peer or orderer.",
+        "operationId": "logspecput",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The payload must consist of a single attribute named spec.",
+            "name": "payload",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content."
+          },
+          "400": {
+            "description": "Bad request."
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "operations"
+        ],
+        "operationId": "metrics",
+        "responses": {
+          "200": {
+            "description": "Ok."
+          }
+        }
+      }
+    },
+    "/peer/v1/channel/join": {
+      "post": {
+        "tags": [
+          "peer-rest",
+          "join"
+        ],
+        "summary": "Joins the peer to a channel.",
+        "operationId": "peerJoin",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbrestJoinRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbrestJoinResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pbrestErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "tags": [
+          "operations"
+        ],
+        "summary": "Returns the orderer or peer version and the commit SHA on which the release was created.",
+        "operationId": "version",
+        "responses": {
+          "200": {
+            "description": "Ok."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "pbrestErrorResponse": {
+      "type": "object",
+      "title": "ErrorResponse response with an error",
+      "properties": {
+        "error": {
+          "type": "string",
+          "title": "error message"
+        }
+      }
+    },
+    "pbrestJoinRequest": {
+      "type": "object",
+      "title": "JoinRequest request for peer join to channel",
+      "properties": {
+        "block": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "pbrestJoinResponse": {
+      "type": "object",
+      "title": "JoinResponse response for peer join to channel"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Rest APIs for peer",
+      "name": "peer-rest"
+    },
+    {
+      "description": "Operations APIs",
+      "name": "operations",
+      "externalDocs": {
+        "url": "https://hyperledger-fabric.readthedocs.io/en/latest/operations_service.html"
+      }
+    },
+    {
+      "name": "API"
+    }
+  ]
+}

@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package aclmgmt
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 
 	"github.com/hyperledger/fabric-protos-go-apiv2/common"
@@ -149,6 +151,8 @@ func (d *defaultACLProviderImpl) CheckACL(resName string, channelID string, idin
 		return d.policyChecker.CheckPolicyBySignedData(channelID, policy, []*protoutil.SignedData{typedData})
 	case []*protoutil.SignedData:
 		return d.policyChecker.CheckPolicyBySignedData(channelID, policy, typedData)
+	case *x509.Certificate:
+		return d.policyChecker.CheckPolicyByCert(channelID, policy, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: typedData.Raw}))
 	default:
 		aclLogger.Errorf("Unmapped id on checkACL %s", resName)
 		return fmt.Errorf("Unknown id on checkACL %s", resName)
@@ -174,6 +178,8 @@ func (d *defaultACLProviderImpl) CheckACLNoChannel(resName string, idinfo interf
 		return d.policyChecker.CheckPolicyNoChannelBySignedData(policy, sd)
 	case []*protoutil.SignedData:
 		return d.policyChecker.CheckPolicyNoChannelBySignedData(policy, typedData)
+	case *x509.Certificate:
+		return d.policyChecker.CheckPolicyNoChannelByCert(policy, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: typedData.Raw}))
 	default:
 		aclLogger.Errorf("Unmapped id on channelless checkACL %s", resName)
 		return fmt.Errorf("Unknown id on channelless checkACL %s", resName)

@@ -235,6 +235,20 @@ operations:
     clientRootCAs:
       files:
       - {{ .PeerLocalTLSDir Peer }}/ca.crt
+
+admin:
+  listenAddress: 127.0.0.1:{{ .PeerPort Peer "Admin" }}
+  tls:
+    enabled: {{ .TLSEnabled }}
+    cert:
+      file: {{ .PeerLocalTLSDir Peer }}/server.crt
+    key:
+      file: {{ .PeerLocalTLSDir Peer }}/server.key
+    clientAuthRequired: {{ .ClientAuthRequired }}
+    clientRootCAs:
+      files:
+      - {{ .PeerLocalTLSDir Peer }}/ca.crt
+
 metrics:
   provider: {{ .MetricsProvider }}
   statsd:

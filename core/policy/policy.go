@@ -39,6 +39,15 @@ type PolicyChecker interface {
 	// CheckPolicyNoChannelBySignedData checks that the passed signed data is valid with the respect to
 	// passed policy on the local MSP.
 	CheckPolicyNoChannelBySignedData(policyName string, signedData []*protoutil.SignedData) error
+
+	// CheckPolicyByCert checks that the passed cert is valid with the respect to
+	// passed policy on the passed channel.
+	// If no channel is passed, CheckPolicyNoChannelByCert is invoked directly.
+	CheckPolicyByCert(channelID, policyName string, cert []byte) error
+
+	// CheckPolicyNoChannelByCert checks that the passed cert is valid with the respect to
+	// passed policy on the local MSP.
+	CheckPolicyNoChannelByCert(policyName string, cert []byte) error
 }
 
 type policyChecker struct {
@@ -225,4 +234,97 @@ func (p *policyChecker) CheckPolicyNoChannelBySignedData(policyName string, sign
 	}
 
 	return nil
+}
+
+// CheckPolicyByCert checks that the passed cert is valid with the respect to
+// passed policy on the passed channel.
+// If no channel is passed, CheckPolicyNoChannelByCert is invoked directly.
+func (p *policyChecker) CheckPolicyByCert(channelID, policyName string, cert []byte) error {
+	if channelID == "" {
+		return p.CheckPolicyNoChannelByCert(policyName, cert)
+	}
+
+	if policyName == "" {
+		return fmt.Errorf("Invalid policy name during check policy on channel [%s]. Name must be different from nil.", channelID)
+	}
+
+	if cert == nil {
+		return fmt.Errorf("Invalid cert during check policy on channel [%s] with policy [%s]", channelID, policyName)
+	}
+
+	gi, err := p.getIdentityer()
+	if err != nil {
+		return err
+	}
+
+	id, err := gi.GetIdentityFromCert(cert)
+	if err != nil {
+		logger.Warnw("Failed get identity during check policy on channel check policy", "error", err, "policyName", policyName, "cert", cert, "channelID", channelID)
+		return fmt.Errorf("Failed get identity during check policy on channel [%s] with policy [%s]: [%s]", channelID, policyName, err)
+	}
+
+	// Get Policy
+	policyManager := p.channelPolicyManagerGetter.Manager(channelID)
+	if policyManager == nil {
+		return fmt.Errorf("Failed to get policy manager for channel [%s]", channelID)
+	}
+
+	// Recall that get policy always returns a policy object
+	policy, _ := policyManager.GetPolicy(policyName)
+
+	// Evaluate the policy
+	err = policy.EvaluateIdentities([]msp.Identity{id})
+	if err != nil {
+		logger.Warnw("Failed evaluating policy on Identity", "error", err, "policyName", policyName, "identities", id, "channelID", channelID)
+		return fmt.Errorf("Failed evaluating policy on Identity during check policy on channel [%s] with policy [%s]: [%s]", channelID, policyName, err)
+	}
+
+	return nil
+}
+
+// CheckPolicyNoChannelByCert checks that the passed cert is valid with the respect to
+// passed policy on the local MSP.
+func (p *policyChecker) CheckPolicyNoChannelByCert(policyName string, cert []byte) error {
+	if policyName == "" {
+		return errors.New("Invalid policy name during channelless check policy. Name must be different from nil.")
+	}
+
+	if cert == nil {
+		return fmt.Errorf("Invalid cert during channelless check policy with policy [%s]", policyName)
+	}
+
+	gi, err := p.getIdentityer()
+	if err != nil {
+		return err
+	}
+
+	id, err := gi.GetIdentityFromCert(cert)
+	if err != nil {
+		logger.Warnw("Failed get identity during channelless check policy", "error", err, "policyName", policyName, "cert", cert)
+		return fmt.Errorf("Failed get identity during channelless check policy with policy [%s]: [%s]", policyName, err)
+	}
+
+	// Load MSPPrincipal for policy
+	principal, err := p.principalGetter.Get(policyName)
+	if err != nil {
+		return fmt.Errorf("Failed getting local MSP principal during channelless check policy with policy [%s]: [%s]", policyName, err)
+	}
+
+	// Verify that proposal's creator satisfies the principal
+	err = id.SatisfiesPrincipal(principal)
+	if err != nil {
+		logger.Warnw("Failed verifying that identity satisfies local MSP principal during channelless check policy", "error", err, "policyName", policyName, "requiredPrincipal", principal)
+		return fmt.Errorf("Failed verifying identity satisfies local MSP principal during channelless check policy with policy [%s]: [%s]", policyName, err)
+	}
+
+	return nil
+}
+
+func (p *policyChecker) getIdentityer() (msp.GetIdentityer, error) {
+	gi, ok := p.localMSP.(msp.GetIdentityer)
+	if !ok {
+		return nil, errors.New("MSP does not support the GetIdentityer interface.")
+	}
+
+	return gi, nil
 }

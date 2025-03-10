@@ -795,6 +795,38 @@ operations:
 
 ###############################################################################
 #
+#    Admin section
+#
+###############################################################################
+admin:
+  # host and port for the admin server
+  listenAddress: 127.0.0.1:9444
+
+  # TLS configuration for the admin endpoint
+  tls:
+    # TLS enabled
+    enabled: false
+
+    # path to PEM encoded server certificate for the admin server
+    # The paths in this section may be relative to FABRIC_CFG_PATH or an absolute path.
+    cert:
+      file: tls/server.crt
+
+    # path to PEM encoded server key for the admin server
+    key:
+      file: tls/server.key
+
+    # most admin service endpoints require client authentication when TLS
+    # is enabled. clientAuthRequired requires client certificate authentication
+    # at the TLS layer to access all resources.
+    clientAuthRequired: false
+
+    # paths to PEM encoded ca certificates to trust for client authentication
+    clientRootCAs:
+      files: []
+
+###############################################################################
+#
 #    Metrics section
 #
 ###############################################################################

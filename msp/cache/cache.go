@@ -126,6 +126,14 @@ func (c *cachedMSP) SatisfiesPrincipal(id msp.Identity, principal *pmsp.MSPPrinc
 	return err
 }
 
+func (c *cachedMSP) GetIdentityFromCert(idBytes []byte) (msp.Identity, error) {
+	gi, ok := c.MSP.(msp.GetIdentityer)
+	if !ok {
+		return nil, errors.Errorf("MSP does not support the GetIdentityer interface.")
+	}
+	return gi.GetIdentityFromCert(idBytes)
+}
+
 func (c *cachedMSP) cleanCache() {
 	c.deserializeIdentityCache = newSecondChanceCache(deserializeIdentityCacheSize)
 	c.satisfiesPrincipalCache = newSecondChanceCache(satisfiesPrincipalCacheSize)

@@ -1,0 +1,133 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Fabric API",
+    "description": "Hyperledger Fabric is an enterprise-grade permissioned distributed ledger framework for developing\nsolutions and applications. Its modular and versatile design satisfies a broad range of industry use\ncases. It offers a unique approach to consensus that enables performance at scale while preserving privacy.",
+    "version": "2.3",
+    "license": {
+      "name": "Apache-2.0"
+    }
+  },
+  "tags": [
+    {
+      "name": "peer-rest",
+      "description": "Rest APIs for peer"
+    },
+    {
+      "name": "operations",
+      "description": "Operations APIs",
+      "externalDocs": {
+        "url": "https://hyperledger-fabric.readthedocs.io/en/latest/operations_service.html"
+      }
+    },
+    {
+      "name": "API"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/peer/v1/channel/join": {
+      "post": {
+        "summary": "Joins the peer to a channel.",
+        "operationId": "peerJoin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/pbrestJoinResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/pbrestErrorResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/pbrestJoinRequest"
+            }
+          }
+        ],
+        "tags": [
+          "peer-rest",
+          "join"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "pbrestErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "title": "error message"
+        }
+      },
+      "title": "ErrorResponse response with an error"
+    },
+    "pbrestJoinRequest": {
+      "type": "object",
+      "properties": {
+        "block": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "JoinRequest request for peer join to channel"
+    },
+    "pbrestJoinResponse": {
+      "type": "object",
+      "title": "JoinResponse response for peer join to channel"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

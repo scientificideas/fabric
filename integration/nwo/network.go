@@ -1697,7 +1697,7 @@ const (
 
 // PeerPortNames returns the list of ports that need to be reserved for a Peer.
 func PeerPortNames() []PortName {
-	return []PortName{ListenPort, ChaincodePort, EventsPort, ProfilePort, OperationsPort}
+	return []PortName{ListenPort, ChaincodePort, EventsPort, ProfilePort, OperationsPort, AdminPort}
 }
 
 // OrdererPortNames  returns the list of ports that need to be reserved for an

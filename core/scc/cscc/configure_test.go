@@ -206,7 +206,7 @@ func TestConfigerInvokeJoinChainMissingParams(t *testing.T) {
 		bccsp:       cryptoProvider,
 	}
 	mockStub := &mocks.ChaincodeStub{}
-	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain")})
+	mockStub.GetArgsReturns([][]byte{[]byte(JoinChain)})
 	res := cscc.Invoke(mockStub)
 	require.NotEqual(
 		t,
@@ -224,7 +224,7 @@ func TestConfigerInvokeJoinChainWrongParams(t *testing.T) {
 		bccsp:       cryptoProvider,
 	}
 	mockStub := &mocks.ChaincodeStub{}
-	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain"), []byte("action")})
+	mockStub.GetArgsReturns([][]byte{[]byte(JoinChain), []byte("action")})
 	mockStub.GetSignedProposalReturns(validSignedProposal(), nil)
 	res := cscc.Invoke(mockStub)
 	require.NotEqual(
@@ -262,15 +262,15 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 	if blockBytes == nil {
 		t.Fatalf("cscc invoke JoinChain failed because invalid block")
 	}
-	args := [][]byte{[]byte("JoinChain"), blockBytes}
+	args := [][]byte{[]byte(JoinChain), blockBytes}
 	sProp := validSignedProposal()
 	sProp.Signature = sProp.ProposalBytes
 
 	// Try fail path with nil block
-	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain"), nil})
+	mockStub.GetArgsReturns([][]byte{[]byte(JoinChain), nil})
 	mockStub.GetSignedProposalReturns(sProp, nil)
 	res := cscc.Invoke(mockStub)
-	// res := stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), nil}, sProp)
+	// res := stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte(JoinChain), nil}, sProp)
 	require.Equal(t, int32(shim.ERROR), res.Status)
 
 	// Try fail path with block and nil payload header
@@ -284,9 +284,9 @@ func TestConfigerInvokeJoinChainCorrectParams(t *testing.T) {
 		},
 	}
 	badBlockBytes := protoutil.MarshalOrPanic(badBlock)
-	mockStub.GetArgsReturns([][]byte{[]byte("JoinChain"), badBlockBytes})
+	mockStub.GetArgsReturns([][]byte{[]byte(JoinChain), badBlockBytes})
 	res = cscc.Invoke(mockStub)
-	// res = stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte("JoinChain"), badBlockBytes}, sProp)
+	// res = stub.MockInvokeWithSignedProposal("2", [][]byte{[]byte(JoinChain), badBlockBytes}, sProp)
 	require.Equal(t, int32(shim.ERROR), res.Status)
 
 	// Now, continue with valid execution path
@@ -532,7 +532,7 @@ func TestPeerConfiger_SubmittingOrdererGenesis(t *testing.T) {
 	}
 	mockStub := &mocks.ChaincodeStub{}
 	// Failed path: wrong parameter type
-	args := [][]byte{[]byte("JoinChain"), blockBytes}
+	args := [][]byte{[]byte(JoinChain), blockBytes}
 	mockStub.GetArgsReturns(args)
 	mockStub.GetSignedProposalReturns(validSignedProposal(), nil)
 	res := cscc.Invoke(mockStub)

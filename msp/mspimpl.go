@@ -214,6 +214,15 @@ func (msp *bccspmsp) getIdentityFromConf(idBytes []byte) (Identity, bccsp.Key, e
 	return mspId, certPubK, nil
 }
 
+// GetIdentityFromCert return Identity from cert
+func (msp *bccspmsp) GetIdentityFromCert(idBytes []byte) (Identity, error) {
+	if msp == nil {
+		return nil, errors.New("GetIdentityFromCert error: msp is nil")
+	}
+	cert, _, err := msp.getIdentityFromConf(idBytes)
+	return cert, err
+}
+
 func (msp *bccspmsp) getSigningIdentityFromConf(sidInfo *m.SigningIdentityInfo) (SigningIdentity, error) {
 	if sidInfo == nil {
 		return nil, errors.New("getIdentityFromBytes error: nil sidInfo")

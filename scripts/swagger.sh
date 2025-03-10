@@ -5,19 +5,32 @@
 # SPDX-License-Identifier: Apache-2.0
 
 fabric_dir="$(cd "$(dirname "$0")/.." && pwd)"
-swagger_tags="${fabric_dir}/swagger/tags.json"
-swagger_doc="${fabric_dir}/swagger/swagger-fabric.json"
+swagger_orderer_tags="${fabric_dir}/swagger/tags.json"
+swagger_orderer_doc="${fabric_dir}/swagger/swagger-orderer-fabric.json"
+
+swagger_peer_rest="${fabric_dir}/internal/peer/rest/pbrest/rest.swagger.json"
+swagger_peer_doc="${fabric_dir}/swagger/swagger-peer-fabric.json"
 
 check_spec() {
-    swagger_doc_check="${fabric_dir}/swagger/swagger-fabric-check.json"
-    swagger generate spec -o "$swagger_doc_check" --scan-models --exclude-deps --input "$swagger_tags"
-    if [ -n "$(diff "$swagger_doc_check" "$swagger_doc")" ]; then
-        echo "The Fabric swagger is out of date."
+    swagger_orderer_doc_check="${fabric_dir}/swagger/swagger-orderer-fabric-check.json"
+    swagger generate spec -o "$swagger_orderer_doc_check" --scan-models --exclude-deps --input "$swagger_orderer_tags"
+    if [ -n "$(diff "$swagger_orderer_doc_check" "$swagger_orderer_doc")" ]; then
+        echo "The Fabric orderer swagger is out of date."
         echo "Please run '$0 generate' to update the swagger."
-        rm "$swagger_doc_check"
+        rm "$swagger_orderer_doc_check"
         exit 1
     fi
-    rm "$swagger_doc_check"
+    rm "$swagger_orderer_doc_check"
+
+    swagger_peer_doc_check="${fabric_dir}/swagger/swagger-peer-fabric-check.json"
+        swagger generate spec -o "$swagger_peer_doc_check" --scan-models --exclude-deps --include-tag "operations" --exclude github.com/hyperledger/fabric/orderer/common/types --input "$swagger_peer_rest"
+        if [ -n "$(diff "$swagger_peer_doc_check" "$swagger_peer_doc")" ]; then
+            echo "The Fabric peer swagger is out of date."
+            echo "Please run '$0 generate' to update the swagger."
+            rm "$swagger_peer_doc_check"
+            exit 1
+        fi
+        rm "$swagger_peer_doc_check"
 }
 
 case "$1" in
@@ -29,7 +42,8 @@ case "$1" in
 
     # generate the swagger
     "generate")
-        swagger generate spec -o "$swagger_doc" --scan-models --exclude-deps --input "$swagger_tags"
+        swagger generate spec -o "$swagger_orderer_doc" --scan-models --exclude-deps --input "$swagger_orderer_tags"
+        swagger generate spec -o "$swagger_peer_doc" --scan-models --exclude-deps --include-tag "operations" --exclude github.com/hyperledger/fabric/orderer/common/types --input "$swagger_peer_rest"
     ;;
 
     *)

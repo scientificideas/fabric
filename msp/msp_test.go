@@ -67,6 +67,11 @@ func TestMSPParsers(t *testing.T) {
 	sigid = &msp.SigningIdentityInfo{PublicSigner: []byte("barf"), PrivateSigner: keyinfo}
 	_, err = localMsp.(*bccspmsp).getSigningIdentityFromConf(sigid)
 	require.Error(t, err)
+
+	gi, ok := localMsp.(GetIdentityer)
+	require.True(t, ok)
+	_, err = gi.GetIdentityFromCert(nil)
+	require.Error(t, err)
 }
 
 func TestGetSigningIdentityFromConfWithWrongPrivateCert(t *testing.T) {

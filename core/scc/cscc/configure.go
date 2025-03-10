@@ -125,11 +125,10 @@ func (e *PeerConfiger) Invoke(stub shim.ChaincodeStubInterface) *pb.Response {
 		return shim.Error(fmt.Sprintf("Rejecting invoke of CSCC from another chaincode, original invocation for '%s'", name))
 	}
 
-	return e.InvokeNoShim(args, sp)
+	return e.InvokeNoShim(args, sp, true)
 }
 
-func (e *PeerConfiger) InvokeNoShim(args [][]byte, sp *pb.SignedProposal) *pb.Response {
-	var err error
+func (e *PeerConfiger) InvokeNoShim(args [][]byte, sp *pb.SignedProposal, checkACL bool) *pb.Response {
 	fname := string(args[0])
 
 	switch fname {
@@ -150,14 +149,16 @@ func (e *PeerConfiger) InvokeNoShim(args [][]byte, sp *pb.SignedProposal) *pb.Re
 		}
 
 		// 1. check config block's format and capabilities requirement.
-		if err := validateConfigBlock(block, e.bccsp); err != nil {
+		if err = validateConfigBlock(block, e.bccsp); err != nil {
 			return shim.Error(fmt.Sprintf("\"JoinChain\" for channelID = %s failed because of validation "+
 				"of configuration block, because of %s", cid, err))
 		}
 
 		// 2. check join policy.
-		if err = e.aclProvider.CheckACL(resources.Cscc_JoinChain, "", sp); err != nil {
-			return shim.Error(fmt.Sprintf("access denied for [%s][%s]: [%s]", fname, cid, err))
+		if checkACL {
+			if err = e.aclProvider.CheckACL(resources.Cscc_JoinChain, "", sp); err != nil {
+				return shim.Error(fmt.Sprintf("access denied for [%s][%s]: [%s]", fname, cid, err))
+			}
 		}
 
 		// Initialize txsFilter if it does not yet exist. We can do this safely since
@@ -175,19 +176,19 @@ func (e *PeerConfiger) InvokeNoShim(args [][]byte, sp *pb.SignedProposal) *pb.Re
 			return shim.Error("Cannot join the channel, no snapshot directory provided")
 		}
 		// check policy
-		if err = e.aclProvider.CheckACL(resources.Cscc_JoinChainBySnapshot, "", sp); err != nil {
+		if err := e.aclProvider.CheckACL(resources.Cscc_JoinChainBySnapshot, "", sp); err != nil {
 			return shim.Error(fmt.Sprintf("access denied for [%s]: [%s]", fname, err))
 		}
 		snapshotDir := string(args[1])
 		return e.JoinChainBySnapshot(snapshotDir, e.deployedCCInfoProvider, e.legacyLifecycle, e.newLifecycle)
 	case JoinBySnapshotStatus:
-		if err = e.aclProvider.CheckACL(resources.Cscc_JoinBySnapshotStatus, "", sp); err != nil {
+		if err := e.aclProvider.CheckACL(resources.Cscc_JoinBySnapshotStatus, "", sp); err != nil {
 			return shim.Error(fmt.Sprintf("access denied for [%s]: %s", fname, err))
 		}
 		return e.joinBySnapshotStatus()
 	case GetConfigBlock:
 		// 2. check policy
-		if err = e.aclProvider.CheckACL(resources.Cscc_GetConfigBlock, string(args[1]), sp); err != nil {
+		if err := e.aclProvider.CheckACL(resources.Cscc_GetConfigBlock, string(args[1]), sp); err != nil {
 			return shim.Error(fmt.Sprintf("access denied for [%s][%s]: %s", fname, args[1], err))
 		}
 
@@ -196,13 +197,13 @@ func (e *PeerConfiger) InvokeNoShim(args [][]byte, sp *pb.SignedProposal) *pb.Re
 		if len(args[1]) == 0 {
 			return shim.Error("empty channel name provided")
 		}
-		if err = e.aclProvider.CheckACL(resources.Cscc_GetChannelConfig, string(args[1]), sp); err != nil {
+		if err := e.aclProvider.CheckACL(resources.Cscc_GetChannelConfig, string(args[1]), sp); err != nil {
 			return shim.Error(fmt.Sprintf("access denied for [%s][%s]: %s", fname, args[1], err))
 		}
 		return e.getChannelConfig(args[1])
 	case GetChannels:
 		// 2. check get channels policy
-		if err = e.aclProvider.CheckACL(resources.Cscc_GetChannels, "", sp); err != nil {
+		if err := e.aclProvider.CheckACL(resources.Cscc_GetChannels, "", sp); err != nil {
 			return shim.Error(fmt.Sprintf("access denied for [%s]: %s", fname, err))
 		}
 

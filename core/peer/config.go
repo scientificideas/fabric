@@ -48,6 +48,26 @@ type ExternalBuilder struct {
 	Path                 string   `yaml:"path"`
 }
 
+// AdminConf configuration for peer administration
+type AdminConf struct {
+	// ListenAddress provides the host and port for the admin server
+	ListenAddress string
+	// TLSEnabled enables/disables TLS for admins.
+	TLSEnabled bool
+	// TLSCertFile provides the path to PEM encoded server certificate for
+	// the admin server.
+	TLSCertFile string
+	// TLSKeyFile provides the path to PEM encoded server key for the
+	// admin server.
+	TLSKeyFile string
+	// TLSClientAuthRequired enables/disables the requirements for client
+	// certificate authentication at the TLS layer to access all resource.
+	TLSClientAuthRequired bool
+	// TLSClientRootCAs provides the path to PEM encoded ca certiricates to
+	// trust for client authentication.
+	TLSClientRootCAs []string
+}
+
 // Config is the struct that defines the Peer configurations.
 type Config struct {
 	// LocalMSPID is the identifier of the local MSP.
@@ -219,6 +239,9 @@ type Config struct {
 	// interact with fabric networks
 
 	GatewayOptions gatewayconfig.Options
+
+	// ----- Admin config -----
+	Admin AdminConf
 }
 
 // GlobalConfig obtains a set of configuration from viper, build and returns
@@ -319,6 +342,16 @@ func (c *Config) load() error {
 
 	for _, rca := range viper.GetStringSlice("operations.tls.clientRootCAs.files") {
 		c.OperationsTLSClientRootCAs = append(c.OperationsTLSClientRootCAs, config.TranslatePath(configDir, rca))
+	}
+
+	c.Admin.ListenAddress = viper.GetString("admin.listenAddress")
+	c.Admin.TLSEnabled = viper.GetBool("admin.tls.enabled")
+	c.Admin.TLSCertFile = config.GetPath("admin.tls.cert.file")
+	c.Admin.TLSKeyFile = config.GetPath("admin.tls.key.file")
+	c.Admin.TLSClientAuthRequired = viper.GetBool("admin.tls.clientAuthRequired")
+
+	for _, rca := range viper.GetStringSlice("admin.tls.clientRootCAs.files") {
+		c.Admin.TLSClientRootCAs = append(c.Admin.TLSClientRootCAs, config.TranslatePath(configDir, rca))
 	}
 
 	c.MetricsProvider = viper.GetString("metrics.provider")

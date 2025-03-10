@@ -88,6 +88,7 @@ import (
 	gossipprivdata "github.com/hyperledger/fabric/gossip/privdata"
 	gossipservice "github.com/hyperledger/fabric/gossip/service"
 	peergossip "github.com/hyperledger/fabric/internal/peer/gossip"
+	"github.com/hyperledger/fabric/internal/peer/rest"
 	"github.com/hyperledger/fabric/internal/peer/version"
 	"github.com/hyperledger/fabric/internal/pkg/comm"
 	"github.com/hyperledger/fabric/internal/pkg/gateway"
@@ -774,8 +775,25 @@ func serve(args []string) error {
 		scc.DeploySysCC(cc, chaincodeSupport)
 	}
 
-	logger.Infof("Deployed system chaincodes")
+	adminServer := newAdminServer(coreConfig)
+	// register the rest api server
+	adminServer.RegisterHandler(
+		rest.URLBaseV1,
+		rest.NewRestAPIHandler(serverEndorser, aclProvider, csccInst),
+		coreConfig.Admin.TLSEnabled,
+	)
 
+	if err = adminServer.Start(); err != nil {
+		return errors.WithMessage(err, "failed to initialize admin subsystem")
+	}
+	defer func() {
+		err = adminServer.Stop()
+		if err != nil {
+			errors.WithMessage(err, "failed to stop admin subsystem")
+		}
+	}()
+
+	logger.Infof("Deployed system chaincodes")
 	// register the lifecycleMetadataManager to get updates from the legacy
 	// chaincode; lifecycleMetadataManager will aggregate these updates with
 	// the ones from the new lifecycle and deliver both
@@ -1290,6 +1308,20 @@ func newOperationsSystem(coreConfig *peer.Config) *operations.System {
 			},
 		},
 		Version: metadata.Version,
+	})
+}
+
+func newAdminServer(coreConfig *peer.Config) *fabhttp.Server {
+	return fabhttp.NewServer(fabhttp.Options{
+		Logger:        flogging.MustGetLogger("peer.admin"),
+		ListenAddress: coreConfig.Admin.ListenAddress,
+		TLS: fabhttp.TLS{
+			Enabled:            coreConfig.Admin.TLSEnabled,
+			CertFile:           coreConfig.Admin.TLSCertFile,
+			KeyFile:            coreConfig.Admin.TLSKeyFile,
+			ClientCertRequired: coreConfig.Admin.TLSClientAuthRequired,
+			ClientCACertFiles:  coreConfig.Admin.TLSClientRootCAs,
+		},
 	})
 }
 

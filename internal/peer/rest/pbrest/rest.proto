@@ -1,0 +1,78 @@
+/*
+Copyright IBM Corp. All Rights Reserved.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package pbrest;
+option go_package = "github.com/hyperledger/fabric/internal/peer/rest/pbrest";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// ErrorResponse response with an error
+message ErrorResponse {
+  string error = 1; // error message
+}
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Fabric API";
+    version: "2.3";
+    description: "Hyperledger Fabric is an enterprise-grade permissioned distributed ledger framework for developing\nsolutions and applications. Its modular and versatile design satisfies a broad range of industry use\ncases. It offers a unique approach to consensus that enables performance at scale while preserving privacy.";
+    license: {
+      name: "Apache-2.0";
+    };
+  };
+  tags: [
+    {
+      name: "peer-rest",
+      description: "Rest APIs for peer",
+    },
+    {
+      name: "operations",
+      description: "Operations APIs",
+      external_docs: {
+        url: "https://hyperledger-fabric.readthedocs.io/en/latest/operations_service.html"
+      }
+    }
+  ];
+  schemes: [HTTP, HTTPS];
+  consumes: "application/json";
+  produces: "application/json";
+  responses: {
+    key: "500"
+    value: {
+      description: "Internal server error"
+      schema:{
+        json_schema:{
+          ref: ".pbrest.ErrorResponse"
+        }
+      }
+    }
+  }
+};
+
+service API {
+  rpc Join(JoinRequest) returns (JoinResponse){
+    option (google.api.http) = {
+      post: "/peer/v1/channel/join"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Joins the peer to a channel.";
+      operation_id: "peerJoin";
+      tags: ["peer-rest", "join"];
+    };
+  }
+}
+
+// JoinRequest request for peer join to channel
+message JoinRequest{
+  bytes block = 1;
+}
+
+// JoinResponse response for peer join to channel
+message JoinResponse{}
