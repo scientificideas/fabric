@@ -282,13 +282,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 	}
 
 	if d.blockReceiver == nil {
-		seekInfoEnv, err := d.createSeekInfo(d.nextBlockNumber, false)
-		if err != nil {
-			d.Logger.Error("Could not create a signed Deliver SeekInfo message, something is critically wrong", err)
-			d.Cancel()
-
-			return numEP, err
-		}
+		seekInfoEnvFunc := d.createSeekInfo(d.nextBlockNumber, false)
 
 		d.blockReceiverIndex = (d.blockReceiverIndex + 1) % numEP
 		ep := d.Endpoints[d.blockReceiverIndex]
@@ -315,7 +309,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			false,
 			d.workBlockReceiver(d.chBlockReceiver),
 			d.endBlockReceiver(d.chBlockReceiver),
-			seekInfoEnv,
+			seekInfoEnvFunc,
 		)
 
 		go d.blockReceiver.DeliverBlocks()
@@ -340,13 +334,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 		hRcvToCreate = append(hRcvToCreate, ep)
 	}
 
-	seekInfoEnv, err := d.createSeekInfo(d.nextBlockNumber, true)
-	if err != nil {
-		d.Logger.Error("Could not create a signed Deliver SeekInfo message, something is critically wrong", err)
-		d.Cancel()
-
-		return numEP, err
-	}
+	seekInfoEnvFunc := d.createSeekInfo(d.nextBlockNumber, true)
 
 	for _, ep := range hRcvToCreate {
 		ch := make(chan *common.Block, 10)
@@ -366,7 +354,7 @@ func (d *Deliverer) assignReceivers() (int, error) {
 			true,
 			d.workHeadReceiver(ch),
 			d.endBlockReceiver(ch),
-			seekInfoEnv,
+			seekInfoEnvFunc,
 		)
 
 		d.headerReceivers[ep.Address] = &header{
@@ -381,39 +369,40 @@ func (d *Deliverer) assignReceivers() (int, error) {
 	return numEP, nil
 }
 
-func (d *Deliverer) createSeekInfo(ledgerHeight uint64, workHeader bool) (*common.Envelope, error) {
-	ct := orderer.SeekInfo_BLOCK
+func (d *Deliverer) createSeekInfo(ledgerHeight uint64, workHeader bool) func() (*common.Envelope, error) {
+	return func() (*common.Envelope, error) {
+		ct := orderer.SeekInfo_BLOCK
+		if workHeader {
+			ct = orderer.SeekInfo_HEADER_WITH_SIG
+		}
 
-	if workHeader {
-		ct = orderer.SeekInfo_HEADER_WITH_SIG
+		return protoutil.CreateSignedEnvelopeWithTLSBinding(
+			common.HeaderType_DELIVER_SEEK_INFO,
+			d.ChainID,
+			d.Signer,
+			&orderer.SeekInfo{
+				Start: &orderer.SeekPosition{
+					Type: &orderer.SeekPosition_Specified{
+						Specified: &orderer.SeekSpecified{
+							Number: ledgerHeight,
+						},
+					},
+				},
+				Stop: &orderer.SeekPosition{
+					Type: &orderer.SeekPosition_Specified{
+						Specified: &orderer.SeekSpecified{
+							Number: math.MaxUint64,
+						},
+					},
+				},
+				Behavior:    orderer.SeekInfo_BLOCK_UNTIL_READY,
+				ContentType: ct,
+			},
+			int32(0),
+			uint64(0),
+			d.TLSCertHash,
+		)
 	}
-
-	return protoutil.CreateSignedEnvelopeWithTLSBinding(
-		common.HeaderType_DELIVER_SEEK_INFO,
-		d.ChainID,
-		d.Signer,
-		&orderer.SeekInfo{
-			Start: &orderer.SeekPosition{
-				Type: &orderer.SeekPosition_Specified{
-					Specified: &orderer.SeekSpecified{
-						Number: ledgerHeight,
-					},
-				},
-			},
-			Stop: &orderer.SeekPosition{
-				Type: &orderer.SeekPosition_Specified{
-					Specified: &orderer.SeekSpecified{
-						Number: math.MaxUint64,
-					},
-				},
-			},
-			Behavior:    orderer.SeekInfo_BLOCK_UNTIL_READY,
-			ContentType: ct,
-		},
-		int32(0),
-		uint64(0),
-		d.TLSCertHash,
-	)
 }
 
 func (d *Deliverer) launchHeaderReceivers() {

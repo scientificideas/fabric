@@ -33,7 +33,7 @@ type UnitDeliver struct {
 	workFunc          func(ctx context.Context, block *common.Block)
 	endFunc           func()
 	stop              atomic.Int32
-	seekInfoEnv       *common.Envelope
+	seekInfoEnvFunc   func() (*common.Envelope, error)
 }
 
 func NewUnitDeliver(
@@ -51,7 +51,7 @@ func NewUnitDeliver(
 	workHeader bool,
 	workFunc func(ctx context.Context, block *common.Block),
 	endFunc func(),
-	seekInfoEnv *common.Envelope,
+	seekInfoEnvFunc func() (*common.Envelope, error),
 ) *UnitDeliver {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -73,7 +73,7 @@ func NewUnitDeliver(
 		endFunc:           endFunc,
 		logger: flogging.MustGetLogger("peer.bftblocksprovider").
 			With("channel", channelID, "orderer-address", endpoint.Address, "work-header", workHeader),
-		seekInfoEnv: seekInfoEnv,
+		seekInfoEnvFunc: seekInfoEnvFunc,
 	}
 
 	return u
@@ -105,7 +105,13 @@ func (u *UnitDeliver) DeliverBlocks() {
 			u.sleep(sleepDuration)
 		}
 
-		deliverClient, cancel, err := u.connect(u.seekInfoEnv)
+		seekInfoEnv, err := u.seekInfoEnvFunc()
+		if err != nil {
+			u.logger.Error("Could not create a signed Deliver SeekInfo message, something is critically wrong", err)
+			failureCounter++
+			continue
+		}
+		deliverClient, cancel, err := u.connect(seekInfoEnv)
 		if err != nil {
 			u.logger.Warningf("Could not connect to ordering service: %v", err)
 			failureCounter++
