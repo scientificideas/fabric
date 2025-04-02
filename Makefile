@@ -46,12 +46,12 @@
 #   - unit-test - runs the go-test based unit tests
 #   - verify - runs unit tests for only the changed package tree
 
-UBUNTU_VER ?= 20.04
-FABRIC_VER ?= 2.5.9
+UBUNTU_VER ?= 22.04
+FABRIC_VER ?= 2.5.12
 
 # 3rd party image version
 # These versions are also set in the runners in ./integration/runners/
-COUCHDB_VER ?= 3.3.3
+COUCHDB_VER ?= 3.4.2
 KAFKA_VER ?= 5.3.1
 ZOOKEEPER_VER ?= 5.3.1
 
@@ -80,7 +80,10 @@ METADATA_VAR += CommitSHA=$(EXTRA_VERSION)
 METADATA_VAR += BaseDockerLabel=$(BASE_DOCKER_LABEL)
 METADATA_VAR += DockerNamespace=$(DOCKER_NS)
 
-GO_VER = 1.22.4
+# Get the required Go version from the go directive in go.mod
+# 'go list -m' is not used since this fails if the local Go version is older than go.mod
+GO_VER := $(shell grep '^go[ \t]' < go.mod)
+GO_VER := $(strip $(GO_VER:go=))
 GO_TAGS ?=
 
 RELEASE_EXES = orderer $(TOOLS_EXES)
@@ -345,8 +348,8 @@ spaces:
 	@scripts/check_file_name_spaces.sh
 
 .PHONY: docs
-docs:
-	@docker run --rm -v $$(pwd):/docs n42org/tox:3.4.0 sh -c 'cd /docs && tox -e docs'
+docs: # Builds the documentation in html format
+	@docker run --rm -v $$(pwd):/docs python:3.12-slim sh -c 'pip install --no-input tox && cd /docs && tox -e docs'
 
 .PHONY: ccaasbuilder-clean
 ccaasbuilder-clean/%:
