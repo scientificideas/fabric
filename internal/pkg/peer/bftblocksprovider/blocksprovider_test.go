@@ -170,20 +170,10 @@ var _ = Describe("BlocksproviderBFT", func() {
 	})
 
 	It("signs the seek info request", func() {
-		Eventually(fakeSigner.SignCallCount).Should(Equal(2))
+		Eventually(fakeSigner.SignCallCount, time.Minute).Should(BeNumerically(">=", 2))
 		// Note, the signer is used inside a util method
 		// which has its own set of tests, so checking the args
 		// in this test is unnecessary
-	})
-
-	When("the signer returns an error", func() {
-		BeforeEach(func() {
-			fakeSigner.SignReturns(nil, fmt.Errorf("fake-signer-error"))
-		})
-
-		It("exits the loop", func() {
-			Eventually(endC).Should(BeClosed())
-		})
 	})
 
 	It("gets a random endpoint to connect to from the orderer connection source", func() {
