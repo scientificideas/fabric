@@ -124,12 +124,12 @@ func (d *deliverServiceImpl) StartDeliverForChannel(chainID string, ledgerInfo b
 	defer d.lock.Unlock()
 	if d.stopping {
 		errMsg := fmt.Sprintf("Delivery service is stopping cannot join a new channel %s", chainID)
-		logger.Errorf(errMsg)
+		logger.Error(errMsg)
 		return errors.New(errMsg)
 	}
 	if _, exist := d.blockProviders[chainID]; exist {
 		errMsg := fmt.Sprintf("Delivery service - block provider already exists for %s found, can't start delivery", chainID)
-		logger.Errorf(errMsg)
+		logger.Error(errMsg)
 		return errors.New(errMsg)
 	}
 
@@ -236,13 +236,13 @@ func (d *deliverServiceImpl) StopDeliverForChannel(chainID string) error {
 	defer d.lock.Unlock()
 	if d.stopping {
 		errMsg := fmt.Sprintf("Delivery service is stopping, cannot stop delivery for channel %s", chainID)
-		logger.Errorf(errMsg)
+		logger.Error(errMsg)
 		return errors.New(errMsg)
 	}
 	client, exist := d.blockProviders[chainID]
 	if !exist {
 		errMsg := fmt.Sprintf("Delivery service - no block provider for %s found, can't stop delivery", chainID)
-		logger.Errorf(errMsg)
+		logger.Error(errMsg)
 		return errors.New(errMsg)
 	}
 	client.Stop()
