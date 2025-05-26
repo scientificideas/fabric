@@ -26,8 +26,8 @@ require (
 	github.com/kr/pretty v0.3.1
 	github.com/miekg/pkcs11 v1.1.1
 	github.com/mitchellh/mapstructure v1.4.3
-	github.com/onsi/ginkgo/v2 v2.13.2
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/ginkgo/v2 v2.23.4
+	github.com/onsi/gomega v1.37.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
@@ -44,7 +44,7 @@ require (
 	go.uber.org/atomic v1.7.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.37.0
-	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d
+	golang.org/x/tools v0.31.0
 	google.golang.org/grpc v1.70.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
@@ -80,11 +80,11 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
+	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hyperledger/fabric-amcl v0.0.0-20230602173724-9e02669dceb2 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -118,8 +118,9 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	go.etcd.io/etcd/pkg/v3 v3.5.14 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
