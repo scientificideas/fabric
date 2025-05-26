@@ -13,10 +13,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hyperledger-labs/SmartBFT/pkg/api"
 	"github.com/hyperledger-labs/SmartBFT/pkg/types"
 	protos "github.com/hyperledger-labs/SmartBFT/smartbftprotos"
+	"google.golang.org/protobuf/proto"
 )
 
 // Phase indicates the status of the view
@@ -949,7 +949,10 @@ func (v *View) metadataWithUpdatedBlacklist(metadata *protos.ViewMetadata, verif
 
 // Propose broadcasts a prePrepare message with the given proposal
 func (v *View) Propose(proposal types.Proposal) {
-	_, prevSigs := v.RetrieveCheckpoint()
+	var prevSigs []*protos.Signature
+	if v.DecisionsPerLeader > 0 {
+		_, prevSigs = v.RetrieveCheckpoint()
+	}
 
 	seq := v.ProposalSequence
 	msg := &protos.Message{
@@ -1010,6 +1013,10 @@ func (v *View) Stopped() bool {
 	default:
 		return false
 	}
+}
+
+func (v *View) AbortChan() <-chan struct{} {
+	return v.abortChan
 }
 
 func (v *View) GetLeaderID() uint64 {
