@@ -77,14 +77,19 @@ jobs:
         component:
           - name: baseos
             context: images/baseos
+            gotags: ""
           - name: ccenv
             context: images/ccenv
+            gotags: ""
           - name: peer
             context: .
+            gotags: ""
           - name: orderer
             context: .
+            gotags: ""
           - name: tools
             context: .
+            gotags: "pkcs11"
 
     steps:
       - name: Checkout
@@ -121,7 +126,7 @@ jobs:
             FABRIC_VER=${{ env.FABRIC_VER }}
             UBUNTU_VER=${{ env.UBUNTU_VER }}
             GO_VER=${{ env.GO_VER }}
-            GO_TAGS=
+            GO_TAGS= ${{ matrix.component.gotags }}
           outputs: type=image,"name=docker.io/${{ github.repository_owner }}/fabric-${{ matrix.component.name }}",push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
