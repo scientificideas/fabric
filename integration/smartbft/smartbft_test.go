@@ -19,7 +19,6 @@ import (
 	"syscall"
 	"time"
 
-	docker "github.com/fsouza/go-dockerclient"
 	"github.com/hyperledger/fabric-protos-go/common"
 	"github.com/hyperledger/fabric-protos-go/msp"
 	"github.com/hyperledger/fabric-protos-go/orderer/smartbft"
@@ -27,6 +26,7 @@ import (
 	"github.com/hyperledger/fabric/integration/nwo"
 	"github.com/hyperledger/fabric/integration/nwo/commands"
 	"github.com/hyperledger/fabric/protoutil"
+	dcli "github.com/moby/moby/client"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -43,7 +43,7 @@ func init() {
 var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 	var (
 		testDir          string
-		client           *docker.Client
+		client           dcli.APIClient
 		network          *nwo.Network
 		networkProcess   ifrit.Process
 		ordererProcesses []ifrit.Process
@@ -58,7 +58,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		testDir, err = ioutil.TempDir("", "e2e-smartbft-test")
 		Expect(err).NotTo(HaveOccurred())
 
-		client, err = docker.NewClientFromEnv()
+		client, err = dcli.New(dcli.FromEnv)
 		Expect(err).NotTo(HaveOccurred())
 
 		network = nwo.New(nwo.MultiNodeSmartBFT(), testDir, client, StartPort(), components)
