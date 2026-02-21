@@ -527,7 +527,7 @@ func TestVerifyBlocks(t *testing.T) {
 				seqSigs := make([][]*protoutil.SignedData, len(blockSequence))
 				sequenceSignatures = &seqSigs
 				var err error
-				for i := 0; i < len(blockSequence); i++ {
+				for i := range blockSequence {
 					(*sequenceSignatures)[i], err = protoutil.SignatureSetFromBlock(blockSequence[i], nil)
 					assert.NoError(t, err)
 				}

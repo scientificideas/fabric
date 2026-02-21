@@ -14,7 +14,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"sort"
+	"slices"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -459,9 +459,7 @@ func RemoteNodesFromConfigBlock(block *cb.Block, selfID uint64, logger *flogging
 		})
 	}
 
-	sort.Slice(nodeIDs, func(i, j int) bool {
-		return nodeIDs[i] < nodeIDs[j]
-	})
+	slices.Sort(nodeIDs)
 
 	return &nodeConfig{
 		remoteNodes:   remoteNodes,

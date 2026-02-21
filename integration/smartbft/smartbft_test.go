@@ -11,7 +11,6 @@ package smartbft
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -55,8 +54,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 		ordererProcesses = nil
 		peerProcesses = nil
 		var err error
-		testDir, err = ioutil.TempDir("", "e2e-smartbft-test")
-		Expect(err).NotTo(HaveOccurred())
+		testDir = GinkgoT().TempDir()
 
 		client, err = dcli.New(dcli.FromEnv)
 		Expect(err).NotTo(HaveOccurred())
@@ -83,7 +81,6 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			ordererInstance.Signal(syscall.SIGTERM)
 			Eventually(ordererInstance.Wait(), network.EventuallyTimeout).Should(Receive())
 		}
-		_ = os.RemoveAll(testDir)
 	})
 
 	Describe("smartbft network", func() {
@@ -471,10 +468,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 			ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(orderer5), "server.crt")
-			ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+			ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
+			ordererIdentity, err := os.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
 			identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
@@ -526,7 +523,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("Planting last config block in the orderer's file system")
 			configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
+			err = os.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Launching the added orderer")
@@ -739,10 +736,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 				Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 				ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(newOrderer), "server.crt")
-				ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+				ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 				Expect(err).NotTo(HaveOccurred())
 
-				ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(newOrderer))
+				ordererIdentity, err := os.ReadFile(network.OrdererCert(newOrderer))
 				Expect(err).NotTo(HaveOccurred())
 
 				identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
@@ -774,7 +771,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 				By("Planting last config block in the orderer's file system")
 				configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-				err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
+				err = os.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 				Expect(err).NotTo(HaveOccurred())
 
 				_, _ = fmt.Fprintf(GinkgoWriter, "Launching orderer %d", 5+i)
@@ -991,10 +988,10 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 			Eventually(sess, network.EventuallyTimeout).Should(gexec.Exit(0))
 
 			ordererCertificatePath := filepath.Join(network.OrdererLocalTLSDir(orderer5), "server.crt")
-			ordererCertificate, err := ioutil.ReadFile(ordererCertificatePath)
+			ordererCertificate, err := os.ReadFile(ordererCertificatePath)
 			Expect(err).NotTo(HaveOccurred())
 
-			ordererIdentity, err := ioutil.ReadFile(network.OrdererCert(orderer5))
+			ordererIdentity, err := os.ReadFile(network.OrdererCert(orderer5))
 			Expect(err).NotTo(HaveOccurred())
 
 			identity := protoutil.MarshalOrPanic(&msp.SerializedIdentity{
@@ -1031,7 +1028,7 @@ var _ = Describe("EndToEnd Smart BFT configuration test", func() {
 
 			By("Planting last config block in the orderer's file system")
 			configBlock := nwo.GetConfigBlock(network, peer, orderer, "systemchannel")
-			err = ioutil.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
+			err = os.WriteFile(filepath.Join(testDir, "systemchannel_block.pb"), protoutil.MarshalOrPanic(configBlock), 0o644)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Launching the added orderer")

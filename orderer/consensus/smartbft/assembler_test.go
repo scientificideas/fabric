@@ -189,7 +189,7 @@ func proposalFromRequests(verificationSeq, seq, lastConfigSeq uint64, lastBlockH
 	}
 }
 
-func panicsContainValue(t *testing.T, expected interface{}, f assert.PanicTestFunc, msgAndArgs ...interface{}) bool {
+func panicsContainValue(t *testing.T, expected any, f assert.PanicTestFunc, msgAndArgs ...any) bool {
 	funcDidPanic, panicValue, panickedStack := didPanic(f)
 	if !funcDidPanic {
 		return assert.Fail(t, fmt.Sprintf("func %#v should panic\n\tPanic value:\t%#v", f, panicValue), msgAndArgs...)
@@ -202,7 +202,7 @@ func panicsContainValue(t *testing.T, expected interface{}, f assert.PanicTestFu
 }
 
 // didPanic returns true if the function passed to it panics. Otherwise, it returns false.
-func didPanic(f assert.PanicTestFunc) (didPanic bool, message interface{}, stack string) {
+func didPanic(f assert.PanicTestFunc) (didPanic bool, message any, stack string) {
 	didPanic = true
 
 	defer func() {

@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package smartbft_test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -24,7 +24,7 @@ import (
 
 func TestValidateConfig(t *testing.T) {
 	// Config block
-	configBlockBytes, err := ioutil.ReadFile("testdata/mychannel.block")
+	configBlockBytes, err := os.ReadFile("testdata/mychannel.block")
 	require.NoError(t, err)
 
 	configBlock := &cb.Block{}
@@ -40,7 +40,7 @@ func TestValidateConfig(t *testing.T) {
 	lateConfigEnvelope.Config.Sequence--
 
 	// New channel block
-	newChannelBlockBytes, err := ioutil.ReadFile("testdata/orderertxn.block")
+	newChannelBlockBytes, err := os.ReadFile("testdata/orderertxn.block")
 	require.NoError(t, err)
 
 	newChannelBlock := &cb.Block{}
@@ -260,7 +260,6 @@ func TestValidateConfig(t *testing.T) {
 			mutateEnvelope:             func(_ *cb.Envelope) {},
 		},
 	} {
-		testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
 			cup := &mocks.ConfigUpdateProposer{}
 			f := &mocks.Filters{}

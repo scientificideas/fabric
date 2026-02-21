@@ -337,26 +337,25 @@ func MarshalSmartBFTMetadata(md *smartbft.ConfigMetadata) ([]byte, error) {
 	for _, c := range copyMd.Consenters {
 		// Expect the user to set the config value for client/server certs to the
 		// path where they are persisted locally, then load these files to memory.
-		clientCert, err := ioutil.ReadFile(string(c.GetClientTlsCert()))
+		clientCert, err := os.ReadFile(string(c.GetClientTlsCert()))
 		if err != nil {
 			return nil, errors.Errorf("cannot load client cert for consenter %s:%d: %s", c.GetHost(), c.GetPort(), err)
 		}
 		c.ClientTlsCert = clientCert
 
-		serverCert, err := ioutil.ReadFile(string(c.GetServerTlsCert()))
+		serverCert, err := os.ReadFile(string(c.GetServerTlsCert()))
 		if err != nil {
 			return nil, errors.Errorf("cannot load server cert for consenter %s:%d: %s", c.GetHost(), c.GetPort(), err)
 		}
 		c.ServerTlsCert = serverCert
 
 		// Load OSN signing identity certificate
-		idBytes, err := ioutil.ReadFile(string(c.Identity))
+		idBytes, err := os.ReadFile(string(c.Identity))
 		if err != nil {
 			return nil, errors.Errorf("cannot load consenter identity certificate %s:%d, %s", c.GetHost(), c.GetPort(), err)
 		}
 
 		c.Identity, err = msp.NewSerializedIdentity(c.MspId, idBytes)
-
 		if err != nil {
 			return nil, errors.Errorf("cannot marshal consenter serialized identity %s:%d: %s", c.GetHost(), c.GetPort(), err)
 		}

@@ -432,10 +432,7 @@ func (d *Deliverer) receiveBlock() (*common.Block, error) {
 
 	addr := receiver.GetEndpoint()
 
-	t := time.Until(d.lastBlockTime.Add(d.BlockCensorshipTimeout))
-	if t < d.BlockCensorshipTimeout/100 {
-		t = d.BlockCensorshipTimeout / 100
-	}
+	t := max(time.Until(d.lastBlockTime.Add(d.BlockCensorshipTimeout)), d.BlockCensorshipTimeout/100)
 
 	for {
 		select {

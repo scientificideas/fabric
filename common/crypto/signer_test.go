@@ -62,7 +62,6 @@ func TestCLISignerNewSignatureHeader(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			s := &mockSigner{}
 			s.On("Sign", mock.Anything).Return([]byte{1, 2, 3}, test.signError)

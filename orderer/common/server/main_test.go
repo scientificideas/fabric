@@ -1152,9 +1152,8 @@ func TestInitializeEtcdraftConsenter(t *testing.T) {
 func TestInitializeSmartBFTConsenter(t *testing.T) {
 	consenters := make(map[string]consensus.Consenter)
 
-	tmpdir, err := ioutil.TempDir("", "main_test-")
-	require.NoError(t, err)
-	defer os.RemoveAll(tmpdir)
+	tmpdir := t.TempDir()
+
 	rlf, err := fileledger.New(tmpdir, &disabled.Provider{})
 	require.NoError(t, err)
 
