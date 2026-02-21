@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -20,7 +19,6 @@ import (
 )
 
 func TestArguements(t *testing.T) {
-
 	testCases := map[string]struct {
 		exitCode int
 		args     []string
@@ -62,18 +60,18 @@ func TestGoodPath(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
-	testPath, err := ioutil.TempDir("", "test-ccaas-build-")
+	testPath, err := os.MkdirTemp("", "test-ccaas-build-")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -122,18 +120,18 @@ func TestTemplating(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
-	testPath, err := ioutil.TempDir("", "test-ccaas-build-")
+	testPath, err := os.MkdirTemp("", "test-ccaas-build-")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of the chaincode to use
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -173,7 +171,7 @@ func TestTemplating(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	// check that the file has the exepected contents
-	connectionFileContents, err := ioutil.ReadFile(chkfile)
+	connectionFileContents, err := os.ReadFile(chkfile)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	expectedJson := `{
@@ -196,18 +194,18 @@ func TestTemplatingFailure(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
-	testPath, err := ioutil.TempDir("", "test-ccaas-build-")
+	testPath, err := os.MkdirTemp("", "test-ccaas-build-")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of the chaincode to use
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")
@@ -250,18 +248,18 @@ func TestMissingConnection(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
-	testPath, err := ioutil.TempDir("", "test-ccaas-build-")
+	testPath, err := os.MkdirTemp("", "test-ccaas-build-")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	metadataJson := path.Join(testPath, "in-metadata-dir", "metadata.json")
@@ -293,18 +291,18 @@ func TestMissingMetadata(t *testing.T) {
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer gexec.CleanupBuildArtifacts()
 
-	testPath, err := ioutil.TempDir("", "test-ccaas-build-")
+	testPath, err := os.MkdirTemp("", "test-ccaas-build-")
 	gt.Expect(err).NotTo(HaveOccurred())
 	defer os.RemoveAll(testPath)
 
 	// create a basic structure of a chaincode
-	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-builder-dir", "META-INF"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "in-metadata-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
-	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0755)
+	os.MkdirAll(path.Join(testPath, "out-release-dir"), 0o755)
 	gt.Expect(err).NotTo(HaveOccurred())
 
 	connectionJson := path.Join(testPath, "in-builder-dir", "connection.json")

@@ -365,7 +365,7 @@ type EndpointCriteria struct {
 
 // String returns a string representation of this EndpointCriteria
 func (ep EndpointCriteria) String() string {
-	var formattedCAs []interface{}
+	var formattedCAs []any
 	for _, rawCAFile := range ep.TLSRootCAs {
 		var bl *pem.Block
 		pemContent := rawCAFile
@@ -384,7 +384,7 @@ func (ep EndpointCriteria) String() string {
 				issuedBy = "self"
 			}
 
-			info := make(map[string]interface{})
+			info := make(map[string]any)
 			info["Expired"] = time.Now().After(cert.NotAfter)
 			info["Subject"] = cert.Subject.String()
 			info["Issuer"] = issuedBy
@@ -392,7 +392,7 @@ func (ep EndpointCriteria) String() string {
 		}
 	}
 
-	formattedEndpointCriteria := make(map[string]interface{})
+	formattedEndpointCriteria := make(map[string]any)
 	formattedEndpointCriteria["Endpoint"] = ep.Endpoint
 	formattedEndpointCriteria["CAs"] = formattedCAs
 
@@ -707,7 +707,7 @@ type certificateExpirationCheck struct {
 	lastWarning                      time.Time
 	nodeName                         string
 	endpoint                         string
-	alert                            func(string, ...interface{})
+	alert                            func(string, ...any)
 }
 
 func (exp *certificateExpirationCheck) checkExpiration(currentTime time.Time, channel string) {

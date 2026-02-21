@@ -9,6 +9,7 @@ package gossip
 import (
 	"bytes"
 	"fmt"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -190,7 +191,7 @@ func TestMultipleOrgEndpointLeakage(t *testing.T) {
 	var secDialOpts []api.PeerSecureDialOpts
 
 	for range orgs {
-		for i := 0; i < peersInOrg; i++ {
+		for range peersInOrg {
 			port, grpc, cert, secDialOpt, _ := util.CreateGRPCLayer()
 			ports = append(ports, port)
 			grpcs = append(grpcs, grpc)
@@ -200,7 +201,7 @@ func TestMultipleOrgEndpointLeakage(t *testing.T) {
 	}
 
 	for orgIndex, org := range orgs {
-		for i := 0; i < peersInOrg; i++ {
+		for i := range peersInOrg {
 			id := orgIndex*peersInOrg + i
 			endpoint := fmt.Sprintf("127.0.0.1:%d", ports[id])
 			cs.putInOrg(ports[id], org)
@@ -327,7 +328,7 @@ func TestConfidentiality(t *testing.T) {
 	var secDialOpts []api.PeerSecureDialOpts
 
 	for range orgs {
-		for j := 0; j < peersInOrg; j++ {
+		for range peersInOrg {
 			port, grpc, cert, secDialOpt, _ := util.CreateGRPCLayer()
 			ports = append(ports, port)
 			grpcs = append(grpcs, grpc)
@@ -339,7 +340,7 @@ func TestConfidentiality(t *testing.T) {
 	// Create the message crypto service
 	cs := &configurableCryptoService{m: make(map[string]api.OrgIdentityType)}
 	for i, org := range orgs {
-		for j := 0; j < peersInOrg; j++ {
+		for j := range peersInOrg {
 			port := ports[i*peersInOrg+j]
 			cs.putInOrg(port, org)
 		}
@@ -356,7 +357,7 @@ func TestConfidentiality(t *testing.T) {
 	anchorPeersByOrg := map[string]api.AnchorPeer{}
 
 	for i, org := range orgs {
-		for j := 0; j < peersInOrg; j++ {
+		for j := range peersInOrg {
 			id := i*peersInOrg + j
 			endpoint := fmt.Sprintf("127.0.0.1:%d", ports[id])
 			externalEndpoint := ""
@@ -385,7 +386,7 @@ func TestConfidentiality(t *testing.T) {
 	finished := int32(0)
 	var wg sync.WaitGroup
 
-	msgSelector := func(o interface{}) bool {
+	msgSelector := func(o any) bool {
 		msg := o.(protoext.ReceivedMessage).GetGossipMessage()
 		identitiesPull := protoext.IsPullMsg(msg.GossipMessage) && protoext.GetPullMsgType(msg.GossipMessage) == proto.PullMsgType_IDENTITY_MSG
 		return protoext.IsAliveMsg(msg.GossipMessage) || protoext.IsStateInfoMsg(msg.GossipMessage) || protoext.IsStateInfoSnapshot(msg.GossipMessage) || msg.GetMemRes() != nil || identitiesPull
@@ -433,7 +434,7 @@ func TestConfidentiality(t *testing.T) {
 					p.JoinChan(joinChanMsgsByChan[ch], common.ChannelID(ch))
 					p.UpdateLedgerHeight(1, common.ChannelID(ch))
 					go func(p *gossipGRPC, ch string) {
-						for i := 0; i < 5; i++ {
+						for range 5 {
 							time.Sleep(time.Second)
 							p.UpdateLedgerHeight(1, common.ChannelID(ch))
 						}
@@ -621,13 +622,7 @@ type msg struct {
 
 func isSubset(a []string, b []string) bool {
 	for _, s1 := range a {
-		found := false
-		for _, s2 := range b {
-			if s1 == s2 {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(b, s1)
 		if !found {
 			return false
 		}
