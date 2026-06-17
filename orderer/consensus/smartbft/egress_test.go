@@ -69,12 +69,13 @@ func TestEgressSendTransaction(t *testing.T) {
 		}))
 	})
 
-	rpc.AssertCalled(t, "SendSubmit", uint64(42), &ab.SubmitRequest{
-		Channel: "test",
-		Payload: &cb.Envelope{
-			Payload: []byte{1, 2, 3},
+	rpc.AssertCalled(
+		t, "SendSubmit", uint64(42), &ab.SubmitRequest{
+			Channel: "test",
+			Payload: &cb.Envelope{
+				Payload: []byte{1, 2, 3},
+			},
 		},
-	},
 		mock.Anything,
 	)
 }

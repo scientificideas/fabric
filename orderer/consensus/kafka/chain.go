@@ -782,14 +782,16 @@ func (chain *chainImpl) processRegular(regularMessage *ab.KafkaMessageRegular, r
 			if regularMessage.OriginalOffset <= chain.lastOriginalOffsetProcessed {
 				logger.Debugf(
 					"[channel: %s] OriginalOffset(%d) <= LastOriginalOffsetProcessed(%d), message has been consumed already, discard",
-					chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed)
+					chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed,
+				)
 				return nil
 			}
 
 			logger.Debugf(
 				"[channel: %s] OriginalOffset(%d) > LastOriginalOffsetProcessed(%d), "+
 					"this is the first time we receive this re-submitted normal message",
-				chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed)
+				chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed,
+			)
 
 			// In case we haven't reprocessed the message, there's no need to differentiate it from those
 			// messages that will be processed for the first time.
@@ -834,14 +836,16 @@ func (chain *chainImpl) processRegular(regularMessage *ab.KafkaMessageRegular, r
 			if regularMessage.OriginalOffset <= chain.lastOriginalOffsetProcessed {
 				logger.Debugf(
 					"[channel: %s] OriginalOffset(%d) <= LastOriginalOffsetProcessed(%d), message has been consumed already, discard",
-					chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed)
+					chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed,
+				)
 				return nil
 			}
 
 			logger.Debugf(
 				"[channel: %s] OriginalOffset(%d) > LastOriginalOffsetProcessed(%d), "+
 					"this is the first time we receive this re-submitted config message",
-				chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed)
+				chain.ChannelID(), regularMessage.OriginalOffset, chain.lastOriginalOffsetProcessed,
+			)
 
 			if regularMessage.OriginalOffset == chain.lastResubmittedConfigOffset && // This is very last resubmitted config message
 				regularMessage.ConfigSeq == seq { // AND we don't need to resubmit it again
@@ -1048,7 +1052,6 @@ func setupTopicForChannel(retryOptions localconfig.Retry, haltChan chan struct{}
 			for _, address := range brokers {
 				broker := sarama.NewBroker(address)
 				err = broker.Open(brokerConfig)
-
 				if err != nil {
 					continue
 				}
@@ -1096,13 +1099,13 @@ func setupTopicForChannel(retryOptions localconfig.Retry, haltChan chan struct{}
 			if len(clusterMembers) == 0 {
 				return fmt.Errorf(
 					"error creating topic [%s]; failed to retrieve metadata for the cluster",
-					channel.topic())
+					channel.topic(),
+				)
 			}
 
 			// get the controller
 			controller := clusterMembers[controllerId]
 			err = controller.Open(brokerConfig)
-
 			if err != nil {
 				return err
 			}
@@ -1146,7 +1149,8 @@ func setupTopicForChannel(retryOptions localconfig.Retry, haltChan chan struct{}
 			}
 
 			return nil
-		})
+		},
+	)
 
 	return setupTopic.retry()
 }

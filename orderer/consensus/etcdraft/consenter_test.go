@@ -131,7 +131,8 @@ var _ = Describe("Consenter", func() {
 		})
 	})
 
-	DescribeTable("identifies a bad block",
+	DescribeTable(
+		"identifies a bad block",
 		func(block *common.Block, errMatcher gtypes.GomegaMatcher) {
 			consenter := newConsenter(chainManager, tlsCA.CertBytes(), certAsPEM)
 			isMem, err := consenter.IsChannelMember(block)
@@ -557,7 +558,7 @@ var _ = Describe("Consenter", func() {
 		consenter.RemoveInactiveChainRegistry()
 
 		chain, err := consenter.HandleChain(support, &common.Metadata{})
-		Expect(chain).To((BeNil()))
+		Expect(chain).To(BeNil())
 		Expect(err).To(MatchError("without a system channel, a follower should have been created: not in the channel"))
 	})
 

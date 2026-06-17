@@ -45,7 +45,8 @@ func TestBrokerConfig(t *testing.T) {
 			mockLocalConfig.Kafka.SASLPlain,
 			mockLocalConfig.Kafka.Retry,
 			mockLocalConfig.Kafka.Version,
-			differentPartition)
+			differentPartition,
+		)
 		producer, _ := sarama.NewSyncProducer([]string{mockBroker.Addr()}, mockBrokerConfig2)
 		defer func() { producer.Close() }()
 

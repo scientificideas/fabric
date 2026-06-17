@@ -525,7 +525,8 @@ func TestSetupTopicForChannel(t *testing.T) {
 						Err: sarama.ErrNoError,
 					},
 				},
-			}),
+			},
+		),
 		"MetadataRequest": sarama.NewMockWrapper(mdrUnknownTopicOrPartition),
 	})
 
@@ -539,7 +540,8 @@ func TestSetupTopicForChannel(t *testing.T) {
 						Err: sarama.ErrTopicAlreadyExists,
 					},
 				},
-			}),
+			},
+		),
 		"MetadataRequest": sarama.NewMockWrapper(&sarama.MetadataResponse{
 			Version: 1,
 			Topics: []*sarama.TopicMetadata{
@@ -565,7 +567,8 @@ func TestSetupTopicForChannel(t *testing.T) {
 						Err: sarama.ErrInvalidTopic,
 					},
 				},
-			}),
+			},
+		),
 		"MetadataRequest": metadataResponse,
 	})
 
@@ -579,7 +582,8 @@ func TestSetupTopicForChannel(t *testing.T) {
 						Err: sarama.ErrInvalidTopic,
 					},
 				},
-			}),
+			},
+		),
 		"MetadataRequest": sarama.NewMockWrapper(&sarama.MetadataResponse{
 			Version:      1,
 			Brokers:      []*sarama.Broker{sarama.NewBroker(mockBrokerInvalidTopic2.Addr())},
@@ -657,7 +661,8 @@ func TestSetupTopicForChannel(t *testing.T) {
 					NumPartitions:     1,
 					ReplicationFactor: 2,
 				},
-				mockChannel)
+				mockChannel,
+			)
 			if test.expectErr {
 				require.Contains(t, err.Error(), test.errorMsg)
 			} else {
@@ -2225,7 +2230,8 @@ func TestProcessMessagesToBlocks(t *testing.T) {
 				mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 					protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 					uint64(0),
-					int64(0))))
+					int64(0),
+				)))
 
 				var normalBlk, configBlk *cb.Block
 				select {
@@ -2306,7 +2312,8 @@ func TestProcessMessagesToBlocks(t *testing.T) {
 				mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 					protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 					uint64(0),
-					int64(0))))
+					int64(0),
+				)))
 				select {
 				case <-mockSupport.Blocks:
 					t.Fatalf("Expected no block being cut given invalid config message")
@@ -2705,7 +2712,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newNormalMessage(
 				protoutil.MarshalOrPanic(newMockNormalEnvelope(t)),
 				uint64(0),
-				int64(0))))
+				int64(0),
+			)))
 			select {
 			case <-mockSupport.Blocks:
 				t.Fatalf("Expected no block being cut given invalid config message")
@@ -2811,7 +2819,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newNormalMessage(
 				protoutil.MarshalOrPanic(newMockNormalEnvelope(t)),
 				uint64(0),
-				int64(0))))
+				int64(0),
+			)))
 			select {
 			case <-mockSupport.Blocks:
 				t.Fatalf("Expected no block being cut given invalid config message")
@@ -2985,7 +2994,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 				protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 				uint64(0),
-				int64(0))))
+				int64(0),
+			)))
 			select {
 			case <-mockSupport.Blocks:
 				t.Fatalf("Expected no block being cut")
@@ -3001,7 +3011,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 				protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 				uint64(1),
-				int64(5))))
+				int64(5),
+			)))
 
 			select {
 			case block := <-mockSupport.Blocks:
@@ -3150,7 +3161,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 				protoutil.MarshalOrPanic(newMockNormalEnvelope(t)),
 				uint64(0),
-				int64(0))))
+				int64(0),
+			)))
 			select {
 			case <-mockSupport.Blocks:
 				t.Fatalf("Expected no block being cut given invalid config message")
@@ -3260,7 +3272,8 @@ func TestResubmission(t *testing.T) {
 			mpc.YieldMessage(newMockConsumerMessage(newConfigMessage(
 				protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 				uint64(0),
-				int64(0))))
+				int64(0),
+			)))
 			select {
 			case <-mockSupport.Blocks:
 				t.Fatalf("Expected no block being cut given lagged config message")
@@ -3313,7 +3326,8 @@ func newRegularMessage(payload []byte) *ab.KafkaMessage {
 func newMockNormalEnvelope(t *testing.T) *cb.Envelope {
 	return &cb.Envelope{Payload: protoutil.MarshalOrPanic(&cb.Payload{
 		Header: &cb.Header{ChannelHeader: protoutil.MarshalOrPanic(
-			&cb.ChannelHeader{Type: int32(cb.HeaderType_MESSAGE), ChannelId: channelNameForTest(t)})},
+			&cb.ChannelHeader{Type: int32(cb.HeaderType_MESSAGE), ChannelId: channelNameForTest(t)},
+		)},
 		Data: []byte("Foo"),
 	})}
 }
@@ -3321,7 +3335,8 @@ func newMockNormalEnvelope(t *testing.T) *cb.Envelope {
 func newMockConfigEnvelope() *cb.Envelope {
 	return &cb.Envelope{Payload: protoutil.MarshalOrPanic(&cb.Payload{
 		Header: &cb.Header{ChannelHeader: protoutil.MarshalOrPanic(
-			&cb.ChannelHeader{Type: int32(cb.HeaderType_CONFIG), ChannelId: "foo"})},
+			&cb.ChannelHeader{Type: int32(cb.HeaderType_CONFIG), ChannelId: "foo"},
+		)},
 		Data: protoutil.MarshalOrPanic(&cb.ConfigEnvelope{}),
 	})}
 }
@@ -3329,7 +3344,8 @@ func newMockConfigEnvelope() *cb.Envelope {
 func newMockOrdererTxEnvelope() *cb.Envelope {
 	return &cb.Envelope{Payload: protoutil.MarshalOrPanic(&cb.Payload{
 		Header: &cb.Header{ChannelHeader: protoutil.MarshalOrPanic(
-			&cb.ChannelHeader{Type: int32(cb.HeaderType_ORDERER_TRANSACTION), ChannelId: "foo"})},
+			&cb.ChannelHeader{Type: int32(cb.HeaderType_ORDERER_TRANSACTION), ChannelId: "foo"},
+		)},
 		Data: protoutil.MarshalOrPanic(newMockConfigEnvelope()),
 	})}
 }

@@ -165,7 +165,6 @@ func (v *Verifier) verifyRequest(rawRequest []byte, noConfigAllowed bool) (types
 	err = v.AccessController.Evaluate([]*protoutil.SignedData{
 		{Identity: req.sigHdr.Creator, Data: req.envelope.Payload, Signature: req.envelope.Signature},
 	})
-
 	if err != nil {
 		return types.RequestInfo{}, errors.Wrap(err, "access denied")
 	}

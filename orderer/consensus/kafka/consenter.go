@@ -36,7 +36,8 @@ func New(config localconfig.Kafka, mp metrics.Provider, healthChecker healthChec
 		config.SASLPlain,
 		config.Retry,
 		config.Version,
-		defaultPartition)
+		defaultPartition,
+	)
 
 	metrics := NewMetrics(mp, brokerConfig.MetricRegistry)
 

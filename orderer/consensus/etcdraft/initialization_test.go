@@ -26,7 +26,8 @@ func TestNewEtcdRaftConsenter(t *testing.T) {
 	dialer := &cluster.PredicateDialer{}
 	cryptoProvider, err := sw.NewDefaultSecurityLevelWithKeystore(sw.NewDummyKeyStore())
 	require.NoError(t, err)
-	consenter := etcdraft.New(dialer,
+	consenter := etcdraft.New(
+		dialer,
 		&localconfig.TopLevel{},
 		comm.ServerConfig{
 			SecOpts: comm.SecureOptions{

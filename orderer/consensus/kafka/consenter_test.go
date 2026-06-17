@@ -61,18 +61,21 @@ func init() {
 		false,
 		localconfig.SASLPlain{Enabled: false},
 		mockRetryOptions,
-		false)
+		false,
+	)
 	mockBrokerConfig = newMockBrokerConfig(
 		mockLocalConfig.General.TLS,
 		mockLocalConfig.Kafka.SASLPlain,
 		mockLocalConfig.Kafka.Retry,
 		mockLocalConfig.Kafka.Version,
-		defaultPartition)
+		defaultPartition,
+	)
 	mockConsenter = newMockConsenter(
 		mockBrokerConfig,
 		mockLocalConfig.General.TLS,
 		mockLocalConfig.Kafka.Retry,
-		mockLocalConfig.Kafka.Version)
+		mockLocalConfig.Kafka.Version,
+	)
 	setupTestLogging("ERROR")
 }
 
@@ -137,13 +140,15 @@ func newMockBrokerConfig(
 	saslPlain localconfig.SASLPlain,
 	retryOptions localconfig.Retry,
 	kafkaVersion sarama.KafkaVersion,
-	chosenStaticPartition int32) *sarama.Config {
+	chosenStaticPartition int32,
+) *sarama.Config {
 	brokerConfig := newBrokerConfig(
 		tlsConfig,
 		saslPlain,
 		retryOptions,
 		kafkaVersion,
-		chosenStaticPartition)
+		chosenStaticPartition,
+	)
 	brokerConfig.ClientID = "test"
 	return brokerConfig
 }
@@ -175,7 +180,8 @@ func newMockLocalConfig(
 	enableTLS bool,
 	saslPlain localconfig.SASLPlain,
 	retryOptions localconfig.Retry,
-	verboseLog bool) *localconfig.TopLevel {
+	verboseLog bool,
+) *localconfig.TopLevel {
 	return &localconfig.TopLevel{
 		General: localconfig.General{
 			TLS: localconfig.TLS{
