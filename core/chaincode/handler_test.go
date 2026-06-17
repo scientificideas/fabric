@@ -3133,7 +3133,8 @@ var _ = Describe("Handler", func() {
 		})
 	})
 
-	DescribeTable("Handler State",
+	DescribeTable(
+		"Handler State",
 		func(state chaincode.State, strval string) {
 			Expect(state.String()).To(Equal(strval))
 		},

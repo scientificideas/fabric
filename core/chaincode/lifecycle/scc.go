@@ -255,7 +255,8 @@ func (i *Invocation) InstallChaincode(input *lb.InstallChaincodeArgs) (proto.Mes
 		// different packages, acting as a package fingerprint useful
 		// to identify various packages from the content
 		packageFingerprint := input.ChaincodeInstallPackage[0:end]
-		logger.Debugf("received invocation of InstallChaincode for install package %x...",
+		logger.Debugf(
+			"received invocation of InstallChaincode for install package %x...",
 			packageFingerprint,
 		)
 	}
@@ -274,7 +275,8 @@ func (i *Invocation) InstallChaincode(input *lb.InstallChaincodeArgs) (proto.Mes
 // QueryInstalledChaincode is a SCC function that may be dispatched to which
 // routes to the underlying lifecycle implementation.
 func (i *Invocation) QueryInstalledChaincode(input *lb.QueryInstalledChaincodeArgs) (proto.Message, error) {
-	logger.Debugf("received invocation of QueryInstalledChaincode for install package ID '%s'",
+	logger.Debugf(
+		"received invocation of QueryInstalledChaincode for install package ID '%s'",
 		input.PackageId,
 	)
 
@@ -393,7 +395,8 @@ func (i *Invocation) ApproveChaincodeDefinitionForMyOrg(input *lb.ApproveChainco
 		},
 	}
 
-	logger.Debugf("received invocation of ApproveChaincodeDefinitionForMyOrg on channel '%s' for definition '%s'",
+	logger.Debugf(
+		"received invocation of ApproveChaincodeDefinitionForMyOrg on channel '%s' for definition '%s'",
 		i.Stub.GetChannelID(),
 		cd,
 	)
@@ -417,7 +420,8 @@ func (i *Invocation) ApproveChaincodeDefinitionForMyOrg(input *lb.ApproveChainco
 // QueryApprovedChaincodeDefinition is a SCC function that may be dispatched
 // to which routes to the underlying lifecycle implementation.
 func (i *Invocation) QueryApprovedChaincodeDefinition(input *lb.QueryApprovedChaincodeDefinitionArgs) (proto.Message, error) {
-	logger.Debugf("received invocation of QueryApprovedChaincodeDefinition on channel '%s' for chaincode '%s'",
+	logger.Debugf(
+		"received invocation of QueryApprovedChaincodeDefinition on channel '%s' for chaincode '%s'",
 		i.Stub.GetChannelID(),
 		input.Name,
 	)
@@ -471,7 +475,8 @@ func (i *Invocation) CheckCommitReadiness(input *lb.CheckCommitReadinessArgs) (p
 		Collections: input.Collections,
 	}
 
-	logger.Debugf("received invocation of CheckCommitReadiness on channel '%s' for definition '%s'",
+	logger.Debugf(
+		"received invocation of CheckCommitReadiness on channel '%s' for definition '%s'",
 		i.Stub.GetChannelID(),
 		cd,
 	)
@@ -534,7 +539,8 @@ func (i *Invocation) CommitChaincodeDefinition(input *lb.CommitChaincodeDefiniti
 		Collections: input.Collections,
 	}
 
-	logger.Debugf("received invocation of CommitChaincodeDefinition on channel '%s' for definition '%s'",
+	logger.Debugf(
+		"received invocation of CommitChaincodeDefinition on channel '%s' for definition '%s'",
 		i.Stub.GetChannelID(),
 		cd,
 	)
@@ -562,7 +568,8 @@ func (i *Invocation) CommitChaincodeDefinition(input *lb.CommitChaincodeDefiniti
 // QueryChaincodeDefinition is a SCC function that may be dispatched
 // to which routes to the underlying lifecycle implementation.
 func (i *Invocation) QueryChaincodeDefinition(input *lb.QueryChaincodeDefinitionArgs) (proto.Message, error) {
-	logger.Debugf("received invocation of QueryChaincodeDefinition on channel '%s' for chaincode '%s'",
+	logger.Debugf(
+		"received invocation of QueryChaincodeDefinition on channel '%s' for chaincode '%s'",
 		i.Stub.GetChannelID(),
 		input.Name,
 	)
@@ -597,7 +604,8 @@ func (i *Invocation) QueryChaincodeDefinition(input *lb.QueryChaincodeDefinition
 // QueryChaincodeDefinitions is a SCC function that may be dispatched
 // to which routes to the underlying lifecycle implementation.
 func (i *Invocation) QueryChaincodeDefinitions(input *lb.QueryChaincodeDefinitionsArgs) (proto.Message, error) {
-	logger.Debugf("received invocation of QueryChaincodeDefinitions on channel '%s'",
+	logger.Debugf(
+		"received invocation of QueryChaincodeDefinitions on channel '%s'",
 		i.Stub.GetChannelID(),
 	)
 
