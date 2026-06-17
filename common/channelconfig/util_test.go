@@ -123,14 +123,16 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 				MaxMessageCount:   65535,
 				AbsoluteMaxBytes:  1024000000,
 				PreferredMaxBytes: 1024000000,
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 	config.ChannelGroup.Groups[OrdererGroupKey].Values[BatchTimeoutKey] = &cb.ConfigValue{
 		Value: protoutil.MarshalOrPanic(
 			&ab.BatchTimeout{
 				Timeout: "2s",
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 	ordererCapabilities := make(map[string]bool)
@@ -143,7 +145,8 @@ func createCfgBlockWithSupportedCapabilities(t *testing.T) *cb.Block {
 		Value: protoutil.MarshalOrPanic(
 			&ab.ConsensusType{
 				Type: "solo",
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 
@@ -237,14 +240,16 @@ func createCfgBlockWithUnsupportedCapabilities(t *testing.T) *cb.Block {
 				MaxMessageCount:   65535,
 				AbsoluteMaxBytes:  1024000000,
 				PreferredMaxBytes: 1024000000,
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 	config.ChannelGroup.Groups[OrdererGroupKey].Values[BatchTimeoutKey] = &cb.ConfigValue{
 		Value: protoutil.MarshalOrPanic(
 			&ab.BatchTimeout{
 				Timeout: "2s",
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 	ordererCapabilities := make(map[string]bool)
@@ -257,7 +262,8 @@ func createCfgBlockWithUnsupportedCapabilities(t *testing.T) *cb.Block {
 		Value: protoutil.MarshalOrPanic(
 			&ab.ConsensusType{
 				Type: "solo",
-			}),
+			},
+		),
 		ModPolicy: AdminsPolicyKey,
 	}
 

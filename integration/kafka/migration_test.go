@@ -1136,7 +1136,8 @@ func assertTransitionFailed(
 	current, updated := prepareTransition(
 		network, peer, orderer, channel,
 		fromConsensusType, fromMigState,
-		toConsensusType, toConsensusMetadata, toMigState)
+		toConsensusType, toConsensusMetadata, toMigState,
+	)
 	updateOrdererConfigFailed(network, orderer, channel, current, updated, peer, orderer)
 }
 

@@ -426,7 +426,8 @@ func UpgradeChaincodeLegacy(n *Network, channel string, orderer *Orderer, chainc
 func EnsureInstalled(n *Network, label, packageID string, peers ...*Peer) {
 	for _, p := range peers {
 		Eventually(QueryInstalled(n, p), n.EventuallyTimeout).Should(
-			ContainElement(gstruct.MatchFields(gstruct.IgnoreExtras,
+			ContainElement(gstruct.MatchFields(
+				gstruct.IgnoreExtras,
 				gstruct.Fields{
 					"Label":     Equal(label),
 					"PackageId": Equal(packageID),
@@ -446,11 +447,13 @@ func QueryInstalledReferences(n *Network, channel, label, packageID string, chec
 	}
 
 	Expect(QueryInstalled(n, checkPeer)()).To(
-		ContainElement(gstruct.MatchFields(gstruct.IgnoreExtras,
+		ContainElement(gstruct.MatchFields(
+			gstruct.IgnoreExtras,
 			gstruct.Fields{
 				"Label":     Equal(label),
 				"PackageId": Equal(packageID),
-				"References": HaveKeyWithValue(channel, gstruct.PointTo(gstruct.MatchFields(gstruct.IgnoreExtras,
+				"References": HaveKeyWithValue(channel, gstruct.PointTo(gstruct.MatchFields(
+					gstruct.IgnoreExtras,
 					gstruct.Fields{
 						"Chaincodes": ConsistOf(chaincodes),
 					},

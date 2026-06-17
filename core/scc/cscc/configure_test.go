@@ -459,7 +459,8 @@ func TestConfigerInvokeGetChannelConfig(t *testing.T) {
 
 	block, err := configtxtest.MakeGenesisBlock("test-channel-id")
 	require.NoError(t, err)
-	require.NoError(t,
+	require.NoError(
+		t,
 		cscc.peer.CreateChannel("test-channel-id", block, cscc.deployedCCInfoProvider, cscc.legacyLifecycle, cscc.newLifecycle),
 	)
 
@@ -480,7 +481,8 @@ func TestConfigerInvokeGetChannelConfig(t *testing.T) {
 
 		retrievedChannelConfig := &cb.Config{}
 		require.NoError(t, proto.Unmarshal(res.Payload, retrievedChannelConfig))
-		require.True(t,
+		require.True(
+			t,
 			proto.Equal(
 				channelConfigFromBlock(t, block),
 				retrievedChannelConfig,

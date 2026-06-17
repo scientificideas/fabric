@@ -53,14 +53,16 @@ func TestExtractValidPvtData(t *testing.T) {
 	// block-1
 	commitCollectionConfigsHistoryAndDummyBlock(t, provider, kvledger, nsCollBtlConfs, blocksGenerator)
 
-	pvtDataTx0, pubSimResTx0 := produceSamplePvtdata(t, 0,
+	pvtDataTx0, pubSimResTx0 := produceSamplePvtdata(
+		t, 0,
 		[][4]string{
 			{"ns-1", "coll-1", "tx0-key-1", "tx0-val-1"},
 			{"ns-1", "coll-2", "tx0-key-2", "tx0-val-2"},
 		},
 	)
 
-	pvtDataTx1, pubSimResTx1 := produceSamplePvtdata(t, 1,
+	pvtDataTx1, pubSimResTx1 := produceSamplePvtdata(
+		t, 1,
 		[][4]string{
 			{"ns-1", "coll-1", "tx1-key-1", "tx1-val-1"},
 			{"ns-2", "coll-2", "tx1-key-2", "tx1-val-2"},
@@ -121,7 +123,7 @@ func TestExtractValidPvtData(t *testing.T) {
 	pvtdataCopy := func() map[uint64]*ledger.TxPvtData {
 		m := make(map[uint64]*ledger.TxPvtData, len(pvtData))
 		for k, v := range pvtData {
-			wsCopy := (proto.Clone(v.WriteSet)).(*rwset.TxPvtReadWriteSet)
+			wsCopy := proto.Clone(v.WriteSet).(*rwset.TxPvtReadWriteSet)
 			m[k] = &ledger.TxPvtData{
 				SeqInBlock: v.SeqInBlock,
 				WriteSet:   wsCopy,
@@ -133,7 +135,8 @@ func TestExtractValidPvtData(t *testing.T) {
 	t.Run("for-data-after-snapshot:extra-collection-is-ignored", func(t *testing.T) {
 		lgr := bootstrappedLedger
 		pvtdata := pvtdataCopy()
-		pvtdata[1], _ = produceSamplePvtdata(t, 1,
+		pvtdata[1], _ = produceSamplePvtdata(
+			t, 1,
 			[][4]string{
 				{"ns-1", "non-existing-collection", "randomValue", "randomValue"},
 			},
@@ -151,7 +154,8 @@ func TestExtractValidPvtData(t *testing.T) {
 			2,
 		)
 		require.NoError(t, err)
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				3: {
 					pvtdata[0],
@@ -165,7 +169,8 @@ func TestExtractValidPvtData(t *testing.T) {
 		lgr := bootstrappedLedger
 		pvtdata := pvtdataCopy()
 
-		pvtdata[1], _ = produceSamplePvtdata(t, 1,
+		pvtdata[1], _ = produceSamplePvtdata(
+			t, 1,
 			[][4]string{
 				{"ns-2", "coll-2", "key-2", "randomValue"},
 			},
@@ -183,7 +188,8 @@ func TestExtractValidPvtData(t *testing.T) {
 			2,
 		)
 		require.NoError(t, err)
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				3: {
 					pvtdata[0],
@@ -213,7 +219,8 @@ func TestExtractValidPvtData(t *testing.T) {
 			2,
 		)
 		require.NoError(t, err)
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				2: {
 					pvtdata[0],
@@ -231,12 +238,14 @@ func TestExtractValidPvtData(t *testing.T) {
 	t.Run("for-data-before-snapshot:excludes-hash-mismatch-and-partial-data-supplied", func(t *testing.T) {
 		lgr := bootstrappedLedger
 		temptered := pvtdataCopy()
-		temptered[0], _ = produceSamplePvtdata(t, 0,
+		temptered[0], _ = produceSamplePvtdata(
+			t, 0,
 			[][4]string{
 				{"ns-1", "coll-1", "tx0-key-1", "tx0-val-1-tempered"},
 			},
 		)
-		temptered[1], _ = produceSamplePvtdata(t, 1,
+		temptered[1], _ = produceSamplePvtdata(
+			t, 1,
 			[][4]string{
 				{"ns-2", "coll-2", "tx1-key-2", "tx1-val-2-tempered"},
 				{"ns-2", "coll-2", "tx1-key-3", "tx1-val-3-tempered"},
@@ -277,10 +286,10 @@ func TestExtractValidPvtData(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedOutput := pvtdataCopy()
-		expectedOutput[0].WriteSet.NsPvtRwset[0].CollectionPvtRwset =
-			expectedOutput[0].WriteSet.NsPvtRwset[0].CollectionPvtRwset[1:]
+		expectedOutput[0].WriteSet.NsPvtRwset[0].CollectionPvtRwset = expectedOutput[0].WriteSet.NsPvtRwset[0].CollectionPvtRwset[1:]
 
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				2: {
 					expectedOutput[0],
@@ -297,7 +306,8 @@ func TestExtractValidPvtData(t *testing.T) {
 		pvtdataWithEmptyCollections := pvtdataCopy()
 		pvtdataWithEmptyCollections[0].WriteSet.NsPvtRwset[0].CollectionPvtRwset[0].Rwset = nil
 
-		expectedValidDataForTx0, _ := produceSamplePvtdata(t, 0,
+		expectedValidDataForTx0, _ := produceSamplePvtdata(
+			t, 0,
 			[][4]string{
 				{"ns-1", "coll-2", "tx0-key-2", "tx0-val-2"},
 			},
@@ -316,7 +326,8 @@ func TestExtractValidPvtData(t *testing.T) {
 		)
 		require.NoError(t, err)
 
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				2: {
 					expectedValidDataForTx0,
@@ -330,7 +341,8 @@ func TestExtractValidPvtData(t *testing.T) {
 	t.Run("for-both-before-and-after-snapshot-data:removes-purged-keys", func(t *testing.T) {
 		lgr := bootstrappedLedger
 		// purge all keys committed by tx1 and only one of the keys committed by tx2
-		pvtData, simulationResults := purgeKeyTransaction(t,
+		pvtData, simulationResults := purgeKeyTransaction(
+			t,
 			[][3]string{
 				{"ns-1", "coll-1", "tx0-key-1"},
 				{"ns-1", "coll-2", "tx0-key-2"},
@@ -373,7 +385,8 @@ func TestExtractValidPvtData(t *testing.T) {
 		expectedValidDataForTx0.WriteSet.NsPvtRwset[0].CollectionPvtRwset[1].Rwset = nil
 
 		// Only one of the keys committed by tx2 should be removed from the trimmed collection writeset
-		expectedValidDataForTx1, _ := produceSamplePvtdata(t, 1,
+		expectedValidDataForTx1, _ := produceSamplePvtdata(
+			t, 1,
 			[][4]string{
 				{"ns-1", "coll-1", "tx1-key-1", "tx1-val-1"},
 				{"ns-2", "coll-2", "tx1-key-3", "tx1-val-3"},
@@ -381,7 +394,8 @@ func TestExtractValidPvtData(t *testing.T) {
 				{"ns-2", "coll-2", "tx1-key-5", "tx1-val-5"},
 			},
 		)
-		verifyBlocksPvtdata(t,
+		verifyBlocksPvtdata(
+			t,
 			map[uint64][]*ledger.TxPvtData{
 				2: {
 					expectedValidDataForTx0,
@@ -429,7 +443,8 @@ func produceSamplePvtdata(t *testing.T, txNum uint64, data [][4]string) (*ledger
 func commitCollectionConfigsHistoryAndDummyBlock(t *testing.T, provider *Provider, kvledger *kvLedger,
 	nsCollBtlConfs []*nsCollBtlConfig, blocksGenerator *testutil.BlockGenerator,
 ) {
-	blockAndPvtdata := prepareNextBlockForTest(t, kvledger, blocksGenerator, "SimulateForBlk1",
+	blockAndPvtdata := prepareNextBlockForTest(
+		t, kvledger, blocksGenerator, "SimulateForBlk1",
 		map[string]string{
 			"dummyKeyForCollectionConfig": "dummyValForCollectionConfig",
 		},
@@ -441,7 +456,8 @@ func commitCollectionConfigsHistoryAndDummyBlock(t *testing.T, provider *Provide
 		namespace := nsBTLConf.namespace
 		collConfig := []*peer.StaticCollectionConfig{}
 		for coll, btl := range nsBTLConf.btlConfig {
-			collConfig = append(collConfig,
+			collConfig = append(
+				collConfig,
 				&peer.StaticCollectionConfig{
 					Name:        coll,
 					BlockToLive: btl,

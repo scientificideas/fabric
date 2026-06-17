@@ -43,10 +43,11 @@ func TestWithNoCollectionConfig(t *testing.T) {
 	mgr, err := NewMgr(dbPath, mockCCInfoProvider)
 	require.NoError(t, err)
 	testutilEquipMockCCInfoProviderToReturnDesiredCollConfig(mockCCInfoProvider, "chaincode1", nil)
-	err = mgr.HandleStateUpdates(&ledger.StateUpdateTrigger{
-		LedgerID:           "ledger1",
-		CommittingBlockNum: 50,
-	},
+	err = mgr.HandleStateUpdates(
+		&ledger.StateUpdateTrigger{
+			LedgerID:           "ledger1",
+			CommittingBlockNum: 50,
+		},
 	)
 	require.NoError(t, err)
 	retriever := mgr.GetRetriever("ledger1")
@@ -69,10 +70,11 @@ func TestWithEmptyCollectionConfig(t *testing.T) {
 		"chaincode1",
 		&peer.CollectionConfigPackage{},
 	)
-	err = mgr.HandleStateUpdates(&ledger.StateUpdateTrigger{
-		LedgerID:           "ledger1",
-		CommittingBlockNum: 50,
-	},
+	err = mgr.HandleStateUpdates(
+		&ledger.StateUpdateTrigger{
+			LedgerID:           "ledger1",
+			CommittingBlockNum: 50,
+		},
 	)
 	require.NoError(t, err)
 	retriever := mgr.GetRetriever("ledger1")
@@ -100,10 +102,11 @@ func TestMgrQueries(t *testing.T) {
 			// for each ledgerid and commitHeight combination, construct a unique collConfigPackage and induce a stateUpdate
 			collConfigPackage := sampleCollectionConfigPackage(ledgerid, committingBlockNum)
 			testutilEquipMockCCInfoProviderToReturnDesiredCollConfig(mockCCInfoProvider, chaincodeName, collConfigPackage)
-			err = mgr.HandleStateUpdates(&ledger.StateUpdateTrigger{
-				LedgerID:           ledgerid,
-				CommittingBlockNum: committingBlockNum,
-			},
+			err = mgr.HandleStateUpdates(
+				&ledger.StateUpdateTrigger{
+					LedgerID:           ledgerid,
+					CommittingBlockNum: committingBlockNum,
+				},
 			)
 			require.NoError(t, err)
 		}
@@ -522,7 +525,8 @@ func verifyExportedConfigHistory(t *testing.T, dir string, fileHashes map[string
 		require.NoError(t, err)
 		val, err := dataReader.DecodeBytes()
 		require.NoError(t, err)
-		retrievedCollectionConfigs = append(retrievedCollectionConfigs,
+		retrievedCollectionConfigs = append(
+			retrievedCollectionConfigs,
 			&compositeKV{decodeCompositeKey(key), val},
 		)
 	}
@@ -611,7 +615,8 @@ func testutilCreateCollConfigPkg(collNames []string) *peer.CollectionConfigPacka
 		Config: []*peer.CollectionConfig{},
 	}
 	for _, collName := range collNames {
-		pkg.Config = append(pkg.Config,
+		pkg.Config = append(
+			pkg.Config,
 			&peer.CollectionConfig{
 				Payload: &peer.CollectionConfig_StaticCollectionConfig{
 					StaticCollectionConfig: &peer.StaticCollectionConfig{

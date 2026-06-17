@@ -78,30 +78,32 @@ func TestConstructHashedIndexAndUpgradeDataFmtRetroactively(t *testing.T) {
 		pvtWS, err := rwsetutil.TxPvtRwSetFromProtoMsg(pvtdata[0].WriteSet)
 		require.NoError(t, err)
 
-		require.Equal(t, &rwsetutil.TxPvtRwSet{
-			NsPvtRwSet: []*rwsetutil.NsPvtRwSet{
-				{
-					NameSpace: "marbles_private",
-					CollPvtRwSets: []*rwsetutil.CollPvtRwSet{
-						{
-							CollectionName: "collectionMarblePrivateDetails",
-							KvRwSet: &kvrwset.KVRWSet{
-								Writes: []*kvrwset.KVWrite{
-									{
-										Key:   "marble1",
-										Value: []byte(`{"docType":"marblePrivateDetails","name":"marble1","price":150}`),
+		require.Equal(
+			t, &rwsetutil.TxPvtRwSet{
+				NsPvtRwSet: []*rwsetutil.NsPvtRwSet{
+					{
+						NameSpace: "marbles_private",
+						CollPvtRwSets: []*rwsetutil.CollPvtRwSet{
+							{
+								CollectionName: "collectionMarblePrivateDetails",
+								KvRwSet: &kvrwset.KVRWSet{
+									Writes: []*kvrwset.KVWrite{
+										{
+											Key:   "marble1",
+											Value: []byte(`{"docType":"marblePrivateDetails","name":"marble1","price":150}`),
+										},
 									},
 								},
 							},
-						},
 
-						{
-							CollectionName: "collectionMarbles",
-							KvRwSet: &kvrwset.KVRWSet{
-								Writes: []*kvrwset.KVWrite{
-									{
-										Key:   "marble1",
-										Value: []byte(`{"docType":"marble","name":"marble1","color":"blue","size":100,"owner":"tom"}`),
+							{
+								CollectionName: "collectionMarbles",
+								KvRwSet: &kvrwset.KVRWSet{
+									Writes: []*kvrwset.KVWrite{
+										{
+											Key:   "marble1",
+											Value: []byte(`{"docType":"marble","name":"marble1","color":"blue","size":100,"owner":"tom"}`),
+										},
 									},
 								},
 							},
@@ -109,7 +111,6 @@ func TestConstructHashedIndexAndUpgradeDataFmtRetroactively(t *testing.T) {
 					},
 				},
 			},
-		},
 			pvtWS,
 		)
 
@@ -124,30 +125,32 @@ func TestConstructHashedIndexAndUpgradeDataFmtRetroactively(t *testing.T) {
 		pvtWS, err = rwsetutil.TxPvtRwSetFromProtoMsg(pvtdata[0].WriteSet)
 		require.NoError(t, err)
 
-		require.Equal(t, &rwsetutil.TxPvtRwSet{
-			NsPvtRwSet: []*rwsetutil.NsPvtRwSet{
-				{
-					NameSpace: "marbles_private",
-					CollPvtRwSets: []*rwsetutil.CollPvtRwSet{
-						{
-							CollectionName: "collectionMarblePrivateDetails",
-							KvRwSet: &kvrwset.KVRWSet{
-								Writes: []*kvrwset.KVWrite{
-									{
-										Key:   "marble2",
-										Value: []byte(`{"docType":"marblePrivateDetails","name":"marble2","price":250}`),
+		require.Equal(
+			t, &rwsetutil.TxPvtRwSet{
+				NsPvtRwSet: []*rwsetutil.NsPvtRwSet{
+					{
+						NameSpace: "marbles_private",
+						CollPvtRwSets: []*rwsetutil.CollPvtRwSet{
+							{
+								CollectionName: "collectionMarblePrivateDetails",
+								KvRwSet: &kvrwset.KVRWSet{
+									Writes: []*kvrwset.KVWrite{
+										{
+											Key:   "marble2",
+											Value: []byte(`{"docType":"marblePrivateDetails","name":"marble2","price":250}`),
+										},
 									},
 								},
 							},
-						},
 
-						{
-							CollectionName: "collectionMarbles",
-							KvRwSet: &kvrwset.KVRWSet{
-								Writes: []*kvrwset.KVWrite{
-									{
-										Key:   "marble2",
-										Value: []byte(`{"docType":"marble","name":"marble2","color":"red","size":100,"owner":"tom"}`),
+							{
+								CollectionName: "collectionMarbles",
+								KvRwSet: &kvrwset.KVRWSet{
+									Writes: []*kvrwset.KVWrite{
+										{
+											Key:   "marble2",
+											Value: []byte(`{"docType":"marble","name":"marble2","color":"red","size":100,"owner":"tom"}`),
+										},
 									},
 								},
 							},
@@ -155,7 +158,6 @@ func TestConstructHashedIndexAndUpgradeDataFmtRetroactively(t *testing.T) {
 					},
 				},
 			},
-		},
 			pvtWS,
 		)
 

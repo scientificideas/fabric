@@ -193,7 +193,8 @@ func (l *kvLedger) registerStateDBIndexCreatorForChaincodeLifecycleEvents(
 	if !bootstrappingFromSnapshot {
 		// regular opening of ledger
 		if err := chaincodesLifecycleEventsProvider.RegisterListener(
-			l.ledgerID, &ccEventListenerAdaptor{stateDBIndexCreator}, false); err != nil {
+			l.ledgerID, &ccEventListenerAdaptor{stateDBIndexCreator}, false,
+		); err != nil {
 			return err
 		}
 		legacyChaincodesLifecycleEventsProvider.Register(l.ledgerID, stateDBIndexCreator)
@@ -207,7 +208,8 @@ func (l *kvLedger) registerStateDBIndexCreatorForChaincodeLifecycleEvents(
 	// the synchronization with the chaincode installer is maintained in the lifecycle cache and by design the lifecycle
 	// cache takes the responsibility of calling any listener under the lock
 	if err := chaincodesLifecycleEventsProvider.RegisterListener(
-		l.ledgerID, &ccEventListenerAdaptor{stateDBIndexCreator}, true); err != nil {
+		l.ledgerID, &ccEventListenerAdaptor{stateDBIndexCreator}, true,
+	); err != nil {
 		return errors.WithMessage(err, "error while creating statdb indexes after bootstrapping from snapshot")
 	}
 
@@ -217,7 +219,8 @@ func (l *kvLedger) registerStateDBIndexCreatorForChaincodeLifecycleEvents(
 	}
 
 	if err := legacyChaincodesLifecycleEventsProvider.RegisterAndInvokeFor(
-		legacyChaincodes, l.ledgerID, stateDBIndexCreator); err != nil {
+		legacyChaincodes, l.ledgerID, stateDBIndexCreator,
+	); err != nil {
 		return errors.WithMessage(err, "error while creating statdb indexes after bootstrapping from snapshot")
 	}
 	return nil
@@ -225,7 +228,8 @@ func (l *kvLedger) registerStateDBIndexCreatorForChaincodeLifecycleEvents(
 
 func (l *kvLedger) listLegacyChaincodesDefined(
 	deployedChaincodesInfoExtractor ledger.DeployedChaincodeInfoProvider) (
-	[]*cceventmgmt.ChaincodeDefinition, error) {
+	[]*cceventmgmt.ChaincodeDefinition, error,
+) {
 	qe, err := l.txmgr.NewQueryExecutor("")
 	if err != nil {
 		return nil, err
@@ -242,7 +246,8 @@ func (l *kvLedger) listLegacyChaincodesDefined(
 		if !chaincodeInfo.IsLegacy {
 			continue
 		}
-		legacyChaincodes = append(legacyChaincodes,
+		legacyChaincodes = append(
+			legacyChaincodes,
 			&cceventmgmt.ChaincodeDefinition{
 				Name:              chaincodeInfo.Name,
 				Version:           chaincodeInfo.Version,
@@ -657,7 +662,8 @@ func (l *kvLedger) commit(pvtdataAndBlock *ledger.BlockAndPvtData, commitOpts *l
 
 	purgeMarkers := []*pvtdatastorage.PurgeMarker{}
 	for _, u := range appInitiatedPurgeUpdates {
-		purgeMarkers = append(purgeMarkers,
+		purgeMarkers = append(
+			purgeMarkers,
 			&pvtdatastorage.PurgeMarker{
 				Ns:         u.CompositeKey.Namespace,
 				Coll:       u.CompositeKey.CollectionName,
@@ -709,8 +715,9 @@ func (l *kvLedger) commit(pvtdataAndBlock *ledger.BlockAndPvtData, commitOpts *l
 		}
 	}
 
-	logger.Infof("[%s] Committed block [%d] with %d transaction(s) in %dms (state_validation=%dms block_and_pvtdata_commit=%dms state_commit=%dms)"+
-		" commitHash=[%x]",
+	logger.Infof(
+		"[%s] Committed block [%d] with %d transaction(s) in %dms (state_validation=%dms block_and_pvtdata_commit=%dms state_commit=%dms)"+
+			" commitHash=[%x]",
 		l.ledgerID, block.Header.Number, len(block.Data.Data),
 		time.Since(startBlockProcessing)/time.Millisecond,
 		elapsedBlockProcessing/time.Millisecond,
@@ -1099,12 +1106,13 @@ type ccEventListenerAdaptor struct {
 }
 
 func (a *ccEventListenerAdaptor) HandleChaincodeDeploy(chaincodeDefinition *ledger.ChaincodeDefinition, dbArtifactsTar []byte) error {
-	return a.legacyEventListener.HandleChaincodeDeploy(&cceventmgmt.ChaincodeDefinition{
-		Name:              chaincodeDefinition.Name,
-		Hash:              chaincodeDefinition.Hash,
-		Version:           chaincodeDefinition.Version,
-		CollectionConfigs: chaincodeDefinition.CollectionConfigs,
-	},
+	return a.legacyEventListener.HandleChaincodeDeploy(
+		&cceventmgmt.ChaincodeDefinition{
+			Name:              chaincodeDefinition.Name,
+			Hash:              chaincodeDefinition.Hash,
+			Version:           chaincodeDefinition.Version,
+			CollectionConfigs: chaincodeDefinition.CollectionConfigs,
+		},
 		dbArtifactsTar,
 	)
 }
@@ -1156,7 +1164,8 @@ func constructPvtdataMap(pvtdata []*ledger.TxPvtData) ledger.TxPvtDataMap {
 }
 
 func constructPvtDataAndMissingData(blockAndPvtData *ledger.BlockAndPvtData) ([]*ledger.TxPvtData,
-	ledger.TxMissingPvtData) {
+	ledger.TxMissingPvtData,
+) {
 	var pvtData []*ledger.TxPvtData
 	missingPvtData := make(ledger.TxMissingPvtData)
 

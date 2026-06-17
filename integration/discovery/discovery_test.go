@@ -67,7 +67,8 @@ var _ = Describe("DiscoveryService", func() {
 		})
 		config.Consortiums[0].Organizations = append(config.Consortiums[0].Organizations, "Org3")
 		config.Profiles[1].Organizations = append(config.Profiles[1].Organizations, "Org3")
-		config.Peers = append(config.Peers,
+		config.Peers = append(
+			config.Peers,
 			&nwo.Peer{
 				Name:         "peer0",
 				Organization: "Org3",

@@ -144,7 +144,8 @@ func SignatureSetFromBlock(block *common.Block, id2identities map[uint64][]byte)
 			})
 		}
 
-		signatureSet = append(signatureSet,
+		signatureSet = append(
+			signatureSet,
 			&SignedData{
 				Identity: identity,
 				Data: util.ConcatenateBytes(metadata.Value,

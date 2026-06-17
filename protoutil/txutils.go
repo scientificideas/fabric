@@ -382,7 +382,8 @@ func MockSignedEndorserProposalOrPanic(
 		common.HeaderType_ENDORSER_TRANSACTION,
 		channelID,
 		&peer.ChaincodeInvocationSpec{ChaincodeSpec: cs},
-		creator)
+		creator,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -409,7 +410,8 @@ func MockSignedEndorserProposal2OrPanic(
 		common.HeaderType_ENDORSER_TRANSACTION,
 		channelID,
 		&peer.ChaincodeInvocationSpec{ChaincodeSpec: &peer.ChaincodeSpec{}},
-		serializedSigner)
+		serializedSigner,
+	)
 	if err != nil {
 		panic(err)
 	}

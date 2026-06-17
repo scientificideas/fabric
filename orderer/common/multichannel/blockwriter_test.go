@@ -222,7 +222,8 @@ func TestGoodWriteConfig(t *testing.T) {
 
 	mockValidator := &mocks.ConfigTXValidator{}
 	mockValidator.ChannelIDReturns("testchannelid")
-	bw := newBlockWriter(genesisBlockSys, nil,
+	bw := newBlockWriter(
+		genesisBlockSys, nil,
 		&mockBlockWriterSupport{
 			SignerSerializer:  mockCrypto(),
 			ReadWriter:        l,
@@ -269,7 +270,8 @@ func TestWriteConfigSynchronously(t *testing.T) {
 
 	mockValidator := &mocks.ConfigTXValidator{}
 	mockValidator.ChannelIDReturns("testchannelid")
-	bw := newBlockWriter(genesisBlockSys, nil,
+	bw := newBlockWriter(
+		genesisBlockSys, nil,
 		&mockBlockWriterSupport{
 			SignerSerializer:  mockCrypto(),
 			ReadWriter:        l,
@@ -314,7 +316,8 @@ func TestMigrationWriteConfig(t *testing.T) {
 
 	mockValidator := &mocks.ConfigTXValidator{}
 	mockValidator.ChannelIDReturns("testchannelid")
-	bw := newBlockWriter(genesisBlockSys, nil,
+	bw := newBlockWriter(
+		genesisBlockSys, nil,
 		&mockBlockWriterSupport{
 			SignerSerializer:  mockCrypto(),
 			ReadWriter:        l,
@@ -360,7 +363,8 @@ func TestRaceWriteConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	mockValidator := &mocks.ConfigTXValidator{}
-	bw := newBlockWriter(genesisBlockSys, nil,
+	bw := newBlockWriter(
+		genesisBlockSys, nil,
 		&mockBlockWriterSupport{
 			SignerSerializer:  mockCrypto(),
 			ReadWriter:        l,
@@ -423,7 +427,8 @@ func TestRaceWriteBlocks(t *testing.T) {
 	require.NoError(t, err)
 
 	mockValidator := &mocks.ConfigTXValidator{}
-	bw := newBlockWriter(genesisBlockSys, nil,
+	bw := newBlockWriter(
+		genesisBlockSys, nil,
 		&mockBlockWriterSupport{
 			SignerSerializer:  mockCrypto(),
 			ReadWriter:        l,

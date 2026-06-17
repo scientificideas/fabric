@@ -46,8 +46,7 @@ func TestReadWriteCustomTxProcessor(t *testing.T) {
 	l.cutBlockAndCommitLegacy() // commit block-1 to populate initial state
 
 	valueCounter := 0
-	fakeTxProcessor.GenerateSimulationResultsStub =
-		// tx processor reads and modifies key1
+	fakeTxProcessor.GenerateSimulationResultsStub = // tx processor reads and modifies key1
 		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
 			valKey1, err := s.GetState("ns", "key1")
 			require.NoError(t, err)
@@ -98,14 +97,12 @@ func TestRangeReadAndWriteCustomTxProcessor(t *testing.T) {
 	})
 	l.cutBlockAndCommitLegacy() // commit block-1 to populate initial state
 
-	fakeTxProcessor1.GenerateSimulationResultsStub =
-		// tx processor for txtype 101 sets key1
+	fakeTxProcessor1.GenerateSimulationResultsStub = // tx processor for txtype 101 sets key1
 		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
 			return s.SetState("ns", "key1", []byte("value1_new"))
 		}
 
-	fakeTxProcessor2.GenerateSimulationResultsStub =
-		// tx processor for txtype 102 reads a range (that covers key1) and sets key2
+	fakeTxProcessor2.GenerateSimulationResultsStub = // tx processor for txtype 102 reads a range (that covers key1) and sets key2
 		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
 			itr, err := s.GetStateRangeScanIterator("ns", "key1", "key2")
 			require.NoError(t, err)
@@ -119,8 +116,7 @@ func TestRangeReadAndWriteCustomTxProcessor(t *testing.T) {
 			return s.SetState("ns", "key2", []byte("value2_new"))
 		}
 
-	fakeTxProcessor3.GenerateSimulationResultsStub =
-		// tx processor for txtype 103 reads a range (that does not include key1) and sets key2
+	fakeTxProcessor3.GenerateSimulationResultsStub = // tx processor for txtype 103 reads a range (that does not include key1) and sets key2
 		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
 			itr, err := s.GetStateRangeScanIterator("ns", "key2", "key3")
 			require.NoError(t, err)

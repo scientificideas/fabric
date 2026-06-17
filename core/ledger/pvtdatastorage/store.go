@@ -182,7 +182,8 @@ func NewProvider(conf *PrivateDataConfig) (*Provider, error) {
 		&leveldbhelper.Conf{
 			DBPath:         conf.StorePath,
 			ExpectedFormat: currentDataVersion,
-		})
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

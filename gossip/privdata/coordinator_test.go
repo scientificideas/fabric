@@ -184,7 +184,8 @@ func (s *testTransientStore) tearDown() {
 }
 
 func (s *testTransientStore) Persist(txid string, blockHeight uint64,
-	privateSimulationResultsWithConfig *tspb.TxPvtReadWriteSetWithConfigInfo) error {
+	privateSimulationResultsWithConfig *tspb.TxPvtReadWriteSetWithConfigInfo,
+) error {
 	return s.store.Persist(txid, blockHeight, privateSimulationResultsWithConfig)
 }
 
@@ -1978,28 +1979,33 @@ func TestCoordinatorMetrics(t *testing.T) {
 
 	// make sure all coordinator metrics were reported
 
-	require.Equal(t,
+	require.Equal(
+		t,
 		[]string{"channel", "testchannelid"},
 		testMetricProvider.FakeValidationDuration.WithArgsForCall(0),
 	)
 	require.True(t, testMetricProvider.FakeValidationDuration.ObserveArgsForCall(0) > 0)
-	require.Equal(t,
+	require.Equal(
+		t,
 		[]string{"channel", "testchannelid"},
 		testMetricProvider.FakeListMissingPrivateDataDuration.WithArgsForCall(0),
 	)
 	require.True(t, testMetricProvider.FakeListMissingPrivateDataDuration.ObserveArgsForCall(0) > 0)
-	require.Equal(t,
+	require.Equal(
+		t,
 		[]string{"channel", "testchannelid"},
 		testMetricProvider.FakeFetchDuration.WithArgsForCall(0),
 	)
 	// fetch duration metric only reported when fetching from remote peer
 	require.True(t, testMetricProvider.FakeFetchDuration.ObserveArgsForCall(0) > 0)
-	require.Equal(t,
+	require.Equal(
+		t,
 		[]string{"channel", "testchannelid"},
 		testMetricProvider.FakeCommitPrivateDataDuration.WithArgsForCall(0),
 	)
 	require.True(t, testMetricProvider.FakeCommitPrivateDataDuration.ObserveArgsForCall(0) > 0)
-	require.Equal(t,
+	require.Equal(
+		t,
 		[]string{"channel", "testchannelid"},
 		testMetricProvider.FakePurgeDuration.WithArgsForCall(0),
 	)

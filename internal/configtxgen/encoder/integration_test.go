@@ -48,7 +48,8 @@ func hasModPolicySet(groupName string, cg *cb.ConfigGroup) error {
 }
 
 var _ = Describe("Integration", func() {
-	DescribeTable("successfully parses the profile",
+	DescribeTable(
+		"successfully parses the profile",
 		func(profile string) {
 			config := genesisconfig.Load(profile, configtest.GetDevConfigDir())
 			group, err := encoder.NewChannelGroup(config)

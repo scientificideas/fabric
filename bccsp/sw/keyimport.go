@@ -128,7 +128,8 @@ func (ki *x509PublicKeyImportOptsKeyImporter) KeyImport(raw any, opts bccsp.KeyI
 	case *ecdsa.PublicKey:
 		return ki.bccsp.KeyImporters[reflect.TypeFor[*bccsp.ECDSAGoPublicKeyImportOpts]()].KeyImport(
 			pk,
-			&bccsp.ECDSAGoPublicKeyImportOpts{Temporary: opts.Ephemeral()})
+			&bccsp.ECDSAGoPublicKeyImportOpts{Temporary: opts.Ephemeral()},
+		)
 	case *rsa.PublicKey:
 		// This path only exists to support environments that use RSA certificate
 		// authorities to issue ECDSA certificates.

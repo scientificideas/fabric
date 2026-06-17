@@ -1540,7 +1540,8 @@ func (dbclient *couchDatabase) handleRequestWithRevisionRetry(id, method, dbName
 func (dbclient *couchDatabase) handleRequest(method, functionName string, connectURL *url.URL, data []byte, rev, multipartBoundary string,
 	maxRetries int, keepConnectionOpen bool, queryParms *url.Values, pathElements ...string,
 ) (*http.Response, *dbReturn, error) {
-	return dbclient.couchInstance.handleRequest(context.Background(),
+	return dbclient.couchInstance.handleRequest(
+		context.Background(),
 		method, dbclient.dbName, functionName, connectURL, data, rev, multipartBoundary,
 		maxRetries, keepConnectionOpen, queryParms, pathElements...,
 	)

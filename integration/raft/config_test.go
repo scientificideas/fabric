@@ -375,10 +375,11 @@ var _ = Describe("EndToEnd reconfiguration and onboarding", func() {
 			launch(orderer3)
 
 			By("Expanding the TLS root CA certificates and adding orderer3 to the channel")
-			updateOrdererMSPAndConsensusMetadata(network, peer, orderer, "systemchannel", "OrdererOrg", func(config msp.FabricMSPConfig) msp.FabricMSPConfig {
-				config.TlsRootCerts = append(config.TlsRootCerts, caCert)
-				return config
-			},
+			updateOrdererMSPAndConsensusMetadata(
+				network, peer, orderer, "systemchannel", "OrdererOrg", func(config msp.FabricMSPConfig) msp.FabricMSPConfig {
+					config.TlsRootCerts = append(config.TlsRootCerts, caCert)
+					return config
+				},
 				func(metadata *etcdraft.ConfigMetadata) {
 					metadata.Consenters = append(metadata.Consenters, &etcdraft.Consenter{
 						ServerTlsCert: thirdOrdererCertificate,

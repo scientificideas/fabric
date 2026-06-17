@@ -535,7 +535,8 @@ func TestUtilityFunctions(t *testing.T) {
 		testVal := fmt.Sprintf(`{"%s":"dummyVal"}`, reservedField)
 		err = db.ValidateKeyValue("testKey", []byte(testVal))
 		require.Error(t, err, fmt.Sprintf(
-			"ValidateKey should have thrown an error for a json value %s, as contains one of the reserved fields", testVal))
+			"ValidateKey should have thrown an error for a json value %s, as contains one of the reserved fields", testVal,
+		))
 	}
 
 	// ValidateKeyValue should not return an error for a json value that contains one of the reserved fields
@@ -544,7 +545,8 @@ func TestUtilityFunctions(t *testing.T) {
 		testVal := fmt.Sprintf(`{"data.%s":"dummyVal"}`, reservedField)
 		err = db.ValidateKeyValue("testKey", []byte(testVal))
 		require.NoError(t, err, fmt.Sprintf(
-			"ValidateKey should not have thrown an error the json value %s since the reserved field was not at the top level", testVal))
+			"ValidateKey should not have thrown an error the json value %s since the reserved field was not at the top level", testVal,
+		))
 	}
 
 	// ValidateKeyValue should return an error for a key that begins with an underscore
@@ -1114,7 +1116,8 @@ func TestFormatCheck(t *testing.T) {
 			fmt.Sprintf("testCase %d", i),
 			func(t *testing.T) {
 				testFormatCheck(t, testCase.dataFormat, testCase.dataExists, testCase.expectedErr, testCase.expectedFormat, vdbEnv)
-			})
+			},
+		)
 	}
 }
 

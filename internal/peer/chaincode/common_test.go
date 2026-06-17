@@ -659,7 +659,8 @@ func TestDeliverGroupWait(t *testing.T) {
 	err = dg.Wait(context.Background())
 	g.Expect(err.Error()).To(SatisfyAny(
 		ContainSubstring("barbeque"),
-		ContainSubstring("tofu")))
+		ContainSubstring("tofu"),
+	))
 }
 
 func TestChaincodeInvokeOrQuery_waitForEvent(t *testing.T) {

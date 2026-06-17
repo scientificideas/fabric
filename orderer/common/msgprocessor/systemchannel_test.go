@@ -325,7 +325,8 @@ func TestSystemChannelConfigMsg(t *testing.T) {
 				t,
 				int32(cb.HeaderType_CONFIG),
 				hdr.Type,
-				"Expect type of returned envelope to be %d, but got %d", cb.HeaderType_CONFIG, hdr.Type)
+				"Expect type of returned envelope to be %d, but got %d", cb.HeaderType_CONFIG, hdr.Type,
+			)
 		})
 	})
 
@@ -441,7 +442,8 @@ func TestSystemChannelConfigMsg(t *testing.T) {
 				t,
 				int32(cb.HeaderType_ORDERER_TRANSACTION),
 				hdr.Type,
-				"Expect type of returned envelope to be %d, but got %d", cb.HeaderType_ORDERER_TRANSACTION, hdr.Type)
+				"Expect type of returned envelope to be %d, but got %d", cb.HeaderType_ORDERER_TRANSACTION, hdr.Type,
+			)
 		})
 	})
 

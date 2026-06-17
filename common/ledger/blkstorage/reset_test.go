@@ -109,7 +109,8 @@ func TestResetBlockStore(t *testing.T) {
 	ledgerIDs := []string{"ledger1", "ledger2"}
 	h, err := LoadPreResetHeight(blockStoreRootDir, ledgerIDs)
 	require.NoError(t, err)
-	require.Equal(t,
+	require.Equal(
+		t,
 		map[string]uint64{
 			"ledger1": 20,
 			"ledger2": 40,
@@ -127,7 +128,8 @@ func TestResetBlockStore(t *testing.T) {
 	require.NoError(t, ClearPreResetHeight(blockStoreRootDir, ledgerIDs))
 	h, err = LoadPreResetHeight(blockStoreRootDir, ledgerIDs)
 	require.NoError(t, err)
-	require.Equal(t,
+	require.Equal(
+		t,
 		map[string]uint64{},
 		h,
 	)
@@ -137,7 +139,8 @@ func TestResetBlockStore(t *testing.T) {
 	ledgerIDs = []string{"ledger2"}
 	h, err = LoadPreResetHeight(blockStoreRootDir, ledgerIDs)
 	require.NoError(t, err)
-	require.Equal(t,
+	require.Equal(
+		t,
 		map[string]uint64{
 			"ledger2": 40,
 		},
@@ -147,7 +150,8 @@ func TestResetBlockStore(t *testing.T) {
 	// verify that ledger1 has preResetHeight file is not deleted
 	h, err = LoadPreResetHeight(blockStoreRootDir, []string{"ledger1", "ledger2"})
 	require.NoError(t, err)
-	require.Equal(t,
+	require.Equal(
+		t,
 		map[string]uint64{
 			"ledger1": 20,
 		},

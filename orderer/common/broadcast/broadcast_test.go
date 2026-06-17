@@ -141,9 +141,11 @@ var _ = Describe("Broadcast", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeABServer.SendCallCount()).To(Equal(1))
-				Expect(proto.Equal(
-					fakeABServer.SendArgsForCall(0),
-					&ab.BroadcastResponse{Status: cb.Status_BAD_REQUEST, Info: "support-error"}),
+				Expect(
+					proto.Equal(
+						fakeABServer.SendArgsForCall(0),
+						&ab.BroadcastResponse{Status: cb.Status_BAD_REQUEST, Info: "support-error"},
+					),
 				).To(BeTrue())
 			})
 
@@ -189,9 +191,11 @@ var _ = Describe("Broadcast", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeABServer.SendCallCount()).To(Equal(1))
-				Expect(proto.Equal(
-					fakeABServer.SendArgsForCall(0),
-					&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "not-ready"}),
+				Expect(
+					proto.Equal(
+						fakeABServer.SendArgsForCall(0),
+						&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "not-ready"},
+					),
 				).To(BeTrue())
 			})
 		})
@@ -217,9 +221,11 @@ var _ = Describe("Broadcast", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(fakeABServer.SendCallCount()).To(Equal(1))
-				Expect(proto.Equal(
-					fakeABServer.SendArgsForCall(0),
-					&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "consenter-error"}),
+				Expect(
+					proto.Equal(
+						fakeABServer.SendArgsForCall(0),
+						&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "consenter-error"},
+					),
 				).To(BeTrue())
 			})
 		})
@@ -319,9 +325,11 @@ var _ = Describe("Broadcast", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeABServer.SendCallCount()).To(Equal(1))
-					Expect(proto.Equal(
-						fakeABServer.SendArgsForCall(0),
-						&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "not-ready"}),
+					Expect(
+						proto.Equal(
+							fakeABServer.SendArgsForCall(0),
+							&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "not-ready"},
+						),
 					).To(BeTrue())
 				})
 			})
@@ -336,9 +344,11 @@ var _ = Describe("Broadcast", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(fakeABServer.SendCallCount()).To(Equal(1))
-					Expect(proto.Equal(
-						fakeABServer.SendArgsForCall(0),
-						&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "consenter-error"}),
+					Expect(
+						proto.Equal(
+							fakeABServer.SendArgsForCall(0),
+							&ab.BroadcastResponse{Status: cb.Status_SERVICE_UNAVAILABLE, Info: "consenter-error"},
+						),
 					).To(BeTrue())
 				})
 			})
