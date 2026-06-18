@@ -47,14 +47,13 @@ func TestReadWriteCustomTxProcessor(t *testing.T) {
 
 	valueCounter := 0
 	// tx processor reads and modifies key1
-	fakeTxProcessor.GenerateSimulationResultsStub =
-		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
-			valKey1, err := s.GetState("ns", "key1")
-			require.NoError(t, err)
-			require.Equal(t, []byte("value1"), valKey1)
-			valueCounter++
-			return s.SetState("ns", "key1", fmt.Appendf(nil, "value1_%d", valueCounter))
-		}
+	fakeTxProcessor.GenerateSimulationResultsStub = func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
+		valKey1, err := s.GetState("ns", "key1")
+		require.NoError(t, err)
+		require.Equal(t, []byte("value1"), valKey1)
+		valueCounter++
+		return s.SetState("ns", "key1", fmt.Appendf(nil, "value1_%d", valueCounter))
+	}
 
 	// block-2 with two post order transactions
 	l.addPostOrderTx("tx1", 100)
