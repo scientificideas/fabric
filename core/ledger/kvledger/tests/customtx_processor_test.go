@@ -46,7 +46,8 @@ func TestReadWriteCustomTxProcessor(t *testing.T) {
 	l.cutBlockAndCommitLegacy() // commit block-1 to populate initial state
 
 	valueCounter := 0
-	fakeTxProcessor.GenerateSimulationResultsStub = // tx processor reads and modifies key1
+	// tx processor reads and modifies key1
+	fakeTxProcessor.GenerateSimulationResultsStub =
 		func(txEnvelop *common.Envelope, s ledger.TxSimulator, initializingLedger bool) error {
 			valKey1, err := s.GetState("ns", "key1")
 			require.NoError(t, err)
